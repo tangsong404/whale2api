@@ -1,0 +1,12 @@
+{
+  "chunk": {
+    "p": "response/fragments",
+    "o": "APPEND",
+    "v": [
+      {"type": "THINK", "content": "思考中"},
+      {"type": "RESPONSE", "content": "结论"}
+    ]
+  },
+  "thinking_enabled": true,
+  "current_type": "thinking"
+}

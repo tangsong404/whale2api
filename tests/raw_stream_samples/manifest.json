@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "default_samples": [
+    "longtext-deepseek-v4-flash-20260429",
+    "longtext-deepseek-v4-pro-20260429"
+  ],
+  "notes": "Canonical long-text upstream raw stream samples refreshed on 2026-04-29."
+}

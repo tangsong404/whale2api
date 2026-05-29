@@ -1,0 +1,41 @@
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Agent / editor tooling (local only)
+.cursor/
+.codegraph/
+.agents/
+ref/
+
+# Build & test artifacts
+bin/
+dist/
+.tmp/
+artifacts/
+*.exe
+*.test
+coverage.out
+coverage/
+
+# Docker bind-mount data
+docker-data/
+
+# Node (unit tests under tests/node)
+node_modules/
+
+# Runtime / local data
+data/
+internal/server/data/
+
+# Logs
+*.log

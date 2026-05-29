@@ -1,0 +1,11 @@
+{
+  "chunk": {
+    "p": "response",
+    "v": [
+      {"p": "response/content", "v": "{\""},
+      {"p": "response/content", "v": "tool_calls\":[{\"name\":\"read_file\",\"input\":{\"path\":\"README.MD\"}}]}"}
+    ]
+  },
+  "thinking_enabled": false,
+  "current_type": "text"
+}

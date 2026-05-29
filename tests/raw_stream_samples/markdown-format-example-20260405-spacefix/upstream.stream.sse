@@ -1,0 +1,2336 @@
+event: ready
+data: {"request_message_id":1,"response_message_id":2,"model_type":"default"}
+
+event: update_session
+data: {"updated_at":1775323022.6001759}
+
+data: {"v":{"response":{"message_id":2,"parent_id":1,"model":"","role":"ASSISTANT","thinking_enabled":true,"ban_edit":false,"ban_regenerate":false,"status":"WIP","incomplete_message":null,"accumulated_token_usage":0,"files":[],"feedback":null,"inserted_at":1775323022.597386,"search_enabled":true,"fragments":[{"id":2,"type":"THINK","content":"我们需要","elapsed_secs":null,"references":[],"stage_id":1}],"has_pending_fragment":false,"auto_continue":false,"search_triggered":false}}}
+
+data: {"p":"response/fragments/-1/content","o":"APPEND","v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"格式"}
+
+data: {"v":"示例"}
+
+data: {"v":"，"}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"类型"}
+
+data: {"v":"。"}
+
+data: {"v":"用户"}
+
+data: {"v":"要求"}
+
+data: {"v":"：“"}
+
+data: {"v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"格式"}
+
+data: {"v":"示例"}
+
+data: {"v":" "}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"类型"}
+
+data: {"v":"”。"}
+
+data: {"v":"应该是"}
+
+data: {"v":"展示"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"语"}
+
+data: {"v":"法的"}
+
+data: {"v":"几个"}
+
+data: {"v":"典型"}
+
+data: {"v":"示例"}
+
+data: {"v":"，"}
+
+data: {"v":"比如"}
+
+data: {"v":"标题"}
+
+data: {"v":"、"}
+
+data: {"v":"列表"}
+
+data: {"v":"、"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"、"}
+
+data: {"v":"表格"}
+
+data: {"v":"、"}
+
+data: {"v":"引用"}
+
+data: {"v":"等"}
+
+data: {"v":"。"}
+
+data: {"v":"要求"}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"类型"}
+
+data: {"v":"，"}
+
+data: {"v":"每种"}
+
+data: {"v":"给出"}
+
+data: {"v":"示例"}
+
+data: {"v":"和"}
+
+data: {"v":"展示"}
+
+data: {"v":"效果"}
+
+data: {"v":"。"}
+
+data: {"v":"最好"}
+
+data: {"v":"用"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"展示"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"源"}
+
+data: {"v":"格式"}
+
+data: {"v":"，"}
+
+data: {"v":"然后"}
+
+data: {"v":"呈现"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"。"}
+
+data: {"v":"或者"}
+
+data: {"v":"直接"}
+
+data: {"v":"展示"}
+
+data: {"v":"如何"}
+
+data: {"v":"书写"}
+
+data: {"v":"。"}
+
+data: {"v":"以"}
+
+data: {"v":"清晰"}
+
+data: {"v":"易懂"}
+
+data: {"v":"为主"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"既然是"}
+
+data: {"v":"“"}
+
+data: {"v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"格式"}
+
+data: {"v":"示例"}
+
+data: {"v":"”，"}
+
+data: {"v":"应该"}
+
+data: {"v":"输出"}
+
+data: {"v":"一篇"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"文本"}
+
+data: {"v":"，"}
+
+data: {"v":"其中"}
+
+data: {"v":"包含"}
+
+data: {"v":"多个"}
+
+data: {"v":"示例"}
+
+data: {"v":"。"}
+
+data: {"v":"可以直接"}
+
+data: {"v":"在一个"}
+
+data: {"v":"消息"}
+
+data: {"v":"中"}
+
+data: {"v":"展示"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"和"}
+
+data: {"v":"呈现"}
+
+data: {"v":"。"}
+
+data: {"v":"通常"}
+
+data: {"v":"为了"}
+
+data: {"v":"展示"}
+
+data: {"v":"示例"}
+
+data: {"v":"，"}
+
+data: {"v":"可以使用"}
+
+data: {"v":"“"}
+
+data: {"v":"示例"}
+
+data: {"v":"："}
+
+data: {"v":"”"}
+
+data: {"v":"然后"}
+
+data: {"v":"给出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"源码"}
+
+data: {"v":"和"}
+
+data: {"v":"渲染"}
+
+data: {"v":"后"}
+
+data: {"v":"内容"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"在这里"}
+
+data: {"v":"作为"}
+
+data: {"v":"AI"}
+
+data: {"v":"，"}
+
+data: {"v":"直接"}
+
+data: {"v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"，"}
+
+data: {"v":"它"}
+
+data: {"v":"会被"}
+
+data: {"v":"渲染"}
+
+data: {"v":"吗"}
+
+data: {"v":"？"}
+
+data: {"v":"在"}
+
+data: {"v":"聊天"}
+
+data: {"v":"界面"}
+
+data: {"v":"，"}
+
+data: {"v":"我们可以"}
+
+data: {"v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"文本"}
+
+data: {"v":"，"}
+
+data: {"v":"助手"}
+
+data: {"v":"消息"}
+
+data: {"v":"会被"}
+
+data: {"v":"解析"}
+
+data: {"v":"成"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"展示"}
+
+data: {"v":"源码"}
+
+data: {"v":"时"}
+
+data: {"v":"，"}
+
+data: {"v":"需要用"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"包裹"}
+
+data: {"v":"防止"}
+
+data: {"v":"渲染"}
+
+data: {"v":"。"}
+
+data: {"v":"所以"}
+
+data: {"v":"可以"}
+
+data: {"v":"这样"}
+
+data: {"v":"组织"}
+
+data: {"v":"："}
+
+data: {"v":"提供"}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"不同类型"}
+
+data: {"v":"，"}
+
+data: {"v":"每个"}
+
+data: {"v":"类型"}
+
+data: {"v":"先"}
+
+data: {"v":"说明"}
+
+data: {"v":"，"}
+
+data: {"v":"然后"}
+
+data: {"v":"给出"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"（"}
+
+data: {"v":"标记"}
+
+data: {"v":"为"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"源码"}
+
+data: {"v":"）"}
+
+data: {"v":"和"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"在"}
+
+data: {"v":"同一个"}
+
+data: {"v":"消息"}
+
+data: {"v":"里"}
+
+data: {"v":"，"}
+
+data: {"v":"如果我们"}
+
+data: {"v":"展示"}
+
+data: {"v":"源码"}
+
+data: {"v":"块"}
+
+data: {"v":"，"}
+
+data: {"v":"实际"}
+
+data: {"v":"会被"}
+
+data: {"v":"渲染"}
+
+data: {"v":"？"}
+
+data: {"v":"注意"}
+
+data: {"v":"："}
+
+data: {"v":"在"}
+
+data: {"v":"消息"}
+
+data: {"v":"里"}
+
+data: {"v":"，"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"中的"}
+
+data: {"v":"内容"}
+
+data: {"v":"不会被"}
+
+data: {"v":"渲染"}
+
+data: {"v":"，"}
+
+data: {"v":"所以"}
+
+data: {"v":"我们可以"}
+
+data: {"v":"展示"}
+
+data: {"v":"源码"}
+
+data: {"v":"。"}
+
+data: {"v":"但是"}
+
+data: {"v":"展示"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"可以直接"}
+
+data: {"v":"写"}
+
+data: {"v":"出来"}
+
+data: {"v":"，"}
+
+data: {"v":"比如"}
+
+data: {"v":"用"}
+
+data: {"v":"引用"}
+
+data: {"v":"或"}
+
+data: {"v":"示例"}
+
+data: {"v":"文本"}
+
+data: {"v":"。"}
+
+data: {"v":"更"}
+
+data: {"v":"简单"}
+
+data: {"v":"的方法是"}
+
+data: {"v":"："}
+
+data: {"v":"写出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"示例"}
+
+data: {"v":"本身"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"为了"}
+
+data: {"v":"教"}
+
+data: {"v":"别人"}
+
+data: {"v":"，"}
+
+data: {"v":"可以用"}
+
+data: {"v":"说明"}
+
+data: {"v":"文字"}
+
+data: {"v":"+"}
+
+data: {"v":"实际"}
+
+data: {"v":"展示"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"用户"}
+
+data: {"v":"要求"}
+
+data: {"v":"“"}
+
+data: {"v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"格式"}
+
+data: {"v":"示例"}
+
+data: {"v":"”，"}
+
+data: {"v":"可能是"}
+
+data: {"v":"要我"}
+
+data: {"v":"展示"}
+
+data: {"v":"几个"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"常用"}
+
+data: {"v":"格式"}
+
+data: {"v":"的"}
+
+data: {"v":"写法"}
+
+data: {"v":"，"}
+
+data: {"v":"以便"}
+
+data: {"v":"参考"}
+
+data: {"v":"。"}
+
+data: {"v":"由于"}
+
+data: {"v":"环境"}
+
+data: {"v":"支持"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"，"}
+
+data: {"v":"我可以"}
+
+data: {"v":"直接"}
+
+data: {"v":"写出"}
+
+data: {"v":"标题"}
+
+data: {"v":"、"}
+
+data: {"v":"列表"}
+
+data: {"v":"、"}
+
+data: {"v":"表格"}
+
+data: {"v":"等"}
+
+data: {"v":"，"}
+
+data: {"v":"同时"}
+
+data: {"v":"用"}
+
+data: {"v":"注释"}
+
+data: {"v":"或"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"展示"}
+
+data: {"v":"源代码"}
+
+data: {"v":"。"}
+
+data: {"v":"为了"}
+
+data: {"v":"清晰"}
+
+data: {"v":"，"}
+
+data: {"v":"我会"}
+
+data: {"v":"每个"}
+
+data: {"v":"类型"}
+
+data: {"v":"用"}
+
+data: {"v":"三级"}
+
+data: {"v":"标题"}
+
+data: {"v":"，"}
+
+data: {"v":"然后"}
+
+data: {"v":"展示"}
+
+data: {"v":"“"}
+
+data: {"v":"源代码"}
+
+data: {"v":"”"}
+
+data: {"v":"和"}
+
+data: {"v":"“"}
+
+data: {"v":"显示"}
+
+data: {"v":"效果"}
+
+data: {"v":"”。"}
+
+data: {"v":"显示"}
+
+data: {"v":"效果"}
+
+data: {"v":"可以直接"}
+
+data: {"v":"用"}
+
+data: {"v":"实际"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"写出"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"要注意"}
+
+data: {"v":"显示"}
+
+data: {"v":"效果"}
+
+data: {"v":"中"}
+
+data: {"v":"可能会"}
+
+data: {"v":"被"}
+
+data: {"v":"解析"}
+
+data: {"v":"。"}
+
+data: {"v":"为避免"}
+
+data: {"v":"混淆"}
+
+data: {"v":"，"}
+
+data: {"v":"可以在"}
+
+data: {"v":"显示"}
+
+data: {"v":"效果"}
+
+data: {"v":"部分"}
+
+data: {"v":"使用"}
+
+data: {"v":"特殊"}
+
+data: {"v":"标注"}
+
+data: {"v":"？"}
+
+data: {"v":"或者"}
+
+data: {"v":"只"}
+
+data: {"v":"展示"}
+
+data: {"v":"源代码"}
+
+data: {"v":"并"}
+
+data: {"v":"说明"}
+
+data: {"v":"会"}
+
+data: {"v":"呈现"}
+
+data: {"v":"什么"}
+
+data: {"v":"。"}
+
+data: {"v":"最好的"}
+
+data: {"v":"方式是"}
+
+data: {"v":"："}
+
+data: {"v":"使用"}
+
+data: {"v":"文本"}
+
+data: {"v":"说明"}
+
+data: {"v":"和"}
+
+data: {"v":"示例"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"给出"}
+
+data: {"v":"示例"}
+
+data: {"v":"呈现"}
+
+data: {"v":"的"}
+
+data: {"v":"截图"}
+
+data: {"v":"描述"}
+
+data: {"v":"？"}
+
+data: {"v":"由于"}
+
+data: {"v":"没有"}
+
+data: {"v":"截图"}
+
+data: {"v":"，"}
+
+data: {"v":"可以用"}
+
+data: {"v":"文字"}
+
+data: {"v":"描述"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"更"}
+
+data: {"v":"直观"}
+
+data: {"v":"："}
+
+data: {"v":"我"}
+
+data: {"v":"直接在"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"中"}
+
+data: {"v":"写出"}
+
+data: {"v":"格式"}
+
+data: {"v":"的"}
+
+data: {"v":"渲染"}
+
+data: {"v":"结果"}
+
+data: {"v":"，"}
+
+data: {"v":"然后在"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"中"}
+
+data: {"v":"展示"}
+
+data: {"v":"其"}
+
+data: {"v":"源码"}
+
+data: {"v":"。"}
+
+data: {"v":"比如"}
+
+data: {"v":"：\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"标题"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"源码"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":"#"}
+
+data: {"v":" "}
+
+data: {"v":"一级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"##"}
+
+data: {"v":" "}
+
+data: {"v":"二级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"三级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"```\n\n"}
+
+data: {"v":"效果"}
+
+data: {"v":"：\n"}
+
+data: {"v":"#"}
+
+data: {"v":" "}
+
+data: {"v":"一级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"##"}
+
+data: {"v":" "}
+
+data: {"v":"二级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"三级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"这样"}
+
+data: {"v":"源码"}
+
+data: {"v":"不会被"}
+
+data: {"v":"渲染"}
+
+data: {"v":"，"}
+
+data: {"v":"效果"}
+
+data: {"v":"则"}
+
+data: {"v":"实际"}
+
+data: {"v":"呈现"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"注意"}
+
+data: {"v":"效果"}
+
+data: {"v":"呈现"}
+
+data: {"v":"后"}
+
+data: {"v":"，"}
+
+data: {"v":"下面的"}
+
+data: {"v":"内容"}
+
+data: {"v":"可能会"}
+
+data: {"v":"被"}
+
+data: {"v":"影响"}
+
+data: {"v":"。"}
+
+data: {"v":"不过"}
+
+data: {"v":"可以"}
+
+data: {"v":"接受"}
+
+data: {"v":"。"}
+
+data: {"v":"同样"}
+
+data: {"v":"对"}
+
+data: {"v":"列表"}
+
+data: {"v":"、"}
+
+data: {"v":"表格"}
+
+data: {"v":"、"}
+
+data: {"v":"引用"}
+
+data: {"v":"、"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"等"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"需要"}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"类型"}
+
+data: {"v":"，"}
+
+data: {"v":"可"}
+
+data: {"v":"包括"}
+
+data: {"v":"："}
+
+data: {"v":"标题"}
+
+data: {"v":"、"}
+
+data: {"v":"列表"}
+
+data: {"v":"（"}
+
+data: {"v":"有序"}
+
+data: {"v":"/"}
+
+data: {"v":"无序"}
+
+data: {"v":"）、"}
+
+data: {"v":"表格"}
+
+data: {"v":"、"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"、"}
+
+data: {"v":"引用"}
+
+data: {"v":"、"}
+
+data: {"v":"粗"}
+
+data: {"v":"体"}
+
+data: {"v":"斜"}
+
+data: {"v":"体"}
+
+data: {"v":"等"}
+
+data: {"v":"。"}
+
+data: {"v":"选择"}
+
+data: {"v":"常见的"}
+
+data: {"v":"。"}
+
+data: {"v":"确保"}
+
+data: {"v":"正确"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"另外"}
+
+data: {"v":"用户"}
+
+data: {"v":"要求"}
+
+data: {"v":"“"}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"类型"}
+
+data: {"v":"”，"}
+
+data: {"v":"输出"}
+
+data: {"v":"四个"}
+
+data: {"v":"或"}
+
+data: {"v":"五个"}
+
+data: {"v":"示例"}
+
+data: {"v":"。"}
+
+data: {"v":"我可以"}
+
+data: {"v":"输出"}
+
+data: {"v":"五个"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"输出"}
+
+data: {"v":"格式"}
+
+data: {"v":"应该"}
+
+data: {"v":"清晰"}
+
+data: {"v":"。"}
+
+data: {"v":"我会"}
+
+data: {"v":"回复"}
+
+data: {"v":"一段"}
+
+data: {"v":"完整的"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"文本"}
+
+data: {"v":"，"}
+
+data: {"v":"其中"}
+
+data: {"v":"包含"}
+
+data: {"v":"示例"}
+
+data: {"v":"说明"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"注意事项"}
+
+data: {"v":"："}
+
+data: {"v":"由于"}
+
+data: {"v":"我"}
+
+data: {"v":"本身"}
+
+data: {"v":"输出的"}
+
+data: {"v":"就是"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"，"}
+
+data: {"v":"所以我"}
+
+data: {"v":"必须"}
+
+data: {"v":"谨慎"}
+
+data: {"v":"不要"}
+
+data: {"v":"引起"}
+
+data: {"v":"渲染"}
+
+data: {"v":"歧"}
+
+data: {"v":"义"}
+
+data: {"v":"。"}
+
+data: {"v":"例如"}
+
+data: {"v":"，"}
+
+data: {"v":"展示"}
+
+data: {"v":"表格"}
+
+data: {"v":"源码"}
+
+data: {"v":"时"}
+
+data: {"v":"，"}
+
+data: {"v":"需要使用"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"。"}
+
+data: {"v":"展示"}
+
+data: {"v":"效果"}
+
+data: {"v":"时"}
+
+data: {"v":"，"}
+
+data: {"v":"我可以"}
+
+data: {"v":"直接"}
+
+data: {"v":"写出"}
+
+data: {"v":"表格"}
+
+data: {"v":"。"}
+
+data: {"v":"同样"}
+
+data: {"v":"，"}
+
+data: {"v":"引用"}
+
+data: {"v":"："}
+
+data: {"v":"效果"}
+
+data: {"v":"可以用"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"引用"}
+
+data: {"v":"内容"}
+
+data: {"v":"。"}
+
+data: {"v":"没问题"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"开始"}
+
+data: {"v":"组织"}
+
+data: {"v":"回答"}
+
+data: {"v":"。"}
+
+data: {"p":"response/fragments/-1/elapsed_secs","o":"SET","v":13.812640234}
+
+data: {"p":"response/fragments","o":"APPEND","v":[{"id":3,"type":"RESPONSE","content":"以下","references":[],"stage_id":1}]}
+
+data: {"p":"response/fragments/-1/content","v":"展示了"}
+
+data: {"v":"五种"}
+
+data: {"v":"常见的"}
+
+data: {"v":" Mark"}
+
+data: {"v":"down"}
+
+data: {"v":" "}
+
+data: {"v":"格式"}
+
+data: {"v":"示例"}
+
+data: {"v":"，"}
+
+data: {"v":"每种"}
+
+data: {"v":"均"}
+
+data: {"v":"包含"}
+
+data: {"v":"**"}
+
+data: {"v":"源码"}
+
+data: {"v":"**"}
+
+data: {"v":"（"}
+
+data: {"v":"供"}
+
+data: {"v":"复制"}
+
+data: {"v":"）"}
+
+data: {"v":"和"}
+
+data: {"v":"**"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"**"}
+
+data: {"v":"（"}
+
+data: {"v":"供"}
+
+data: {"v":"预览"}
+
+data: {"v":"）。\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"**"}
+
+data: {"v":"源码"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":"#"}
+
+data: {"v":" "}
+
+data: {"v":"一级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"##"}
+
+data: {"v":" "}
+
+data: {"v":"二级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"三级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"```\n"}
+
+data: {"v":"**"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"#"}
+
+data: {"v":" "}
+
+data: {"v":"一级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"##"}
+
+data: {"v":" "}
+
+data: {"v":"二级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"三级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"---\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"2"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"列表"}
+
+data: {"v":"（"}
+
+data: {"v":"无序"}
+
+data: {"v":"与"}
+
+data: {"v":"有序"}
+
+data: {"v":"）\n"}
+
+data: {"v":"**"}
+
+data: {"v":"源码"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"无序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":" "}
+
+data: {"v":"1"}
+
+data: {"v":"\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"无序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":" "}
+
+data: {"v":"2"}
+
+data: {"v":"\n"}
+
+data: {"v":" "}
+
+data: {"v":" -"}
+
+data: {"v":" "}
+
+data: {"v":"嵌套"}
+
+data: {"v":"无序"}
+
+data: {"v":"项"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"有序"}
+
+data: {"v":"列表"}
+
+data: {"v":"第一"}
+
+data: {"v":"项"}
+
+data: {"v":"\n"}
+
+data: {"v":"2"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"有序"}
+
+data: {"v":"列表"}
+
+data: {"v":"第二"}
+
+data: {"v":"项"}
+
+data: {"v":"\n"}
+
+data: {"v":"   "}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"嵌套"}
+
+data: {"v":"有序"}
+
+data: {"v":"项"}
+
+data: {"v":"\n"}
+
+data: {"v":"```\n"}
+
+data: {"v":"**"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"无序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":" "}
+
+data: {"v":"1"}
+
+data: {"v":"\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"无序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":" "}
+
+data: {"v":"2"}
+
+data: {"v":"\n"}
+
+data: {"v":" "}
+
+data: {"v":" -"}
+
+data: {"v":" "}
+
+data: {"v":"嵌套"}
+
+data: {"v":"无序"}
+
+data: {"v":"项"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"有序"}
+
+data: {"v":"列表"}
+
+data: {"v":"第一"}
+
+data: {"v":"项"}
+
+data: {"v":"\n"}
+
+data: {"v":"2"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"有序"}
+
+data: {"v":"列表"}
+
+data: {"v":"第二"}
+
+data: {"v":"项"}
+
+data: {"v":"\n"}
+
+data: {"v":"   "}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"嵌套"}
+
+data: {"v":"有序"}
+
+data: {"v":"项"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"---\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"3"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"表格"}
+
+data: {"v":"\n"}
+
+data: {"v":"**"}
+
+data: {"v":"源码"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"左"}
+
+data: {"v":"对齐"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"居"}
+
+data: {"v":"中对"}
+
+data: {"v":"齐"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"右"}
+
+data: {"v":"对齐"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" :"}
+
+data: {"v":"-----"}
+
+data: {"v":" |"}
+
+data: {"v":" :"}
+
+data: {"v":"------"}
+
+data: {"v":":"}
+
+data: {"v":" |"}
+
+data: {"v":" -----"}
+
+data: {"v":":"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"苹果"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"红色"}
+
+data: {"v":"   "}
+
+data: {"v":" |"}
+
+data: {"v":"   "}
+
+data: {"v":"5"}
+
+data: {"v":"."}
+
+data: {"v":"00"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"香蕉"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"黄色"}
+
+data: {"v":"   "}
+
+data: {"v":" |"}
+
+data: {"v":"   "}
+
+data: {"v":"3"}
+
+data: {"v":"."}
+
+data: {"v":"50"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"樱桃"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"深"}
+
+data: {"v":"红"}
+
+data: {"v":"   "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"12"}
+
+data: {"v":"."}
+
+data: {"v":"00"}
+
+data: {"v":" |\n"}
+
+data: {"v":"```\n"}
+
+data: {"v":"**"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"左"}
+
+data: {"v":"对齐"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"居"}
+
+data: {"v":"中对"}
+
+data: {"v":"齐"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"右"}
+
+data: {"v":"对齐"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" :"}
+
+data: {"v":"-----"}
+
+data: {"v":" |"}
+
+data: {"v":" :"}
+
+data: {"v":"------"}
+
+data: {"v":":"}
+
+data: {"v":" |"}
+
+data: {"v":" -----"}
+
+data: {"v":":"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"苹果"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"红色"}
+
+data: {"v":"   "}
+
+data: {"v":" |"}
+
+data: {"v":"   "}
+
+data: {"v":"5"}
+
+data: {"v":"."}
+
+data: {"v":"00"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"香蕉"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"黄色"}
+
+data: {"v":"   "}
+
+data: {"v":" |"}
+
+data: {"v":"   "}
+
+data: {"v":"3"}
+
+data: {"v":"."}
+
+data: {"v":"50"}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"樱桃"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"深"}
+
+data: {"v":"红"}
+
+data: {"v":"   "}
+
+data: {"v":" |"}
+
+data: {"v":"  "}
+
+data: {"v":"12"}
+
+data: {"v":"."}
+
+data: {"v":"00"}
+
+data: {"v":" |\n\n"}
+
+data: {"v":"---\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"4"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"（"}
+
+data: {"v":"语法"}
+
+data: {"v":"高"}
+
+data: {"v":"亮"}
+
+data: {"v":"）\n"}
+
+data: {"v":"**"}
+
+data: {"v":"源码"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":"```"}
+
+data: {"v":"python"}
+
+data: {"v":"\n"}
+
+data: {"v":"def"}
+
+data: {"v":" hello"}
+
+data: {"v":"():\n"}
+
+data: {"v":"   "}
+
+data: {"v":" print"}
+
+data: {"v":"(\""}
+
+data: {"v":"Hello"}
+
+data: {"v":","}
+
+data: {"v":" Mark"}
+
+data: {"v":"down"}
+
+data: {"v":"!\")\n"}
+
+data: {"v":"```\n"}
+
+data: {"v":"``"}
+
+data: {"v":"``"}
+
+data: {"v":" `"}
+
+data: {"v":"（"}
+
+data: {"v":"注意"}
+
+data: {"v":"："}
+
+data: {"v":"实际"}
+
+data: {"v":"使用时"}
+
+data: {"v":"去掉"}
+
+data: {"v":"外层"}
+
+data: {"v":"多余的"}
+
+data: {"v":"`"}
+
+data: {"v":"，"}
+
+data: {"v":"这里"}
+
+data: {"v":"为"}
+
+data: {"v":"展示"}
+
+data: {"v":"源码"}
+
+data: {"v":"而"}
+
+data: {"v":"嵌套"}
+
+data: {"v":"）\n"}
+
+data: {"v":"**"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"python"}
+
+data: {"v":"\n"}
+
+data: {"v":"def"}
+
+data: {"v":" hello"}
+
+data: {"v":"():\n"}
+
+data: {"v":"   "}
+
+data: {"v":" print"}
+
+data: {"v":"(\""}
+
+data: {"v":"Hello"}
+
+data: {"v":","}
+
+data: {"v":" Mark"}
+
+data: {"v":"down"}
+
+data: {"v":"!\")\n"}
+
+data: {"v":"```\n\n"}
+
+data: {"v":"---\n\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"5"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"引用"}
+
+data: {"v":"与"}
+
+data: {"v":"分割"}
+
+data: {"v":"线"}
+
+data: {"v":"\n"}
+
+data: {"v":"**"}
+
+data: {"v":"源码"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":"```"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"这是一"}
+
+data: {"v":"段"}
+
+data: {"v":"引用"}
+
+data: {"v":"文字"}
+
+data: {"v":"。\n"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"可以"}
+
+data: {"v":"跨"}
+
+data: {"v":"多"}
+
+data: {"v":"行"}
+
+data: {"v":"。\n"}
+
+data: {"v":">\n"}
+
+data: {"v":">"}
+
+data: {"v":" >"}
+
+data: {"v":" "}
+
+data: {"v":"支持"}
+
+data: {"v":"嵌套"}
+
+data: {"v":"引用"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"---\n"}
+
+data: {"v":"```\n"}
+
+data: {"v":"**"}
+
+data: {"v":"渲染"}
+
+data: {"v":"效果"}
+
+data: {"v":"**"}
+
+data: {"v":"：\n"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"这是一"}
+
+data: {"v":"段"}
+
+data: {"v":"引用"}
+
+data: {"v":"文字"}
+
+data: {"v":"。\n"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"可以"}
+
+data: {"v":"跨"}
+
+data: {"v":"多"}
+
+data: {"v":"行"}
+
+data: {"v":"。\n"}
+
+data: {"v":">\n"}
+
+data: {"v":">"}
+
+data: {"v":" >"}
+
+data: {"v":" "}
+
+data: {"v":"支持"}
+
+data: {"v":"嵌套"}
+
+data: {"v":"引用"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"---"}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"accumulated_token_usage","v":550},{"p":"quasi_status","v":"FINISHED"}]}
+
+data: {"p":"response/status","o":"SET","v":"FINISHED"}
+
+event: finish
+data: {}
+
+event: update_session
+data: {"updated_at":1775323046.236651}
+

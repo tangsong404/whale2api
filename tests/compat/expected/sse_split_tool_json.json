@@ -1,0 +1,8 @@
+{
+  "parts": [
+    {"text": "{\"", "type": "text"},
+    {"text": "tool_calls\":[{\"name\":\"read_file\",\"input\":{\"path\":\"README.MD\"}}]}", "type": "text"}
+  ],
+  "finished": false,
+  "new_type": "text"
+}

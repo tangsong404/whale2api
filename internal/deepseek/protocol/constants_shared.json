@@ -1,0 +1,27 @@
+{
+  "client": {
+    "name": "DeepSeek",
+    "platform": "android",
+    "version": "2.0.4",
+    "android_api_level": "35",
+    "locale": "zh_CN"
+  },
+  "base_headers": {
+    "Host": "chat.deepseek.com",
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "accept-charset": "UTF-8"
+  },
+  "skip_contains_patterns": [
+    "quasi_status",
+    "elapsed_secs",
+    "pending_fragment",
+    "conversation_mode",
+    "fragments/-1/status",
+    "fragments/-2/status",
+    "fragments/-3/status"
+  ],
+  "skip_exact_paths": [
+    "response/search_status"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "keys": ["sk-testsuite"],
+  "accounts": [
+    {
+      "email": "testsuite@example.com",
+      "password": "test-password"
+    }
+  ]
+}

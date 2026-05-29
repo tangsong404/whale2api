@@ -1,0 +1,376 @@
+event: ready
+data: {"request_message_id":1,"response_message_id":2,"model_type":"default"}
+
+event: update_session
+data: {"updated_at":1775322810.106091}
+
+data: {"v":{"response":{"message_id":2,"parent_id":1,"model":"","role":"ASSISTANT","thinking_enabled":true,"ban_edit":false,"ban_regenerate":false,"status":"WIP","incomplete_message":null,"accumulated_token_usage":0,"files":[],"feedback":null,"inserted_at":1775322810.101244,"search_enabled":true,"fragments":[{"id":2,"type":"THINK","content":"我们","elapsed_secs":null,"references":[],"stage_id":1}],"has_pending_fragment":false,"auto_continue":false,"search_triggered":false}}}
+
+data: {"p":"response/fragments/-1/content","o":"APPEND","v":"只需要"}
+
+data: {"v":"输出"}
+
+data: {"v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"格式"}
+
+data: {"v":"的"}
+
+data: {"v":"示例"}
+
+data: {"v":"，"}
+
+data: {"v":"展示"}
+
+data: {"v":"四"}
+
+data: {"v":"五个"}
+
+data: {"v":"类型"}
+
+data: {"v":"。"}
+
+data: {"v":"比如"}
+
+data: {"v":"标题"}
+
+data: {"v":"、"}
+
+data: {"v":"列表"}
+
+data: {"v":"、"}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"、"}
+
+data: {"v":"表格"}
+
+data: {"v":"、"}
+
+data: {"v":"引用"}
+
+data: {"v":"等"}
+
+data: {"v":"。"}
+
+data: {"v":"直接"}
+
+data: {"v":"输出"}
+
+data: {"v":"即可"}
+
+data: {"v":"。"}
+
+data: {"p":"response/fragments/-1/elapsed_secs","o":"SET","v":0.765374503}
+
+data: {"p":"response/fragments","o":"APPEND","v":[{"id":3,"type":"RESPONSE","content":"```","references":[],"stage_id":1}]}
+
+data: {"p":"response/fragments/-1/content","v":"mark"}
+
+data: {"v":"down"}
+
+data: {"v":"\n"}
+
+data: {"v":"#"}
+
+data: {"v":" "}
+
+data: {"v":"一级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"##"}
+
+data: {"v":" "}
+
+data: {"v":"二级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n"}
+
+data: {"v":"###"}
+
+data: {"v":" "}
+
+data: {"v":"三级"}
+
+data: {"v":"标题"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"无序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":" "}
+
+data: {"v":"1"}
+
+data: {"v":"\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"无序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":" "}
+
+data: {"v":"2"}
+
+data: {"v":"\n"}
+
+data: {"v":" "}
+
+data: {"v":" -"}
+
+data: {"v":" "}
+
+data: {"v":"嵌套"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"有序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":"一"}
+
+data: {"v":"\n"}
+
+data: {"v":"2"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"有序"}
+
+data: {"v":"列表"}
+
+data: {"v":"项"}
+
+data: {"v":"二"}
+
+data: {"v":"\n\n"}
+
+data: {"v":"```"}
+
+data: {"v":"python"}
+
+data: {"v":"\n"}
+
+data: {"v":"#"}
+
+data: {"v":" "}
+
+data: {"v":"代码"}
+
+data: {"v":"块"}
+
+data: {"v":"示例"}
+
+data: {"v":"\n"}
+
+data: {"v":"print"}
+
+data: {"v":"(\""}
+
+data: {"v":"Hello"}
+
+data: {"v":","}
+
+data: {"v":" Mark"}
+
+data: {"v":"down"}
+
+data: {"v":"!\")\n"}
+
+data: {"v":"```\n\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"姓名"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"年龄"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"城市"}
+
+data: {"v":"    "}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":"------"}
+
+data: {"v":"|"}
+
+data: {"v":"------"}
+
+data: {"v":"|"}
+
+data: {"v":"----------"}
+
+data: {"v":"|\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"张三"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"25"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"北京"}
+
+data: {"v":"    "}
+
+data: {"v":" |\n"}
+
+data: {"v":"|"}
+
+data: {"v":" "}
+
+data: {"v":"李"}
+
+data: {"v":"四"}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"30"}
+
+data: {"v":"  "}
+
+data: {"v":" |"}
+
+data: {"v":" "}
+
+data: {"v":"上海"}
+
+data: {"v":"    "}
+
+data: {"v":" |\n\n"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"这是一"}
+
+data: {"v":"段"}
+
+data: {"v":"引用"}
+
+data: {"v":"文字"}
+
+data: {"v":"。\n"}
+
+data: {"v":">"}
+
+data: {"v":" "}
+
+data: {"v":"可以"}
+
+data: {"v":"跨"}
+
+data: {"v":"多"}
+
+data: {"v":"行"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"粗"}
+
+data: {"v":"体"}
+
+data: {"v":"文本"}
+
+data: {"v":"**"}
+
+data: {"v":" "}
+
+data: {"v":"和"}
+
+data: {"v":" *"}
+
+data: {"v":"斜"}
+
+data: {"v":"体"}
+
+data: {"v":"文本"}
+
+data: {"v":"*\n"}
+
+data: {"v":"```"}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"accumulated_token_usage","v":190},{"p":"quasi_status","v":"FINISHED"}]}
+
+data: {"p":"response/status","o":"SET","v":"FINISHED"}
+
+event: finish
+data: {}
+
+event: update_session
+data: {"updated_at":1775322814.188892}
+
+event: title
+data: {"content":"Markdown格式示例输出"}
+
+event: close
+data: {"click_behavior":"none","auto_resume":false}
+

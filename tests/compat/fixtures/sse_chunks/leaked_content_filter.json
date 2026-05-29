@@ -1,0 +1,8 @@
+{
+  "chunk": {
+    "p": "response/content",
+    "v": "正常输出CONTENT_FILTER你好，这个问题我暂时无法回答"
+  },
+  "thinking_enabled": false,
+  "current_type": "text"
+}

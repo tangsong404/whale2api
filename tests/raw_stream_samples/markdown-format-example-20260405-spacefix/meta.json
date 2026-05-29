@@ -1,0 +1,23 @@
+{
+  "sample_id": "markdown-format-example-20260405-spacefix",
+  "captured_at_utc": "2026-04-04T17:17:26Z",
+  "source": "admin/dev/raw-samples/capture",
+  "request": {
+    "messages": [
+      {
+        "content": "输出markdown格式示例 四五个类型",
+        "role": "user"
+      }
+    ],
+    "model": "deepseek-v4-pro-search",
+    "stream": true
+  },
+  "capture": {
+    "label": "deepseek_completion",
+    "url": "https://chat.deepseek.com/api/v0/chat/completion",
+    "status_code": 200,
+    "response_bytes": 24684,
+    "contains_finished_token": true,
+    "finished_token_count": 2
+  }
+}

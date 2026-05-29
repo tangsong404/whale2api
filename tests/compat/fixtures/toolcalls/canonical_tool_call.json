@@ -1,0 +1,6 @@
+{
+  "text": "<tool_calls><invoke name=\"read_file\"><parameter name=\"path\">README.MD</parameter></invoke></tool_calls>",
+  "tool_names": [
+    "read_file"
+  ]
+}

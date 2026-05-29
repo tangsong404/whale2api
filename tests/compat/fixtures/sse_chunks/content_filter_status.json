@@ -1,0 +1,11 @@
+{
+  "chunk": {
+    "p": "response",
+    "v": [
+      {"p": "status", "v": "CONTENT_FILTER"},
+      {"p": "accumulated_token_usage", "v": 77}
+    ]
+  },
+  "thinking_enabled": false,
+  "current_type": "text"
+}

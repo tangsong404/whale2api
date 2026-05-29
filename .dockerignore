@@ -1,0 +1,42 @@
+.git
+.gitignore
+.github
+
+# IDE / agent tooling
+.cursor
+.codegraph
+.agents
+.idea
+.vscode
+ref
+
+# Secrets (compose injects via env_file at runtime)
+.env
+.env.*
+!.env.example
+
+# Local build / test output
+.tmp
+artifacts
+dist
+bin
+docker-data
+coverage.out
+coverage
+
+# Tests & fixtures (not needed in production image)
+tests
+**/*_test.go
+plans
+
+# Node / optional frontends
+node_modules
+webui
+
+# Docs (optional in image)
+README.md
+LICENSE
+
+# OS junk
+.DS_Store
+Thumbs.db

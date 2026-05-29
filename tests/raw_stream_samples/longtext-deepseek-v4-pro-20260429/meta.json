@@ -1,0 +1,37 @@
+{
+  "sample_id": "longtext-deepseek-v4-pro-20260429",
+  "captured_at_utc": "2026-04-29T17:52:45Z",
+  "source": "admin/dev/raw-samples/capture",
+  "request": {
+    "messages": [
+      {
+        "content": "请写一篇1200字中文说明：比较SSE与WebSocket在AI推理流式输出中的可靠性、断线恢复、负载均衡、代理兼容性、成本和可观测性，并给出分层架构建议。",
+        "role": "user"
+      }
+    ],
+    "model": "deepseek-v4-pro",
+    "stream": true
+  },
+  "capture": {
+    "label": "deepseek_upload_file",
+    "url": "https://chat.deepseek.com/api/v0/file/upload_file",
+    "status_code": 200,
+    "response_bytes": 55354,
+    "rounds": [
+      {
+        "label": "deepseek_upload_file",
+        "url": "https://chat.deepseek.com/api/v0/file/upload_file",
+        "status_code": 200,
+        "response_bytes": 780
+      },
+      {
+        "label": "deepseek_completion",
+        "url": "https://chat.deepseek.com/api/v0/chat/completion",
+        "status_code": 200,
+        "response_bytes": 54573
+      }
+    ],
+    "contains_finished_token": true,
+    "finished_token_count": 2
+  }
+}

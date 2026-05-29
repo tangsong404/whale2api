@@ -1,0 +1,9 @@
+{
+  "cases": [
+    {"name": "ascii_short", "text": "abcd"},
+    {"name": "whitespace_only", "text": "   "},
+    {"name": "newline_only", "text": "\n"},
+    {"name": "cjk", "text": "你好世界"},
+    {"name": "mixed", "text": "Hello 你好世界"}
+  ]
+}

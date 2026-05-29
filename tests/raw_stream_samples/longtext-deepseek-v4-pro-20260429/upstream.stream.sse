@@ -1,0 +1,5230 @@
+{"code":0,"msg":"","data":{"biz_code":0,"biz_msg":"","biz_data":{"id":"file-9c8ae986-75f7-4611-9956-5e1b502f3ec2","status":"SUCCESS","file_name":"context-upload.txt","from_share":false,"file_size":732,"model_kind":"NORMAL","token_usage":145,"error_code":null,"inserted_at":1777485076.42,"updated_at":1777485076.42,"signed_path":"/file?file_id=9c8ae986-75f7-4611-9956-5e1b502f3ec2&state=a1REa2AdO8JmDuxMFiUTPJfpiyY4ie2weyUpYxfvEOrk5lxUCZifpRw9toZAEzn3DAjkgbR6blgZf41KLkHBKwwrcYTIjfxTRKijDqjEfguis03yddpuVrii6keG4%2BXIlcLAsyZG3qcGhfTGVZhsr%2BRl17J%2BcnT9roslhxBcEy4rthFJVMWUI%2BSHjuo2gLEUDfvMfULQ1gSLVGtr%2Fpq%2FcNPCPSxZapIQv04ZVmJLcdbzRkz%2Bb%2BxM5RWUIPujp%2B3ke1WDa3%2B6S4pP0Pv%2BAJ0MFUjQsloUwO4AsJ8YhGBFWg8Ehe1b2yt1N%2Fi%2BIjLRPt5xiNmALcJJXIY%3D","is_image":false,"audit_result":null}}}
+event: ready
+data: {"request_message_id":1,"response_message_id":2,"model_type":"expert"}
+
+event: update_session
+data: {"updated_at":1777485078.551796}
+
+data: {"v":{"response":{"message_id":2,"parent_id":1,"model":"","role":"ASSISTANT","thinking_enabled":true,"ban_edit":false,"ban_regenerate":false,"status":"WIP","incomplete_message":null,"accumulated_token_usage":0,"feedback":null,"inserted_at":1777485078.542825,"search_enabled":false,"fragments":[{"id":2,"type":"THINK","content":"我们","elapsed_secs":null,"references":[],"stage_id":1}],"conversation_mode":"DEFAULT","has_pending_fragment":false,"auto_continue":false}}}
+
+data: {"p":"response/fragments/-1/content","o":"APPEND","v":"被"}
+
+data: {"v":"要求"}
+
+data: {"v":"写"}
+
+data: {"v":"一篇"}
+
+data: {"v":"120"}
+
+data: {"v":"0"}
+
+data: {"v":"字"}
+
+data: {"v":"的中"}
+
+data: {"v":"文"}
+
+data: {"v":"说明"}
+
+data: {"v":"，"}
+
+data: {"v":"比较"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"与"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"在"}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出"}
+
+data: {"v":"中的"}
+
+data: {"v":"可靠性"}
+
+data: {"v":"、"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"、"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"、"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"、"}
+
+data: {"v":"成本和"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"给出"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"。"}
+
+data: {"v":"思考"}
+
+data: {"v":"过程"}
+
+data: {"v":"要求"}
+
+data: {"v":"详尽"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"最终"}
+
+data: {"v":"输出"}
+
+data: {"v":"是"}
+
+data: {"v":"给"}
+
+data: {"v":"用户的"}
+
+data: {"v":"直接"}
+
+data: {"v":"回答"}
+
+data: {"v":"。"}
+
+data: {"v":"助手"}
+
+data: {"v":"应该"}
+
+data: {"v":"输出"}
+
+data: {"v":"一篇"}
+
+data: {"v":"说明"}
+
+data: {"v":"文章"}
+
+data: {"v":"。"}
+
+data: {"v":"需要"}
+
+data: {"v":"包含"}
+
+data: {"v":"这些"}
+
+data: {"v":"方面的"}
+
+data: {"v":"比较"}
+
+data: {"v":"，"}
+
+data: {"v":"以及"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"。"}
+
+data: {"v":"注意"}
+
+data: {"v":"字数"}
+
+data: {"v":"要求"}
+
+data: {"v":"："}
+
+data: {"v":"120"}
+
+data: {"v":"0"}
+
+data: {"v":"字"}
+
+data: {"v":"左右"}
+
+data: {"v":"。"}
+
+data: {"v":"可以"}
+
+data: {"v":"起草"}
+
+data: {"v":"内容"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"首先"}
+
+data: {"v":"，"}
+
+data: {"v":"理解"}
+
+data: {"v":"两种"}
+
+data: {"v":"技术"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"（"}
+
+data: {"v":"Server"}
+
+data: {"v":"-S"}
+
+data: {"v":"ent"}
+
+data: {"v":" Events"}
+
+data: {"v":"）"}
+
+data: {"v":"是基于"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"的单"}
+
+data: {"v":"向"}
+
+data: {"v":"流"}
+
+data: {"v":"，"}
+
+data: {"v":"客户端"}
+
+data: {"v":"通过"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":" API"}
+
+data: {"v":"接收"}
+
+data: {"v":"数据"}
+
+data: {"v":"；"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"是全"}
+
+data: {"v":"双"}
+
+data: {"v":"工"}
+
+data: {"v":"通信"}
+
+data: {"v":"协议"}
+
+data: {"v":"。"}
+
+data: {"v":"在"}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出"}
+
+data: {"v":"场景"}
+
+data: {"v":"，"}
+
+data: {"v":"通常"}
+
+data: {"v":"是由"}
+
+data: {"v":"服务器"}
+
+data: {"v":"向"}
+
+data: {"v":"客户端"}
+
+data: {"v":"推送"}
+
+data: {"v":"生成的"}
+
+data: {"v":"token"}
+
+data: {"v":"或"}
+
+data: {"v":"结果"}
+
+data: {"v":"，"}
+
+data: {"v":"客户端"}
+
+data: {"v":"只是"}
+
+data: {"v":"接收"}
+
+data: {"v":"，"}
+
+data: {"v":"不需要"}
+
+data: {"v":"发送"}
+
+data: {"v":"太多"}
+
+data: {"v":"数据"}
+
+data: {"v":"（"}
+
+data: {"v":"除了"}
+
+data: {"v":"初始"}
+
+data: {"v":"请求"}
+
+data: {"v":"）。"}
+
+data: {"v":"所以"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"似乎"}
+
+data: {"v":"更"}
+
+data: {"v":"自然"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"也可"}
+
+data: {"v":"用"}
+
+data: {"v":"。"}
+
+data: {"v":"比较"}
+
+data: {"v":"可靠性"}
+
+data: {"v":"、"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"、"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"、"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"、"}
+
+data: {"v":"成本"}
+
+data: {"v":"、"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"；"}
+
+data: {"v":"再"}
+
+data: {"v":"给出"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"分析"}
+
+data: {"v":"每"}
+
+data: {"v":"一点"}
+
+data: {"v":"：\n\n"}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"可靠性"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"基于"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"，"}
+
+data: {"v":"利用"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"的"}
+
+data: {"v":"自动"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"机制"}
+
+data: {"v":"（"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":" API"}
+
+data: {"v":"会自动"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"并"}
+
+data: {"v":"发送"}
+
+data: {"v":"Last"}
+
+data: {"v":"-"}
+
+data: {"v":"Event"}
+
+data: {"v":"-ID"}
+
+data: {"v":"），"}
+
+data: {"v":"但"}
+
+data: {"v":"只有"}
+
+data: {"v":"单向"}
+
+data: {"v":"，"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"时"}
+
+data: {"v":"可能需要"}
+
+data: {"v":"重新"}
+
+data: {"v":"发送"}
+
+data: {"v":"请求"}
+
+data: {"v":"？"}
+
+data: {"v":"如果"}
+
+data: {"v":"连接"}
+
+data: {"v":"断开"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"客户端"}
+
+data: {"v":"会自动"}
+
+data: {"v":"尝试"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"可以"}
+
+data: {"v":"发送"}
+
+data: {"v":"上次"}
+
+data: {"v":"接收"}
+
+data: {"v":"的事件"}
+
+data: {"v":"ID"}
+
+data: {"v":"，"}
+
+data: {"v":"服务器"}
+
+data: {"v":"可以从"}
+
+data: {"v":"该"}
+
+data: {"v":"ID"}
+
+data: {"v":"后"}
+
+data: {"v":"继续"}
+
+data: {"v":"发送"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"需要"}
+
+data: {"v":"服务器"}
+
+data: {"v":"端"}
+
+data: {"v":"支持"}
+
+data: {"v":"从"}
+
+data: {"v":"某个"}
+
+data: {"v":"事件"}
+
+data: {"v":"ID"}
+
+data: {"v":"恢复"}
+
+data: {"v":"，"}
+
+data: {"v":"维护"}
+
+data: {"v":"会话"}
+
+data: {"v":"。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需要"}
+
+data: {"v":"自己"}
+
+data: {"v":"实现"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"和"}
+
+data: {"v":"恢复"}
+
+data: {"v":"逻辑"}
+
+data: {"v":"，"}
+
+data: {"v":"比较"}
+
+data: {"v":"灵活"}
+
+data: {"v":"但"}
+
+data: {"v":"复杂"}
+
+data: {"v":"。"}
+
+data: {"v":"可靠性"}
+
+data: {"v":"方面"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"因为有"}
+
+data: {"v":"标准"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"可能"}
+
+data: {"v":"更"}
+
+data: {"v":"简单"}
+
+data: {"v":"可靠"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"也要"}
+
+data: {"v":"考虑"}
+
+data: {"v":"网络"}
+
+data: {"v":"中断"}
+
+data: {"v":"后"}
+
+data: {"v":"消息"}
+
+data: {"v":"丢失"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"自动"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"和"}
+
+data: {"v":"事件"}
+
+data: {"v":"ID"}
+
+data: {"v":"可以"}
+
+data: {"v":"做到"}
+
+data: {"v":"精确"}
+
+data: {"v":"恢复"}
+
+data: {"v":"（"}
+
+data: {"v":"如果"}
+
+data: {"v":"服务器"}
+
+data: {"v":"记录"}
+
+data: {"v":"）。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"可以"}
+
+data: {"v":"双向"}
+
+data: {"v":"确认"}
+
+data: {"v":"，"}
+
+data: {"v":"实现"}
+
+data: {"v":"更"}
+
+data: {"v":"可靠的"}
+
+data: {"v":"传输"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"通过"}
+
+data: {"v":"ACK"}
+
+data: {"v":"），"}
+
+data: {"v":"但"}
+
+data: {"v":"需要"}
+
+data: {"v":"更多"}
+
+data: {"v":"开发"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"2"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":"有"}
+
+data: {"v":"内置"}
+
+data: {"v":"的重"}
+
+data: {"v":"连"}
+
+data: {"v":"机制"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"可通过"}
+
+data: {"v":"Last"}
+
+data: {"v":"-"}
+
+data: {"v":"Event"}
+
+data: {"v":"-ID"}
+
+data: {"v":"实现"}
+
+data: {"v":"断"}
+
+data: {"v":"点"}
+
+data: {"v":"续"}
+
+data: {"v":"传"}
+
+data: {"v":"。"}
+
+data: {"v":"服务器"}
+
+data: {"v":"需要"}
+
+data: {"v":"根据"}
+
+data: {"v":"该"}
+
+data: {"v":"ID"}
+
+data: {"v":"缓存"}
+
+data: {"v":"或"}
+
+data: {"v":"重"}
+
+data: {"v":"放"}
+
+data: {"v":"事件"}
+
+data: {"v":"。"}
+
+data: {"v":"这对于"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"很重要"}
+
+data: {"v":"，"}
+
+data: {"v":"因为"}
+
+data: {"v":"一旦"}
+
+data: {"v":"断开"}
+
+data: {"v":"，"}
+
+data: {"v":"客户端"}
+
+data: {"v":"可以"}
+
+data: {"v":"继续"}
+
+data: {"v":"接收"}
+
+data: {"v":"后续"}
+
+data: {"v":"token"}
+
+data: {"v":"，"}
+
+data: {"v":"而不"}
+
+data: {"v":"至于"}
+
+data: {"v":"丢失"}
+
+data: {"v":"中间"}
+
+data: {"v":"部分"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"需要"}
+
+data: {"v":"服务器"}
+
+data: {"v":"维护"}
+
+data: {"v":"事件"}
+
+data: {"v":"流"}
+
+data: {"v":"历史"}
+
+data: {"v":"，"}
+
+data: {"v":"可能"}
+
+data: {"v":"消耗"}
+
+data: {"v":"内存"}
+
+data: {"v":"。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需要"}
+
+data: {"v":"自定义"}
+
+data: {"v":"心跳"}
+
+data: {"v":"和"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"，"}
+
+data: {"v":"还要"}
+
+data: {"v":"自己"}
+
+data: {"v":"设计"}
+
+data: {"v":"消息"}
+
+data: {"v":"ID"}
+
+data: {"v":"和"}
+
+data: {"v":"确认"}
+
+data: {"v":"机制"}
+
+data: {"v":"来"}
+
+data: {"v":"保证"}
+
+data: {"v":"不"}
+
+data: {"v":"丢失"}
+
+data: {"v":"。"}
+
+data: {"v":"所以"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"更"}
+
+data: {"v":"标准化"}
+
+data: {"v":"，"}
+
+data: {"v":"易于"}
+
+data: {"v":"实现"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"3"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"基于"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"可以通过"}
+
+data: {"v":"标准"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"器"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"N"}
+
+data: {"v":"ginx"}
+
+data: {"v":"、"}
+
+data: {"v":"HA"}
+
+data: {"v":"Proxy"}
+
+data: {"v":"）"}
+
+data: {"v":"分发"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"可能"}
+
+data: {"v":"占用"}
+
+data: {"v":"连接"}
+
+data: {"v":"数"}
+
+data: {"v":"。"}
+
+data: {"v":"由于"}
+
+data: {"v":"是"}
+
+data: {"v":"单向"}
+
+data: {"v":"流"}
+
+data: {"v":"，"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"器"}
+
+data: {"v":"配置"}
+
+data: {"v":"相对"}
+
+data: {"v":"简单"}
+
+data: {"v":"，"}
+
+data: {"v":"只要"}
+
+data: {"v":"支持"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":"1"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"和"}
+
+data: {"v":"分"}
+
+data: {"v":"块"}
+
+data: {"v":"传输"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"如果有"}
+
+data: {"v":"反向"}
+
+data: {"v":"代理"}
+
+data: {"v":"，"}
+
+data: {"v":"可能需要"}
+
+data: {"v":"配置"}
+
+data: {"v":"超"}
+
+data: {"v":"时"}
+
+data: {"v":"。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"则是"}
+
+data: {"v":"升级"}
+
+data: {"v":"协议"}
+
+data: {"v":"，"}
+
+data: {"v":"需要"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"器"}
+
+data: {"v":"支持"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"代理"}
+
+data: {"v":"，"}
+
+data: {"v":"需要"}
+
+data: {"v":"Up"}
+
+data: {"v":"grade"}
+
+data: {"v":"和"}
+
+data: {"v":"Connection"}
+
+data: {"v":"头"}
+
+data: {"v":"，"}
+
+data: {"v":"并且"}
+
+data: {"v":"需要"}
+
+data: {"v":"保持"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"同样"}
+
+data: {"v":"占用"}
+
+data: {"v":"连接"}
+
+data: {"v":"。"}
+
+data: {"v":"两者的"}
+
+data: {"v":"区别"}
+
+data: {"v":"主要在"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"上"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"4"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"使用"}
+
+data: {"v":"普通"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"，"}
+
+data: {"v":"大部分"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"代理"}
+
+data: {"v":"和"}
+
+data: {"v":"CD"}
+
+data: {"v":"N"}
+
+data: {"v":"都能"}
+
+data: {"v":"透"}
+
+data: {"v":"传"}
+
+data: {"v":"，"}
+
+data: {"v":"只要"}
+
+data: {"v":"支持"}
+
+data: {"v":"分"}
+
+data: {"v":"块"}
+
+data: {"v":"传输"}
+
+data: {"v":"编码"}
+
+data: {"v":"和"}
+
+data: {"v":"不过"}
+
+data: {"v":"度"}
+
+data: {"v":"缓冲"}
+
+data: {"v":"。"}
+
+data: {"v":"某些"}
+
+data: {"v":"代理"}
+
+data: {"v":"可能会"}
+
+data: {"v":"缓冲"}
+
+data: {"v":"响应"}
+
+data: {"v":"体"}
+
+data: {"v":"，"}
+
+data: {"v":"影响"}
+
+data: {"v":"实时"}
+
+data: {"v":"性"}
+
+data: {"v":"，"}
+
+data: {"v":"可以通过"}
+
+data: {"v":"设置"}
+
+data: {"v":"响应"}
+
+data: {"v":"头"}
+
+data: {"v":"（"}
+
+data: {"v":"X"}
+
+data: {"v":"-A"}
+
+data: {"v":"cc"}
+
+data: {"v":"el"}
+
+data: {"v":"-B"}
+
+data: {"v":"uff"}
+
+data: {"v":"ering"}
+
+data: {"v":":"}
+
+data: {"v":" no"}
+
+data: {"v":"）"}
+
+data: {"v":"禁用"}
+
+data: {"v":"缓冲"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"总体"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性好"}
+
+data: {"v":"。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需要"}
+
+data: {"v":"代理"}
+
+data: {"v":"明确"}
+
+data: {"v":"支持"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"协议"}
+
+data: {"v":"升级"}
+
+data: {"v":"，"}
+
+data: {"v":"否则"}
+
+data: {"v":"可能"}
+
+data: {"v":"被"}
+
+data: {"v":"拒绝"}
+
+data: {"v":"。"}
+
+data: {"v":"许多"}
+
+data: {"v":"老"}
+
+data: {"v":"代理"}
+
+data: {"v":"或"}
+
+data: {"v":"CD"}
+
+data: {"v":"N"}
+
+data: {"v":"不支持"}
+
+data: {"v":"，"}
+
+data: {"v":"需要"}
+
+data: {"v":"专门"}
+
+data: {"v":"配置"}
+
+data: {"v":"。"}
+
+data: {"v":"因此在"}
+
+data: {"v":"复杂"}
+
+data: {"v":"网络"}
+
+data: {"v":"环境下"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"明显"}
+
+data: {"v":"优于"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"5"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"成本"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"更"}
+
+data: {"v":"简单"}
+
+data: {"v":"，"}
+
+data: {"v":"开发"}
+
+data: {"v":"成本"}
+
+data: {"v":"低"}
+
+data: {"v":"，"}
+
+data: {"v":"使用"}
+
+data: {"v":"标准"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"，"}
+
+data: {"v":"无需"}
+
+data: {"v":"特殊"}
+
+data: {"v":"库"}
+
+data: {"v":"，"}
+
+data: {"v":"客户端"}
+
+data: {"v":"使用"}
+
+data: {"v":"浏览器"}
+
+data: {"v":"内置"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":"。"}
+
+data: {"v":"服务"}
+
+data: {"v":"端"}
+
+data: {"v":"实现"}
+
+data: {"v":"也"}
+
+data: {"v":"简单"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"设置"}
+
+data: {"v":"text"}
+
+data: {"v":"/"}
+
+data: {"v":"event"}
+
+data: {"v":"-stream"}
+
+data: {"v":"，"}
+
+data: {"v":"写"}
+
+data: {"v":"数据"}
+
+data: {"v":"）。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需要使用"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"库"}
+
+data: {"v":"，"}
+
+data: {"v":"管理"}
+
+data: {"v":"心跳"}
+
+data: {"v":"、"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"、"}
+
+data: {"v":"消息"}
+
+data: {"v":"序列"}
+
+data: {"v":"化"}
+
+data: {"v":"等"}
+
+data: {"v":"，"}
+
+data: {"v":"开发"}
+
+data: {"v":"成本"}
+
+data: {"v":"较高"}
+
+data: {"v":"。"}
+
+data: {"v":"资源"}
+
+data: {"v":"消耗"}
+
+data: {"v":"方面"}
+
+data: {"v":"，"}
+
+data: {"v":"两者"}
+
+data: {"v":"都是"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"占用"}
+
+data: {"v":"连接"}
+
+data: {"v":"数"}
+
+data: {"v":"相近"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"可以"}
+
+data: {"v":"更容易"}
+
+data: {"v":"利用"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"2"}
+
+data: {"v":"的多"}
+
+data: {"v":"路"}
+
+data: {"v":"复用"}
+
+data: {"v":"（"}
+
+data: {"v":"虽然"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"规范"}
+
+data: {"v":"基于"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"1"}
+
+data: {"v":"."}
+
+data: {"v":"1"}
+
+data: {"v":"，"}
+
+data: {"v":"但在"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"2"}
+
+data: {"v":"下"}
+
+data: {"v":"也可"}
+
+data: {"v":"使用"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":" API"}
+
+data: {"v":"可能"}
+
+data: {"v":"有限"}
+
+data: {"v":"制"}
+
+data: {"v":"），"}
+
+data: {"v":"而"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"在"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"2"}
+
+data: {"v":"下"}
+
+data: {"v":"可通过"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":" over"}
+
+data: {"v":" HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"2"}
+
+data: {"v":"。"}
+
+data: {"v":"整体"}
+
+data: {"v":"成本"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"更低"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"6"}
+
+data: {"v":"."}
+
+data: {"v":" "}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"通过"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"，"}
+
+data: {"v":"可以使用"}
+
+data: {"v":"标准"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"日志"}
+
+data: {"v":"、"}
+
+data: {"v":"监控"}
+
+data: {"v":"工具"}
+
+data: {"v":"、"}
+
+data: {"v":"分布式"}
+
+data: {"v":"追踪"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"通过"}
+
+data: {"v":"头"}
+
+data: {"v":"传递"}
+
+data: {"v":"trace"}
+
+data: {"v":" id"}
+
+data: {"v":"）。"}
+
+data: {"v":"因为"}
+
+data: {"v":"走"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"，"}
+
+data: {"v":"可以"}
+
+data: {"v":"轻松"}
+
+data: {"v":"集成"}
+
+data: {"v":"现有的"}
+
+data: {"v":"API"}
+
+data: {"v":"网关"}
+
+data: {"v":"监控"}
+
+data: {"v":"。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"则需要"}
+
+data: {"v":"专门的"}
+
+data: {"v":"监控"}
+
+data: {"v":"，"}
+
+data: {"v":"因为"}
+
+data: {"v":"连接"}
+
+data: {"v":"建立"}
+
+data: {"v":"后"}
+
+data: {"v":"消息"}
+
+data: {"v":"是"}
+
+data: {"v":"二进制"}
+
+data: {"v":"或"}
+
+data: {"v":"文本"}
+
+data: {"v":"帧"}
+
+data: {"v":"，"}
+
+data: {"v":"需要"}
+
+data: {"v":"应用"}
+
+data: {"v":"层"}
+
+data: {"v":"日志"}
+
+data: {"v":"记录"}
+
+data: {"v":"消息"}
+
+data: {"v":"，"}
+
+data: {"v":"不易"}
+
+data: {"v":"用"}
+
+data: {"v":"标准"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"中间"}
+
+data: {"v":"件"}
+
+data: {"v":"观测"}
+
+data: {"v":"。"}
+
+data: {"v":"一些"}
+
+data: {"v":"API"}
+
+data: {"v":"网关"}
+
+data: {"v":"支持"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"不如"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"成熟"}
+
+data: {"v":"。"}
+
+data: {"v":"所以"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"更好"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"总结"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"在"}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出"}
+
+data: {"v":"场景"}
+
+data: {"v":"（"}
+
+data: {"v":"服务器"}
+
+data: {"v":"到"}
+
+data: {"v":"客户端"}
+
+data: {"v":"单向"}
+
+data: {"v":"流"}
+
+data: {"v":"）"}
+
+data: {"v":"更适合"}
+
+data: {"v":"，"}
+
+data: {"v":"因其"}
+
+data: {"v":"简单"}
+
+data: {"v":"、"}
+
+data: {"v":"可靠"}
+
+data: {"v":"、"}
+
+data: {"v":"易"}
+
+data: {"v":"恢复"}
+
+data: {"v":"、"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性好"}
+
+data: {"v":"、"}
+
+data: {"v":"成本"}
+
+data: {"v":"低"}
+
+data: {"v":"、"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性强"}
+
+data: {"v":"。"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"更适合"}
+
+data: {"v":"需要"}
+
+data: {"v":"双向"}
+
+data: {"v":"交互"}
+
+data: {"v":"的场景"}
+
+data: {"v":"，"}
+
+data: {"v":"如"}
+
+data: {"v":"实时"}
+
+data: {"v":"对话"}
+
+data: {"v":"代理"}
+
+data: {"v":"、"}
+
+data: {"v":"客户端"}
+
+data: {"v":"可以"}
+
+data: {"v":"中断"}
+
+data: {"v":"或"}
+
+data: {"v":"修改"}
+
+data: {"v":"生成"}
+
+data: {"v":"参数"}
+
+data: {"v":"。"}
+
+data: {"v":"但"}
+
+data: {"v":"很多"}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"场景"}
+
+data: {"v":"仅"}
+
+data: {"v":"需"}
+
+data: {"v":"服务器"}
+
+data: {"v":"推送"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"足够"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"："}
+
+data: {"v":"可以"}
+
+data: {"v":"设计"}
+
+data: {"v":"一个"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"，"}
+
+data: {"v":"将"}
+
+data: {"v":"推理"}
+
+data: {"v":"服务"}
+
+data: {"v":"作为"}
+
+data: {"v":"核心"}
+
+data: {"v":"，"}
+
+data: {"v":"上层"}
+
+data: {"v":"加"}
+
+data: {"v":"一层"}
+
+data: {"v":"API"}
+
+data: {"v":"网关"}
+
+data: {"v":"或"}
+
+data: {"v":"stream"}
+
+data: {"v":"ing"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"，"}
+
+data: {"v":"用于"}
+
+data: {"v":"管理"}
+
+data: {"v":"连接"}
+
+data: {"v":"、"}
+
+data: {"v":"认证"}
+
+data: {"v":"、"}
+
+data: {"v":"限"}
+
+data: {"v":"流"}
+
+data: {"v":"、"}
+
+data: {"v":"断"}
+
+data: {"v":"点"}
+
+data: {"v":"续"}
+
+data: {"v":"传"}
+
+data: {"v":"缓存"}
+
+data: {"v":"等"}
+
+data: {"v":"。"}
+
+data: {"v":"例如"}
+
+data: {"v":"：\n\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"客户端"}
+
+data: {"v":"层"}
+
+data: {"v":"："}
+
+data: {"v":"Web"}
+
+data: {"v":"/"}
+
+data: {"v":"移动"}
+
+data: {"v":"端"}
+
+data: {"v":"，"}
+
+data: {"v":"使用"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":"或"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"（"}
+
+data: {"v":"根据"}
+
+data: {"v":"场景"}
+
+data: {"v":"）。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"接入"}
+
+data: {"v":"层"}
+
+data: {"v":"："}
+
+data: {"v":"API"}
+
+data: {"v":"网关"}
+
+data: {"v":"或"}
+
+data: {"v":"反向"}
+
+data: {"v":"代理"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"N"}
+
+data: {"v":"ginx"}
+
+data: {"v":"），"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"，"}
+
+data: {"v":"SSL"}
+
+data: {"v":"终止"}
+
+data: {"v":"，"}
+
+data: {"v":"支持"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"配置"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"："}
+
+data: {"v":"负责"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"连接"}
+
+data: {"v":"管理"}
+
+data: {"v":"、"}
+
+data: {"v":"会话"}
+
+data: {"v":"管理"}
+
+data: {"v":"、"}
+
+data: {"v":"事件"}
+
+data: {"v":"缓存"}
+
+data: {"v":"（"}
+
+data: {"v":"用于"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"）、"}
+
+data: {"v":"消息"}
+
+data: {"v":"路由"}
+
+data: {"v":"等"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"推理"}
+
+data: {"v":"引擎"}
+
+data: {"v":"层"}
+
+data: {"v":"："}
+
+data: {"v":"实际的"}
+
+data: {"v":"AI"}
+
+data: {"v":"模型"}
+
+data: {"v":"推理"}
+
+data: {"v":"，"}
+
+data: {"v":"产生"}
+
+data: {"v":"token"}
+
+data: {"v":"流"}
+
+data: {"v":"，"}
+
+data: {"v":"通过"}
+
+data: {"v":"回调"}
+
+data: {"v":"或者"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"接口"}
+
+data: {"v":"将"}
+
+data: {"v":"token"}
+
+data: {"v":"推"}
+
+data: {"v":"送到"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"层"}
+
+data: {"v":"："}
+
+data: {"v":"贯穿"}
+
+data: {"v":"各"}
+
+data: {"v":"层"}
+
+data: {"v":"，"}
+
+data: {"v":"使用"}
+
+data: {"v":"结构化"}
+
+data: {"v":"日志"}
+
+data: {"v":"、"}
+
+data: {"v":"链路"}
+
+data: {"v":"追踪"}
+
+data: {"v":"、"}
+
+data: {"v":"指标"}
+
+data: {"v":"监控"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"建议"}
+
+data: {"v":"优先"}
+
+data: {"v":"使用"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"作为"}
+
+data: {"v":"默认"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"协议"}
+
+data: {"v":"，"}
+
+data: {"v":"只有在"}
+
+data: {"v":"需要"}
+
+data: {"v":"客户端"}
+
+data: {"v":"主动"}
+
+data: {"v":"发送"}
+
+data: {"v":"控制"}
+
+data: {"v":"指令"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"停止"}
+
+data: {"v":"生成"}
+
+data: {"v":"、"}
+
+data: {"v":"修改"}
+
+data: {"v":"参数"}
+
+data: {"v":"）"}
+
+data: {"v":"时才"}
+
+data: {"v":"考虑"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"，"}
+
+data: {"v":"或者"}
+
+data: {"v":"采用"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":" +"}
+
+data: {"v":" HTTP"}
+
+data: {"v":"请求"}
+
+data: {"v":"的"}
+
+data: {"v":"混合"}
+
+data: {"v":"模式"}
+
+data: {"v":"（"}
+
+data: {"v":"即"}
+
+data: {"v":"用"}
+
+data: {"v":"POST"}
+
+data: {"v":"请求"}
+
+data: {"v":"开始"}
+
+data: {"v":"推理"}
+
+data: {"v":"，"}
+
+data: {"v":"用"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"接收"}
+
+data: {"v":"流"}
+
+data: {"v":"，"}
+
+data: {"v":"用"}
+
+data: {"v":"另一个"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"请求"}
+
+data: {"v":"发送"}
+
+data: {"v":"控制"}
+
+data: {"v":"指令"}
+
+data: {"v":"）。"}
+
+data: {"v":"这种"}
+
+data: {"v":"架构"}
+
+data: {"v":"清晰"}
+
+data: {"v":"，"}
+
+data: {"v":"各"}
+
+data: {"v":"层"}
+
+data: {"v":"职责"}
+
+data: {"v":"分明"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"现在"}
+
+data: {"v":"组合"}
+
+data: {"v":"成"}
+
+data: {"v":"120"}
+
+data: {"v":"0"}
+
+data: {"v":"字的"}
+
+data: {"v":"文章"}
+
+data: {"v":"。"}
+
+data: {"v":"大约"}
+
+data: {"v":"需要"}
+
+data: {"v":"6"}
+
+data: {"v":"-"}
+
+data: {"v":"7"}
+
+data: {"v":"段"}
+
+data: {"v":"。"}
+
+data: {"v":"可以"}
+
+data: {"v":"这样"}
+
+data: {"v":"组织"}
+
+data: {"v":"：\n\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"引言"}
+
+data: {"v":"："}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出"}
+
+data: {"v":"需求"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"和"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"是"}
+
+data: {"v":"两种"}
+
+data: {"v":"主流"}
+
+data: {"v":"方案"}
+
+data: {"v":"，"}
+
+data: {"v":"本文"}
+
+data: {"v":"比较"}
+
+data: {"v":"六"}
+
+data: {"v":"方面"}
+
+data: {"v":"并"}
+
+data: {"v":"给出"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"可靠性"}
+
+data: {"v":"对比"}
+
+data: {"v":"："}
+
+data: {"v":"描述"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"内置"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"和"}
+
+data: {"v":"事件"}
+
+data: {"v":"ID"}
+
+data: {"v":"，"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需"}
+
+data: {"v":"自"}
+
+data: {"v":"建"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"Last"}
+
+data: {"v":"-"}
+
+data: {"v":"Event"}
+
+data: {"v":"-ID"}
+
+data: {"v":"机制"}
+
+data: {"v":"，"}
+
+data: {"v":"服务器"}
+
+data: {"v":"缓存"}
+
+data: {"v":"；"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"手工"}
+
+data: {"v":"恢复"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"与"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"使用"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"，"}
+
+data: {"v":"更"}
+
+data: {"v":"兼容"}
+
+data: {"v":"；"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需"}
+
+data: {"v":"升级"}
+
+data: {"v":"支持"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"成本"}
+
+data: {"v":"与"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"："}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"开发"}
+
+data: {"v":"维护"}
+
+data: {"v":"成本"}
+
+data: {"v":"低"}
+
+data: {"v":"，"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性好"}
+
+data: {"v":"；"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"复杂"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" "}
+
+data: {"v":"综合"}
+
+data: {"v":"建议"}
+
+data: {"v":"与"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"："}
+
+data: {"v":"推荐"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"为主"}
+
+data: {"v":"，"}
+
+data: {"v":"给出"}
+
+data: {"v":"分层"}
+
+data: {"v":"设计"}
+
+data: {"v":"："}
+
+data: {"v":"客户端"}
+
+data: {"v":"、"}
+
+data: {"v":"接入"}
+
+data: {"v":"层"}
+
+data: {"v":"、"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"、"}
+
+data: {"v":"推理"}
+
+data: {"v":"引擎"}
+
+data: {"v":"层"}
+
+data: {"v":"、"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"说明"}
+
+data: {"v":"各"}
+
+data: {"v":"层"}
+
+data: {"v":"职责"}
+
+data: {"v":"。"}
+
+data: {"v":"混合"}
+
+data: {"v":"模式"}
+
+data: {"v":"备"}
+
+data: {"v":"选"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"确保"}
+
+data: {"v":"字数"}
+
+data: {"v":"约"}
+
+data: {"v":"120"}
+
+data: {"v":"0"}
+
+data: {"v":"（"}
+
+data: {"v":"中"}
+
+data: {"v":"文字"}
+
+data: {"v":"符"}
+
+data: {"v":"数"}
+
+data: {"v":"）。"}
+
+data: {"v":"实际"}
+
+data: {"v":"写"}
+
+data: {"v":"时"}
+
+data: {"v":"控制"}
+
+data: {"v":"100"}
+
+data: {"v":"0"}
+
+data: {"v":"-"}
+
+data: {"v":"150"}
+
+data: {"v":"0"}
+
+data: {"v":"字"}
+
+data: {"v":"之间"}
+
+data: {"v":"。"}
+
+data: {"v":"无需"}
+
+data: {"v":"特别"}
+
+data: {"v":"精确"}
+
+data: {"v":"，"}
+
+data: {"v":"大致"}
+
+data: {"v":"即可"}
+
+data: {"v":"。"}
+
+data: {"v":"现在"}
+
+data: {"v":"写出"}
+
+data: {"v":"最终"}
+
+data: {"v":"回答"}
+
+data: {"v":"。"}
+
+data: {"p":"response/fragments/-1/elapsed_secs","o":"SET","v":49.301517849}
+
+data: {"p":"response/fragments","o":"APPEND","v":[{"id":3,"type":"RESPONSE","content":"在","references":[],"stage_id":1}]}
+
+data: {"p":"response/fragments/-1/content","v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出"}
+
+data: {"v":"场景"}
+
+data: {"v":"中"}
+
+data: {"v":"，"}
+
+data: {"v":"服务器"}
+
+data: {"v":"需"}
+
+data: {"v":"将"}
+
+data: {"v":"生成的"}
+
+data: {"v":"token"}
+
+data: {"v":"序列"}
+
+data: {"v":"实时"}
+
+data: {"v":"推"}
+
+data: {"v":"送给"}
+
+data: {"v":"客户端"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"（"}
+
+data: {"v":"Server"}
+
+data: {"v":"-S"}
+
+data: {"v":"ent"}
+
+data: {"v":" Events"}
+
+data: {"v":"）"}
+
+data: {"v":"和"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"是"}
+
+data: {"v":"两种"}
+
+data: {"v":"主"}
+
+data: {"v":"流的"}
+
+data: {"v":"通信"}
+
+data: {"v":"方案"}
+
+data: {"v":"。"}
+
+data: {"v":"本文"}
+
+data: {"v":"从"}
+
+data: {"v":"可靠性"}
+
+data: {"v":"、"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"、"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"、"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"、"}
+
+data: {"v":"成本和"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"六个"}
+
+data: {"v":"维度"}
+
+data: {"v":"进行"}
+
+data: {"v":"对比"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"给出"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"一"}
+
+data: {"v":"、"}
+
+data: {"v":"可靠性"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"基于"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"协议"}
+
+data: {"v":"，"}
+
+data: {"v":"继承了"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"的"}
+
+data: {"v":"自动"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"机制"}
+
+data: {"v":"。"}
+
+data: {"v":"浏览器"}
+
+data: {"v":"端"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":" API"}
+
+data: {"v":"在"}
+
+data: {"v":"连接"}
+
+data: {"v":"断开"}
+
+data: {"v":"后"}
+
+data: {"v":"会自动"}
+
+data: {"v":"发起"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"可通过"}
+
+data: {"v":"`"}
+
+data: {"v":"Last"}
+
+data: {"v":"-"}
+
+data: {"v":"Event"}
+
+data: {"v":"-ID"}
+
+data: {"v":"`"}
+
+data: {"v":"头"}
+
+data: {"v":"告知"}
+
+data: {"v":"服务器"}
+
+data: {"v":"最后"}
+
+data: {"v":"接收"}
+
+data: {"v":"的事件"}
+
+data: {"v":"ID"}
+
+data: {"v":"，"}
+
+data: {"v":"服务器"}
+
+data: {"v":"据此"}
+
+data: {"v":"推送"}
+
+data: {"v":"后续"}
+
+data: {"v":"事件"}
+
+data: {"v":"，"}
+
+data: {"v":"实现"}
+
+data: {"v":"精确"}
+
+data: {"v":"的"}
+
+data: {"v":"断"}
+
+data: {"v":"点"}
+
+data: {"v":"续"}
+
+data: {"v":"传"}
+
+data: {"v":"。"}
+
+data: {"v":"这种"}
+
+data: {"v":"设计"}
+
+data: {"v":"对"}
+
+data: {"v":"开发者"}
+
+data: {"v":"透明"}
+
+data: {"v":"，"}
+
+data: {"v":"无需"}
+
+data: {"v":"额外"}
+
+data: {"v":"的心"}
+
+data: {"v":"跳"}
+
+data: {"v":"与"}
+
+data: {"v":"状态"}
+
+data: {"v":"管理"}
+
+data: {"v":"。"}
+
+data: {"v":"  \n"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"本身"}
+
+data: {"v":"不"}
+
+data: {"v":"内置"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"与"}
+
+data: {"v":"消息"}
+
+data: {"v":"确认"}
+
+data: {"v":"，"}
+
+data: {"v":"断开"}
+
+data: {"v":"后"}
+
+data: {"v":"需"}
+
+data: {"v":"客户端"}
+
+data: {"v":"主动"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"自行"}
+
+data: {"v":"实现"}
+
+data: {"v":"消息"}
+
+data: {"v":"ID"}
+
+data: {"v":"、"}
+
+data: {"v":"ACK"}
+
+data: {"v":"及"}
+
+data: {"v":"重"}
+
+data: {"v":"放"}
+
+data: {"v":"逻辑"}
+
+data: {"v":"。"}
+
+data: {"v":"虽然"}
+
+data: {"v":"可"}
+
+data: {"v":"设计"}
+
+data: {"v":"出"}
+
+data: {"v":"更"}
+
+data: {"v":"灵活的"}
+
+data: {"v":"可靠"}
+
+data: {"v":"传输"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"选择性"}
+
+data: {"v":"重"}
+
+data: {"v":"传"}
+
+data: {"v":"），"}
+
+data: {"v":"但"}
+
+data: {"v":"复杂性"}
+
+data: {"v":"显著"}
+
+data: {"v":"增加"}
+
+data: {"v":"，"}
+
+data: {"v":"易"}
+
+data: {"v":"引入"}
+
+data: {"v":"缺陷"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"二"}
+
+data: {"v":"、"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"直接影响"}
+
+data: {"v":"用户体验"}
+
+data: {"v":"。"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"`"}
+
+data: {"v":"Last"}
+
+data: {"v":"-"}
+
+data: {"v":"Event"}
+
+data: {"v":"-ID"}
+
+data: {"v":"`"}
+
+data: {"v":"机制"}
+
+data: {"v":"天然"}
+
+data: {"v":"支持"}
+
+data: {"v":"增量"}
+
+data: {"v":"续"}
+
+data: {"v":"传"}
+
+data: {"v":"："}
+
+data: {"v":"服务器"}
+
+data: {"v":"只需"}
+
+data: {"v":"按"}
+
+data: {"v":"ID"}
+
+data: {"v":"缓存"}
+
+data: {"v":"已"}
+
+data: {"v":"生成"}
+
+data: {"v":"的事件"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"token"}
+
+data: {"v":"序列"}
+
+data: {"v":"），"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"时"}
+
+data: {"v":"跳过"}
+
+data: {"v":"已"}
+
+data: {"v":"确认"}
+
+data: {"v":"部分"}
+
+data: {"v":"，"}
+
+data: {"v":"直接"}
+
+data: {"v":"推送"}
+
+data: {"v":"后续"}
+
+data: {"v":"数据"}
+
+data: {"v":"。"}
+
+data: {"v":"这对"}
+
+data: {"v":"token"}
+
+data: {"v":"级别"}
+
+data: {"v":"输出"}
+
+data: {"v":"极为"}
+
+data: {"v":"友好"}
+
+data: {"v":"，"}
+
+data: {"v":"可"}
+
+data: {"v":"避免"}
+
+data: {"v":"重复"}
+
+data: {"v":"生成"}
+
+data: {"v":"或"}
+
+data: {"v":"丢失"}
+
+data: {"v":"中间"}
+
+data: {"v":"内容"}
+
+data: {"v":"。"}
+
+data: {"v":"  \n"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"要实现"}
+
+data: {"v":"同等"}
+
+data: {"v":"效果"}
+
+data: {"v":"，"}
+
+data: {"v":"必须"}
+
+data: {"v":"自定义"}
+
+data: {"v":"序列"}
+
+data: {"v":"号"}
+
+data: {"v":"与"}
+
+data: {"v":"恢复"}
+
+data: {"v":"协议"}
+
+data: {"v":"。"}
+
+data: {"v":"若"}
+
+data: {"v":"服务"}
+
+data: {"v":"端"}
+
+data: {"v":"需"}
+
+data: {"v":"缓存"}
+
+data: {"v":"未"}
+
+data: {"v":"确认"}
+
+data: {"v":"消息"}
+
+data: {"v":"，"}
+
+data: {"v":"会使"}
+
+data: {"v":"无"}
+
+data: {"v":"状态"}
+
+data: {"v":"架构"}
+
+data: {"v":"变"}
+
+data: {"v":"重"}
+
+data: {"v":"；"}
+
+data: {"v":"若"}
+
+data: {"v":"依赖"}
+
+data: {"v":"客户端"}
+
+data: {"v":"补"}
+
+data: {"v":"拉"}
+
+data: {"v":"，"}
+
+data: {"v":"则"}
+
+data: {"v":"增加"}
+
+data: {"v":"交互"}
+
+data: {"v":"次数"}
+
+data: {"v":"与"}
+
+data: {"v":"延迟"}
+
+data: {"v":"。"}
+
+data: {"v":"因此"}
+
+data: {"v":"，"}
+
+data: {"v":"在"}
+
+data: {"v":"典型的"}
+
+data: {"v":"单向"}
+
+data: {"v":"推"}
+
+data: {"v":"流"}
+
+data: {"v":"场景"}
+
+data: {"v":"中"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"恢复"}
+
+data: {"v":"更"}
+
+data: {"v":"简单"}
+
+data: {"v":"可靠"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"三"}
+
+data: {"v":"、"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"使用"}
+
+data: {"v":"标准"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"可"}
+
+data: {"v":"被"}
+
+data: {"v":"N"}
+
+data: {"v":"ginx"}
+
+data: {"v":"、"}
+
+data: {"v":"HA"}
+
+data: {"v":"Proxy"}
+
+data: {"v":"等"}
+
+data: {"v":"常规"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"器"}
+
+data: {"v":"直接"}
+
+data: {"v":"分发"}
+
+data: {"v":"。"}
+
+data: {"v":"只需"}
+
+data: {"v":"调整"}
+
+data: {"v":"超"}
+
+data: {"v":"时"}
+
+data: {"v":"配置"}
+
+data: {"v":"、"}
+
+data: {"v":"关闭"}
+
+data: {"v":"缓冲"}
+
+data: {"v":"，"}
+
+data: {"v":"即可"}
+
+data: {"v":"支撑"}
+
+data: {"v":"大量"}
+
+data: {"v":"长"}
+
+data: {"v":"连接"}
+
+data: {"v":"。"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"/"}
+
+data: {"v":"2"}
+
+data: {"v":"下"}
+
+data: {"v":"还可"}
+
+data: {"v":"借助"}
+
+data: {"v":"多"}
+
+data: {"v":"路"}
+
+data: {"v":"复用"}
+
+data: {"v":"减少"}
+
+data: {"v":"连接"}
+
+data: {"v":"数"}
+
+data: {"v":"。"}
+
+data: {"v":"  \n"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"通过"}
+
+data: {"v":"协议"}
+
+data: {"v":"升级"}
+
+data: {"v":"建立"}
+
+data: {"v":"全"}
+
+data: {"v":"双"}
+
+data: {"v":"工"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"需要"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"器"}
+
+data: {"v":"显"}
+
+data: {"v":"式"}
+
+data: {"v":"支持"}
+
+data: {"v":"Up"}
+
+data: {"v":"grade"}
+
+data: {"v":"与"}
+
+data: {"v":"Connection"}
+
+data: {"v":"头"}
+
+data: {"v":"，"}
+
+data: {"v":"且"}
+
+data: {"v":"连接"}
+
+data: {"v":"建立"}
+
+data: {"v":"后"}
+
+data: {"v":"负载"}
+
+data: {"v":"均衡"}
+
+data: {"v":"器"}
+
+data: {"v":"通常"}
+
+data: {"v":"只能"}
+
+data: {"v":"维持"}
+
+data: {"v":"固定的"}
+
+data: {"v":"后端"}
+
+data: {"v":"映射"}
+
+data: {"v":"，"}
+
+data: {"v":"灵活性"}
+
+data: {"v":"略"}
+
+data: {"v":"低"}
+
+data: {"v":"。"}
+
+data: {"v":"两者"}
+
+data: {"v":"在"}
+
+data: {"v":"连接"}
+
+data: {"v":"资源"}
+
+data: {"v":"消耗"}
+
+data: {"v":"上"}
+
+data: {"v":"相近"}
+
+data: {"v":"，"}
+
+data: {"v":"但"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"部署"}
+
+data: {"v":"与"}
+
+data: {"v":"横向"}
+
+data: {"v":"扩展"}
+
+data: {"v":"更"}
+
+data: {"v":"便捷"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"四"}
+
+data: {"v":"、"}
+
+data: {"v":"代理"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"的"}
+
+data: {"v":"流量"}
+
+data: {"v":"是"}
+
+data: {"v":"普通"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"响应"}
+
+data: {"v":"，"}
+
+data: {"v":"绝大多数"}
+
+data: {"v":"企业"}
+
+data: {"v":"代理"}
+
+data: {"v":"、"}
+
+data: {"v":"CD"}
+
+data: {"v":"N"}
+
+data: {"v":"和"}
+
+data: {"v":"防火墙"}
+
+data: {"v":"均"}
+
+data: {"v":"能"}
+
+data: {"v":"透"}
+
+data: {"v":"传"}
+
+data: {"v":"。"}
+
+data: {"v":"仅"}
+
+data: {"v":"需"}
+
+data: {"v":"注意"}
+
+data: {"v":"部分"}
+
+data: {"v":"代理"}
+
+data: {"v":"可能"}
+
+data: {"v":"缓冲"}
+
+data: {"v":"数据"}
+
+data: {"v":"，"}
+
+data: {"v":"通过"}
+
+data: {"v":"设置"}
+
+data: {"v":"`"}
+
+data: {"v":"X"}
+
+data: {"v":"-A"}
+
+data: {"v":"cc"}
+
+data: {"v":"el"}
+
+data: {"v":"-B"}
+
+data: {"v":"uff"}
+
+data: {"v":"ering"}
+
+data: {"v":":"}
+
+data: {"v":" no"}
+
+data: {"v":"`"}
+
+data: {"v":"或"}
+
+data: {"v":"添加"}
+
+data: {"v":"限"}
+
+data: {"v":"时"}
+
+data: {"v":"头"}
+
+data: {"v":"即可"}
+
+data: {"v":"解决"}
+
+data: {"v":"。"}
+
+data: {"v":"  \n"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"要求"}
+
+data: {"v":"中间"}
+
+data: {"v":"代理"}
+
+data: {"v":"理解"}
+
+data: {"v":"并"}
+
+data: {"v":"支持"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"协议"}
+
+data: {"v":"，"}
+
+data: {"v":"许多"}
+
+data: {"v":"老"}
+
+data: {"v":"式"}
+
+data: {"v":"代理"}
+
+data: {"v":"、"}
+
+data: {"v":"部分"}
+
+data: {"v":"安全"}
+
+data: {"v":"网关"}
+
+data: {"v":"会"}
+
+data: {"v":"阻断"}
+
+data: {"v":"Up"}
+
+data: {"v":"grade"}
+
+data: {"v":"请求"}
+
+data: {"v":"，"}
+
+data: {"v":"导致"}
+
+data: {"v":"连接"}
+
+data: {"v":"失败"}
+
+data: {"v":"。"}
+
+data: {"v":"在"}
+
+data: {"v":"复杂"}
+
+data: {"v":"网络"}
+
+data: {"v":"环境"}
+
+data: {"v":"或"}
+
+data: {"v":"to"}
+
+data: {"v":"B"}
+
+data: {"v":"交付"}
+
+data: {"v":"中"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"具有"}
+
+data: {"v":"更"}
+
+data: {"v":"广泛的"}
+
+data: {"v":"兼容"}
+
+data: {"v":"性"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"五"}
+
+data: {"v":"、"}
+
+data: {"v":"成本"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"开发"}
+
+data: {"v":"成本"}
+
+data: {"v":"低"}
+
+data: {"v":"："}
+
+data: {"v":"服务"}
+
+data: {"v":"端"}
+
+data: {"v":"只需"}
+
+data: {"v":"设置"}
+
+data: {"v":"`"}
+
+data: {"v":"Content"}
+
+data: {"v":"-Type"}
+
+data: {"v":":"}
+
+data: {"v":" text"}
+
+data: {"v":"/"}
+
+data: {"v":"event"}
+
+data: {"v":"-stream"}
+
+data: {"v":"`"}
+
+data: {"v":"并"}
+
+data: {"v":"持续"}
+
+data: {"v":"写入"}
+
+data: {"v":"数据"}
+
+data: {"v":"，"}
+
+data: {"v":"客户端"}
+
+data: {"v":"使用"}
+
+data: {"v":"浏览器"}
+
+data: {"v":"内置"}
+
+data: {"v":"的"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":"，"}
+
+data: {"v":"无需"}
+
+data: {"v":"引入"}
+
+data: {"v":"额外"}
+
+data: {"v":"库"}
+
+data: {"v":"。"}
+
+data: {"v":"维护"}
+
+data: {"v":"也"}
+
+data: {"v":"简单"}
+
+data: {"v":"，"}
+
+data: {"v":"因为"}
+
+data: {"v":"问题"}
+
+data: {"v":"排查"}
+
+data: {"v":"遵循"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"语义"}
+
+data: {"v":"。"}
+
+data: {"v":"  \n"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"需"}
+
+data: {"v":"引入"}
+
+data: {"v":"专用"}
+
+data: {"v":"库"}
+
+data: {"v":"，"}
+
+data: {"v":"自行"}
+
+data: {"v":"处理"}
+
+data: {"v":"分"}
+
+data: {"v":"帧"}
+
+data: {"v":"、"}
+
+data: {"v":"心跳"}
+
+data: {"v":"、"}
+
+data: {"v":"重"}
+
+data: {"v":"连"}
+
+data: {"v":"、"}
+
+data: {"v":"序列"}
+
+data: {"v":"化"}
+
+data: {"v":"等"}
+
+data: {"v":"，"}
+
+data: {"v":"代码"}
+
+data: {"v":"量"}
+
+data: {"v":"较大"}
+
+data: {"v":"，"}
+
+data: {"v":"且"}
+
+data: {"v":"调试"}
+
+data: {"v":"时"}
+
+data: {"v":"无法"}
+
+data: {"v":"像"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"那样"}
+
+data: {"v":"直接"}
+
+data: {"v":"查看"}
+
+data: {"v":"明文"}
+
+data: {"v":"流"}
+
+data: {"v":"，"}
+
+data: {"v":"维护"}
+
+data: {"v":"成本"}
+
+data: {"v":"高"}
+
+data: {"v":"。"}
+
+data: {"v":"从"}
+
+data: {"v":"总"}
+
+data: {"v":"拥有"}
+
+data: {"v":"成本"}
+
+data: {"v":"（"}
+
+data: {"v":"T"}
+
+data: {"v":"CO"}
+
+data: {"v":"）"}
+
+data: {"v":"看"}
+
+data: {"v":"，"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"优势"}
+
+data: {"v":"明显"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"六"}
+
+data: {"v":"、"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"完美"}
+
+data: {"v":"融入"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"生态"}
+
+data: {"v":"："}
+
+data: {"v":"所有"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"中间"}
+
+data: {"v":"件"}
+
+data: {"v":"、"}
+
+data: {"v":"日志"}
+
+data: {"v":"系统"}
+
+data: {"v":"、"}
+
+data: {"v":"AP"}
+
+data: {"v":"M"}
+
+data: {"v":"工具"}
+
+data: {"v":"、"}
+
+data: {"v":"链路"}
+
+data: {"v":"追踪"}
+
+data: {"v":"均可"}
+
+data: {"v":"直接"}
+
+data: {"v":"用于"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"可通过"}
+
+data: {"v":"请求"}
+
+data: {"v":"头"}
+
+data: {"v":"注入"}
+
+data: {"v":"trace"}
+
+data: {"v":" ID"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"利用"}
+
+data: {"v":"访问"}
+
+data: {"v":"日志"}
+
+data: {"v":"分析"}
+
+data: {"v":"流量"}
+
+data: {"v":"、"}
+
+data: {"v":"排查"}
+
+data: {"v":"错误"}
+
+data: {"v":"。"}
+
+data: {"v":"  \n"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"连接"}
+
+data: {"v":"升级"}
+
+data: {"v":"后"}
+
+data: {"v":"便"}
+
+data: {"v":"脱离"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"语境"}
+
+data: {"v":"，"}
+
+data: {"v":"后续"}
+
+data: {"v":"帧"}
+
+data: {"v":"交换"}
+
+data: {"v":"需"}
+
+data: {"v":"应用"}
+
+data: {"v":"层"}
+
+data: {"v":"埋"}
+
+data: {"v":"点"}
+
+data: {"v":"记录"}
+
+data: {"v":"，"}
+
+data: {"v":"与"}
+
+data: {"v":"标准"}
+
+data: {"v":"HTTP"}
+
+data: {"v":"监控"}
+
+data: {"v":"工具的"}
+
+data: {"v":"集成"}
+
+data: {"v":"度"}
+
+data: {"v":"差"}
+
+data: {"v":"，"}
+
+data: {"v":"对"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"平台"}
+
+data: {"v":"的要求"}
+
+data: {"v":"更高"}
+
+data: {"v":"，"}
+
+data: {"v":"无形"}
+
+data: {"v":"中"}
+
+data: {"v":"增加了"}
+
+data: {"v":"运维"}
+
+data: {"v":"成本"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"**"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"建议"}
+
+data: {"v":"**"}
+
+data: {"v":"  \n"}
+
+data: {"v":"基于"}
+
+data: {"v":"上述"}
+
+data: {"v":"对比"}
+
+data: {"v":"，"}
+
+data: {"v":"推荐"}
+
+data: {"v":"以"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"作为"}
+
+data: {"v":"AI"}
+
+data: {"v":"推理"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出的"}
+
+data: {"v":"默认"}
+
+data: {"v":"协议"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"采用"}
+
+data: {"v":"以下"}
+
+data: {"v":"分层"}
+
+data: {"v":"架构"}
+
+data: {"v":"：\n\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"客户端"}
+
+data: {"v":"层"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"浏览器"}
+
+data: {"v":"/"}
+
+data: {"v":"App"}
+
+data: {"v":"通过"}
+
+data: {"v":"Event"}
+
+data: {"v":"Source"}
+
+data: {"v":"（"}
+
+data: {"v":"或"}
+
+data: {"v":"轻"}
+
+data: {"v":"量"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":" poly"}
+
+data: {"v":"fill"}
+
+data: {"v":"）"}
+
+data: {"v":"建立"}
+
+data: {"v":"连接"}
+
+data: {"v":"，"}
+
+data: {"v":"接收"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"数据"}
+
+data: {"v":"。"}
+
+data: {"v":"若"}
+
+data: {"v":"需"}
+
+data: {"v":"发送"}
+
+data: {"v":"控制"}
+
+data: {"v":"指令"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"停止"}
+
+data: {"v":"生成"}
+
+data: {"v":"），"}
+
+data: {"v":"可通过"}
+
+data: {"v":"独立"}
+
+data: {"v":"HTTP"}
+
+data: {"v":" API"}
+
+data: {"v":"发出"}
+
+data: {"v":"，"}
+
+data: {"v":"形成"}
+
+data: {"v":"“"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"推"}
+
+data: {"v":"流"}
+
+data: {"v":" +"}
+
+data: {"v":" HTTP"}
+
+data: {"v":"指令"}
+
+data: {"v":"”"}
+
+data: {"v":"的"}
+
+data: {"v":"混合"}
+
+data: {"v":"模式"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"接入"}
+
+data: {"v":"层"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"部署"}
+
+data: {"v":"支持"}
+
+data: {"v":"长"}
+
+data: {"v":"连接的"}
+
+data: {"v":"API"}
+
+data: {"v":"网关"}
+
+data: {"v":"或"}
+
+data: {"v":"反向"}
+
+data: {"v":"代理"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"N"}
+
+data: {"v":"ginx"}
+
+data: {"v":"），"}
+
+data: {"v":"负责"}
+
+data: {"v":"SSL"}
+
+data: {"v":"卸载"}
+
+data: {"v":"、"}
+
+data: {"v":"限"}
+
+data: {"v":"流"}
+
+data: {"v":"、"}
+
+data: {"v":"认证"}
+
+data: {"v":"、"}
+
+data: {"v":"请求"}
+
+data: {"v":"路由"}
+
+data: {"v":"。"}
+
+data: {"v":"配置"}
+
+data: {"v":"禁用"}
+
+data: {"v":"缓冲"}
+
+data: {"v":"、"}
+
+data: {"v":"延长"}
+
+data: {"v":"超"}
+
+data: {"v":"时"}
+
+data: {"v":"，"}
+
+data: {"v":"并"}
+
+data: {"v":"透"}
+
+data: {"v":"传"}
+
+data: {"v":"必要"}
+
+data: {"v":"头"}
+
+data: {"v":"域"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"核心"}
+
+data: {"v":"中间"}
+
+data: {"v":"层"}
+
+data: {"v":"，"}
+
+data: {"v":"管理"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"连接"}
+
+data: {"v":"生命周期"}
+
+data: {"v":"、"}
+
+data: {"v":"会话"}
+
+data: {"v":"状态"}
+
+data: {"v":"和"}
+
+data: {"v":"事件"}
+
+data: {"v":"缓存"}
+
+data: {"v":"。"}
+
+data: {"v":"该"}
+
+data: {"v":"层"}
+
+data: {"v":"将"}
+
+data: {"v":"推理"}
+
+data: {"v":"引擎"}
+
+data: {"v":"的"}
+
+data: {"v":"token"}
+
+data: {"v":"流"}
+
+data: {"v":"转化为"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"事件"}
+
+data: {"v":"并"}
+
+data: {"v":"广播"}
+
+data: {"v":"；"}
+
+data: {"v":"同时"}
+
+data: {"v":"基于"}
+
+data: {"v":"`"}
+
+data: {"v":"Last"}
+
+data: {"v":"-"}
+
+data: {"v":"Event"}
+
+data: {"v":"-ID"}
+
+data: {"v":"`"}
+
+data: {"v":"实现"}
+
+data: {"v":"断"}
+
+data: {"v":"线"}
+
+data: {"v":"续"}
+
+data: {"v":"传"}
+
+data: {"v":"，"}
+
+data: {"v":"维护"}
+
+data: {"v":"一个"}
+
+data: {"v":"有限"}
+
+data: {"v":"大小的"}
+
+data: {"v":"轮"}
+
+data: {"v":"转"}
+
+data: {"v":"事件"}
+
+data: {"v":"缓冲区"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"推理"}
+
+data: {"v":"引擎"}
+
+data: {"v":"层"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"封装"}
+
+data: {"v":"AI"}
+
+data: {"v":"模型"}
+
+data: {"v":"，"}
+
+data: {"v":"提供"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"回调"}
+
+data: {"v":"或"}
+
+data: {"v":"g"}
+
+data: {"v":"R"}
+
+data: {"v":"PC"}
+
+data: {"v":"流"}
+
+data: {"v":"接口"}
+
+data: {"v":"，"}
+
+data: {"v":"向"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"逐"}
+
+data: {"v":"token"}
+
+data: {"v":"输出"}
+
+data: {"v":"。"}
+
+data: {"v":"该"}
+
+data: {"v":"层"}
+
+data: {"v":"可"}
+
+data: {"v":"无"}
+
+data: {"v":"状态"}
+
+data: {"v":"或"}
+
+data: {"v":"依赖"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层"}
+
+data: {"v":"传递"}
+
+data: {"v":"的"}
+
+data: {"v":"上下文"}
+
+data: {"v":"。\n"}
+
+data: {"v":"-"}
+
+data: {"v":" **"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"层"}
+
+data: {"v":"**"}
+
+data: {"v":"："}
+
+data: {"v":"贯穿"}
+
+data: {"v":"各"}
+
+data: {"v":"层"}
+
+data: {"v":"，"}
+
+data: {"v":"统一"}
+
+data: {"v":"采集"}
+
+data: {"v":"日志"}
+
+data: {"v":"、"}
+
+data: {"v":"指标"}
+
+data: {"v":"和"}
+
+data: {"v":"追踪"}
+
+data: {"v":"数据"}
+
+data: {"v":"。"}
+
+data: {"v":"利用"}
+
+data: {"v":"接入"}
+
+data: {"v":"层的"}
+
+data: {"v":"访问"}
+
+data: {"v":"日志"}
+
+data: {"v":"和"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"服务"}
+
+data: {"v":"层的"}
+
+data: {"v":"业务"}
+
+data: {"v":"日志"}
+
+data: {"v":"，"}
+
+data: {"v":"快速"}
+
+data: {"v":"定位"}
+
+data: {"v":"延迟"}
+
+data: {"v":"或"}
+
+data: {"v":"断开"}
+
+data: {"v":"问题"}
+
+data: {"v":"。\n\n"}
+
+data: {"v":"若"}
+
+data: {"v":"场景"}
+
+data: {"v":"中"}
+
+data: {"v":"客户端"}
+
+data: {"v":"与"}
+
+data: {"v":"服务器"}
+
+data: {"v":"有"}
+
+data: {"v":"高频"}
+
+data: {"v":"双向"}
+
+data: {"v":"交互"}
+
+data: {"v":"需求"}
+
+data: {"v":"（"}
+
+data: {"v":"如"}
+
+data: {"v":"实时"}
+
+data: {"v":"对话"}
+
+data: {"v":"调整"}
+
+data: {"v":"参数"}
+
+data: {"v":"），"}
+
+data: {"v":"可"}
+
+data: {"v":"局部"}
+
+data: {"v":"引入"}
+
+data: {"v":"Web"}
+
+data: {"v":"Socket"}
+
+data: {"v":"，"}
+
+data: {"v":"但仍"}
+
+data: {"v":"建议"}
+
+data: {"v":"将"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"输出"}
+
+data: {"v":"统一"}
+
+data: {"v":"收敛"}
+
+data: {"v":"到"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"，"}
+
+data: {"v":"以"}
+
+data: {"v":"保留"}
+
+data: {"v":"可靠"}
+
+data: {"v":"性和"}
+
+data: {"v":"可"}
+
+data: {"v":"观测"}
+
+data: {"v":"性"}
+
+data: {"v":"优势"}
+
+data: {"v":"。"}
+
+data: {"v":"总体"}
+
+data: {"v":"而言"}
+
+data: {"v":"，"}
+
+data: {"v":"优先"}
+
+data: {"v":"选择"}
+
+data: {"v":"SS"}
+
+data: {"v":"E"}
+
+data: {"v":"能够"}
+
+data: {"v":"以"}
+
+data: {"v":"更"}
+
+data: {"v":"低的"}
+
+data: {"v":"工程量"}
+
+data: {"v":"实现"}
+
+data: {"v":"稳定"}
+
+data: {"v":"、"}
+
+data: {"v":"可"}
+
+data: {"v":"维护"}
+
+data: {"v":"的"}
+
+data: {"v":"流"}
+
+data: {"v":"式"}
+
+data: {"v":"推理"}
+
+data: {"v":"系统"}
+
+data: {"v":"。"}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"accumulated_token_usage","v":1357},{"p":"quasi_status","v":"FINISHED"}]}
+
+data: {"p":"response/status","o":"SET","v":"FINISHED"}
+
+event: update_session
+data: {"updated_at":1777485165.4124339}
+
+event: title
+data: {"content":"SSE与WebSocket流式输出比较"}
+
+event: close
+data: {"click_behavior":"none","auto_resume":false}
+

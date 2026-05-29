@@ -1,0 +1,6 @@
+{
+  "text": "<tool_calls><invoke name=\"get_weather\"><parameter name=\"city\"><![CDATA[beijing]]></parameter><parameter name=\"unit\"><![CDATA[c]]></parameter></invoke></tool_calls>",
+  "tool_names": [
+    "get_weather"
+  ]
+}

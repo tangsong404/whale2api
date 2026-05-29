@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Whale2API 号池管理</title>
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">池</span>
+        <div>
+          <h1>号池管理</h1>
+          <p class="muted">一 API Key 一号池 · SQLite</p>
+        </div>
+      </div>
+      <button type="button" class="btn ghost" id="btnLogout">退出</button>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar panel">
+        <div class="sidebar-head">
+          <h2>网关 Key</h2>
+          <button type="button" class="btn primary sm" id="btnNewKey">新建</button>
+        </div>
+        <ul id="keyList" class="key-list"></ul>
+      </aside>
+
+      <section class="content panel" id="poolPanel">
+        <div class="empty" id="emptyState">← 选择或新建一个网关 Key</div>
+
+        <div class="pool-view hidden" id="poolView">
+          <div class="pool-header">
+            <div class="pool-title-block">
+              <h2 id="currentPoolTitle">—</h2>
+              <p class="muted" id="currentKeyMeta"></p>
+              <div class="key-reveal-row">
+                <button type="button" class="btn sm ghost" id="btnToggleKey">显示 Key</button>
+                <div id="keyRevealBlock" class="key-reveal hidden">
+                  <code id="currentKeyValue"></code>
+                  <button type="button" class="btn sm" id="btnCopyKey">复制</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-toolbar">
+              <div class="action-group">
+                <span class="action-group-label">密钥</span>
+                <div class="action-group-btns">
+                  <button type="button" class="btn sm" id="btnRotateKey">轮换 Key</button>
+                  <button type="button" class="btn sm danger" id="btnDeletePool">删除号池</button>
+                </div>
+              </div>
+              <div class="action-group">
+                <span class="action-group-label">数据</span>
+                <div class="action-group-btns">
+                  <label class="btn sm file-btn" title="UTF-8 CSV：email,password 或带表头 email,password">
+                    CSV 导入
+                    <input type="file" id="csvFile" accept=".csv,text/csv" hidden />
+                  </label>
+                  <button type="button" class="btn sm" id="btnExportCSV">导出 CSV</button>
+                </div>
+              </div>
+              <div class="action-group">
+                <span class="action-group-label">测号</span>
+                <div class="action-group-btns">
+                  <button type="button" class="btn sm primary" id="btnTestAll">测可用号</button>
+                  <button type="button" class="btn sm hidden" id="btnTestMuted">测禁言号</button>
+                  <button type="button" class="btn sm danger hidden" id="btnStopTest">中止测号</button>
+                  <button type="button" class="btn sm danger hidden" id="btnDiscardFailed">作废失败</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button type="button" class="tab active" data-tab="active">可用</button>
+            <button type="button" class="tab" data-tab="discarded">已作废</button>
+            <button type="button" class="tab" data-tab="all">全部</button>
+          </div>
+
+          <div id="testProgressWrap" class="test-progress-wrap hidden">
+            <div class="test-progress-track">
+              <div id="testProgressFill" class="test-progress-fill"></div>
+            </div>
+            <span id="testProgressLabel" class="test-progress-label muted"></span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>账号</th>
+                  <th>密码</th>
+                  <th>Token</th>
+                  <th>池状态</th>
+                  <th>测号</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="accountBody"></tbody>
+            </table>
+          </div>
+          <p class="muted foot" id="accountStats"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="loginDialog" class="dialog">
+    <form id="loginForm" class="dialog-card">
+      <h2>登录</h2>
+      <p class="muted">使用 <code>POOL_UI_ADMIN_TOKEN</code></p>
+      <label class="field">
+        <span>管理令牌</span>
+        <input type="password" id="loginToken" autocomplete="off" required />
+      </label>
+      <button type="submit" class="btn primary block">进入</button>
+    </form>
+  </dialog>
+
+  <dialog id="newKeyDialog" class="dialog">
+    <form id="newKeyForm" class="dialog-card">
+      <h2>新建网关 Key</h2>
+      <label class="field">
+        <span>API Key（sk- 随机）</span>
+        <div class="input-row">
+          <input id="newKeyValue" required readonly />
+          <button type="button" class="btn sm" id="btnRegenNewKey">重新生成</button>
+        </div>
+      </label>
+      <label class="field"><span>名称</span><input id="newKeyName" /></label>
+      <label class="field"><span>备注</span><input id="newKeyRemark" /></label>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" data-close>取消</button>
+        <button type="submit" class="btn primary">创建</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rotateDialog" class="dialog">
+    <form id="rotateForm" class="dialog-card">
+      <h2>轮换 API Key</h2>
+      <p class="muted">号池绑定不变，仅更换客户端使用的 Key。</p>
+      <label class="field"><span>当前 Key</span><input id="rotateOld" readonly /></label>
+      <label class="field">
+        <span>新 Key（sk- 随机）</span>
+        <div class="input-row">
+          <input id="rotateNew" required readonly />
+          <button type="button" class="btn sm" id="btnRegenRotateKey">重新生成</button>
+        </div>
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" data-close>取消</button>
+        <button type="submit" class="btn primary">确认轮换</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

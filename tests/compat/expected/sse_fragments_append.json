@@ -1,0 +1,8 @@
+{
+  "parts": [
+    {"text": "思考中", "type": "thinking"},
+    {"text": "结论", "type": "text"}
+  ],
+  "finished": false,
+  "new_type": "text"
+}

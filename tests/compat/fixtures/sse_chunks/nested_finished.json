@@ -1,0 +1,10 @@
+{
+  "chunk": {
+    "p": "response",
+    "v": [
+      {"p": "status", "v": "FINISHED"}
+    ]
+  },
+  "thinking_enabled": false,
+  "current_type": "text"
+}
