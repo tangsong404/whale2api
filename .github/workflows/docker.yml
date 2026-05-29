@@ -32,7 +32,7 @@ jobs:
           node-version: "22"
 
       - name: Run unit tests
-        run: ./tests/scripts/run-unit-all.sh
+        run: bash ./tests/scripts/run-unit-all.sh
 
   build:
     needs: test
