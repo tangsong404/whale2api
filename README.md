@@ -5,9 +5,11 @@ DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`
 ## 致谢与声明
 
 本项目在 **[ds2api](https://github.com/CJackHwang/ds2api)**（作者 [CJackHwang](https://github.com/CJackHwang)）基础上二次开发并重命名为 Whale2API
+
 感谢上游作者及贡献者的开源工作。
 
 CJackHwang佬的作品我个人使用过很长一段时间，为我减轻了许多经济上的负担，中转太多导致官方出手很是可惜
+
 本项目重新提供更稳定版本的开源。256K的 `deepseek-v4-flash` 效果很不好，还为了防封禁做了很多负面调整，希望自用而非盈利
 
 ## 快速开始
@@ -43,9 +45,13 @@ go run ./cmd/whale2api-tests # 集成测试
 ## 改了什么
 
 1.去除提示词中所有和`DS2API`相关文本
+
 2.将提示词全部转为中文，工具调用符号大改（经常导致出错）
+
 3.不再使用 `deepseek-v4-pro` (没有文件上传=没有长历史)
+
 4.限制上下文为 256K
+
 5.增加了对`禁言`（不是`封禁`）机制的检测
 
 ## 参与贡献
