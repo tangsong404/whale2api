@@ -6,7 +6,7 @@ DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`
 
 本项目在 **[ds2api](https://github.com/CJackHwang/ds2api)**（作者 [CJackHwang](https://github.com/CJackHwang)）基础上二次开发并重命名为 Whale2API
 
-感谢上游作者及贡献者的开源工作。
+【感谢Linux.do社区对项目的支持，感谢上游作者及贡献者的开源工作】
 
 CJackHwang佬的作品我个人使用过很长一段时间，为我减轻了许多经济上的负担，中转太多导致官方出手很是可惜
 
