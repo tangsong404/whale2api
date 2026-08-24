@@ -25,6 +25,15 @@ func TestGetModelRouteDirectAndAlias(t *testing.T) {
 		}
 	})
 
+	t.Run("flash_vision_exp", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash-vision-exp", nil)
+		rec := httptest.NewRecorder()
+		r.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+		}
+	})
+
 	t.Run("pro_rejected", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-pro", nil)
 		rec := httptest.NewRecorder()

@@ -96,6 +96,30 @@ func TestNormalizeOpenAIChatRequestFlash(t *testing.T) {
 	}
 }
 
+func TestNormalizeOpenAIChatRequestFlashVisionExp(t *testing.T) {
+	req := map[string]any{
+		"model":    "deepseek-v4-flash-vision-exp",
+		"messages": []any{map[string]any{"role": "user", "content": "hello"}},
+	}
+	out, err := promptcompat.NormalizeOpenAIChatRequest(req, "")
+	if err != nil {
+		t.Fatalf("promptcompat.NormalizeOpenAIChatRequest error: %v", err)
+	}
+	if out.ResolvedModel != "deepseek-v4-flash-vision-exp" {
+		t.Fatalf("resolved model mismatch: got=%q", out.ResolvedModel)
+	}
+	if out.ResponseModel != "deepseek-v4-flash-vision-exp" {
+		t.Fatalf("response model mismatch: got=%q", out.ResponseModel)
+	}
+	if out.Search || !out.Thinking {
+		t.Fatalf("unexpected model flags: thinking=%v search=%v", out.Thinking, out.Search)
+	}
+	payload := out.CompletionPayload("session-vision")
+	if got := payload["model_type"]; got != "vision" {
+		t.Fatalf("expected model_type vision, got %#v", got)
+	}
+}
+
 func TestNormalizeOpenAIChatRequestRejectsPro(t *testing.T) {
 	req := map[string]any{
 		"model":    "deepseek-v4-pro",

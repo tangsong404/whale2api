@@ -39,3 +39,6 @@ internal/server/data/
 
 # Logs
 *.log
+
+# Local CSV dumps
+*.csv

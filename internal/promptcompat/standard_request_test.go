@@ -11,6 +11,7 @@ func TestStandardRequestCompletionPayloadSetsModelTypeFromResolvedModel(t *testi
 		modelType string
 	}{
 		{name: "default", model: "deepseek-v4-flash", thinking: false, search: false, modelType: "default"},
+		{name: "vision", model: "deepseek-v4-flash-vision-exp", thinking: false, search: false, modelType: "vision"},
 	}
 
 	for _, tc := range tests {
@@ -81,5 +82,19 @@ func TestStandardRequestCompletionPayloadPassThroughDeepseekProString(t *testing
 	payload := req.CompletionPayload("session-1")
 	if got := payload["model_type"]; got != "default" {
 		t.Fatalf("expected model_type default, got %#v", got)
+	}
+}
+
+func TestStandardRequestCompletionPayloadVisionPassThroughCannotForceExpert(t *testing.T) {
+	req := StandardRequest{
+		ResolvedModel: "deepseek-v4-flash-vision-exp",
+		FinalPrompt:   "hello",
+		PassThrough: map[string]any{
+			"model_type": "expert",
+		},
+	}
+	payload := req.CompletionPayload("session-1")
+	if got := payload["model_type"]; got != "default" {
+		t.Fatalf("expected model_type default after expert passthrough, got %#v", got)
 	}
 }

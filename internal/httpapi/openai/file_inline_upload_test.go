@@ -178,6 +178,34 @@ func TestChatCompletionsUploadsInlineFilesBeforeCompletion(t *testing.T) {
 	}
 }
 
+func TestChatCompletionsUploadsInlineFilesUsesVisionModelType(t *testing.T) {
+	ds := &inlineUploadDSStub{}
+	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
+	reqBody := `{"model":"deepseek-v4-flash-vision-exp","messages":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(reqBody))
+	req.Header.Set("Authorization", "Bearer direct-token")
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	h.ChatCompletions(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if len(ds.uploadCalls) != 1 {
+		t.Fatalf("expected 1 upload call, got %d", len(ds.uploadCalls))
+	}
+	if ds.uploadCalls[0].ModelType != "vision" {
+		t.Fatalf("expected vision model type for vision-exp request, got %q", ds.uploadCalls[0].ModelType)
+	}
+	if ds.completionReq == nil {
+		t.Fatal("expected completion payload to be captured")
+	}
+	if got := ds.completionReq["model_type"]; got != "vision" {
+		t.Fatalf("expected completion model_type vision, got %#v", got)
+	}
+}
+
 func TestResponsesUploadsInlineFilesBeforeCompletion(t *testing.T) {
 	ds := &inlineUploadDSStub{}
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}

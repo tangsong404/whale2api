@@ -158,6 +158,24 @@ func TestFilesRouteUploadSuccess(t *testing.T) {
 	}
 }
 
+func TestFilesRouteUploadVisionExpModelType(t *testing.T) {
+	ds := &filesRouteDSStub{}
+	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
+	r := chi.NewRouter()
+	registerOpenAITestRoutes(r, h)
+
+	req := newMultipartUploadRequest(t, "assistants", "notes.txt", []byte("hello world"), "deepseek-v4-flash-vision-exp")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if ds.lastReq.ModelType != "vision" {
+		t.Fatalf("expected vision model type, got %q", ds.lastReq.ModelType)
+	}
+}
+
 func TestFilesRouteUploadIncludesAccountIDForManagedAccount(t *testing.T) {
 	ds := &filesRouteDSStub{}
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: managedFilesAuthStub{}, DS: ds}

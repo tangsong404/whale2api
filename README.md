@@ -1,6 +1,6 @@
 # Whale2API
 
-DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`
+DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`以及 `deepseek-v4-flash-vision-exp`
 
 ## 致谢与声明
 
@@ -53,6 +53,8 @@ go run ./cmd/whale2api-tests # 集成测试
 4.限制上下文为 256K
 
 5.增加了对`禁言`（不是`封禁`）机制的检测
+
+6.支持多模态模型 `deepseek-v4-flash-vision-exp`
 
 ## 参与贡献
 

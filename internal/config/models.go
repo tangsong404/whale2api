@@ -13,16 +13,25 @@ type ModelInfo struct {
 
 const noThinkingModelSuffix = "-nothinking"
 
-const modelIDDeepSeekFlash = "deepseek-v4-flash"
+const (
+	modelIDDeepSeekFlash          = "deepseek-v4-flash"
+	modelIDDeepSeekFlashVisionExp = "deepseek-v4-flash-vision-exp"
+)
+
+var supportedModelIDs = map[string]struct{}{
+	modelIDDeepSeekFlash:          {},
+	modelIDDeepSeekFlashVisionExp: {},
+}
 
 // AdvertisedMaxContextTokens is the max context window advertised in /v1/models.
 const AdvertisedMaxContextTokens = 256_000
 
 var deepSeekBaseModels = []ModelInfo{
 	{ID: modelIDDeepSeekFlash, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Permission: []any{}},
+	{ID: modelIDDeepSeekFlashVisionExp, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Permission: []any{}},
 }
 
-// DeepSeekModels lists client-visible model ids (flash only).
+// DeepSeekModels lists client-visible model ids.
 var DeepSeekModels = deepSeekBaseModels
 
 func init() {
@@ -35,7 +44,7 @@ func GetModelConfig(model string) (thinking bool, search bool, ok bool) {
 	if hasNoThinkingSuffix(model) {
 		return false, false, false
 	}
-	if internalBaseModel(baseModelID(model)) != modelIDDeepSeekFlash {
+	if !isSupportedModel(baseModelID(model)) {
 		return false, false, false
 	}
 	return true, false, true
@@ -45,10 +54,14 @@ func GetModelType(model string) (modelType string, ok bool) {
 	if hasNoThinkingSuffix(model) {
 		return "", false
 	}
-	if internalBaseModel(baseModelID(model)) == modelIDDeepSeekFlash {
+	switch internalBaseModel(baseModelID(model)) {
+	case modelIDDeepSeekFlash:
 		return "default", true
+	case modelIDDeepSeekFlashVisionExp:
+		return "vision", true
+	default:
+		return "", false
 	}
-	return "", false
 }
 
 func UpstreamDeepSeekSKU(resolvedModel string) string {
@@ -59,10 +72,14 @@ func UpstreamDeepSeekSKU(resolvedModel string) string {
 }
 
 func UpstreamSafeModelType(modelType string) string {
-	if strings.TrimSpace(modelType) == "" {
+	switch lower(strings.TrimSpace(modelType)) {
+	case "":
 		return ""
+	case "default", "vision":
+		return lower(strings.TrimSpace(modelType))
+	default:
+		return "default"
 	}
-	return "default"
 }
 
 // IsNoThinkingModel is kept for API compatibility; -nothinking model ids are rejected outright.
@@ -70,17 +87,22 @@ func IsNoThinkingModel(model string) bool {
 	return false
 }
 
-// ResolveModel accepts only deepseek-v4-flash.
+// ResolveModel accepts supported deepseek model ids.
 func ResolveModel(requested string) (string, bool) {
 	if hasNoThinkingSuffix(requested) {
 		return "", false
 	}
 	base := baseModelID(requested)
 	internal := internalBaseModel(base)
-	if internal != modelIDDeepSeekFlash {
+	if !isSupportedModel(internal) {
 		return "", false
 	}
 	return internal, true
+}
+
+func isSupportedModel(id string) bool {
+	_, ok := supportedModelIDs[internalBaseModel(id)]
+	return ok
 }
 
 func baseModelID(model string) string {
