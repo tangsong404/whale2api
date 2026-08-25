@@ -34,8 +34,19 @@ func migrate(ctx context.Context, db *sql.DB) error {
 			return err
 		}
 		if _, err := db.ExecContext(ctx, string(b)); err != nil {
+			if isIgnorableMigrationErr(err) {
+				continue
+			}
 			return fmt.Errorf("migration %s: %w", name, err)
 		}
 	}
 	return nil
+}
+
+func isIgnorableMigrationErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "duplicate column name")
 }

@@ -196,6 +196,29 @@ func muteUntilFromBizData(bizData map[string]any) *time.Time {
 	return nil
 }
 
+// MuteUntilFromResponseMap extracts mute_until from a DeepSeek JSON envelope.
+func MuteUntilFromResponseMap(resp map[string]any) *time.Time {
+	if resp == nil {
+		return nil
+	}
+	data, _ := resp["data"].(map[string]any)
+	bizData, _ := data["biz_data"].(map[string]any)
+	return muteUntilFromBizData(bizData)
+}
+
+// MuteUntilFromResponseBytes extracts mute_until from a raw DeepSeek JSON body.
+func MuteUntilFromResponseBytes(raw []byte) *time.Time {
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed[0] != '{' {
+		return nil
+	}
+	var envelope map[string]any
+	if err := json.Unmarshal(raw, &envelope); err != nil {
+		return nil
+	}
+	return MuteUntilFromResponseMap(envelope)
+}
+
 func unixTimeFromAny(v any) *time.Time {
 	switch n := v.(type) {
 	case float64:

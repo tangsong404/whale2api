@@ -87,6 +87,10 @@ func Probe(ctx context.Context, ds *dsclient.Client, acc config.Account, prompt 
 
 	raw, err := io.ReadAll(start.Response.Body)
 	if kind, msg := poolaccounthealth.ClassifyResponseBytes(raw); kind != "" {
+		var muteUntil *time.Time
+		if kind == pooldb.DiscardReasonMuted {
+			muteUntil = poolaccounthealth.MuteUntilFromResponseBytes(raw)
+		}
 		return Result{
 			OK:            false,
 			Message:       msg,
@@ -94,6 +98,7 @@ func Probe(ctx context.Context, ds *dsclient.Client, acc config.Account, prompt 
 			PoolStatus:    kind,
 			DiscardReason: kind,
 			AutoDiscard:   true,
+			MuteUntil:     muteUntil,
 		}
 	}
 	if err != nil {

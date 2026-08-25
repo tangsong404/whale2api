@@ -3,6 +3,7 @@ package poolui
 import (
 	"context"
 	"strings"
+	"time"
 
 	"whale2api/internal/accountprobe"
 	dsclient "whale2api/internal/deepseek/client"
@@ -18,6 +19,7 @@ type accountTestResult struct {
 	PoolStatus    string `json:"pool_status,omitempty"`
 	DiscardReason string `json:"discard_reason,omitempty"`
 	AutoDiscarded bool   `json:"auto_discarded,omitempty"`
+	MuteUntil     string `json:"mute_until,omitempty"`
 }
 
 type accountTestResponse struct {
@@ -55,8 +57,17 @@ func (s *Server) probeOneAccount(ctx context.Context, apiKey string, cred pooldb
 	}
 
 	if probe.AutoDiscard && probe.DiscardReason != "" {
-		if err := s.DB.SetAccountPoolState(ctx, apiKey, cred.Identifier, true, probe.DiscardReason); err == nil {
+		var err error
+		if probe.DiscardReason == pooldb.DiscardReasonMuted {
+			err = s.DB.SetAccountMuted(ctx, apiKey, cred.Identifier, probe.MuteUntil)
+		} else {
+			err = s.DB.SetAccountPoolState(ctx, apiKey, cred.Identifier, true, probe.DiscardReason)
+		}
+		if err == nil {
 			row.AutoDiscarded = true
+			if probe.MuteUntil != nil && !probe.MuteUntil.IsZero() {
+				row.MuteUntil = probe.MuteUntil.UTC().Format(time.RFC3339)
+			}
 		}
 	}
 

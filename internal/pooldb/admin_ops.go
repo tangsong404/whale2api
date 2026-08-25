@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -74,23 +75,60 @@ func (db *DB) SetAccountPoolState(ctx context.Context, apiKey, identifier string
 	identifier = strings.TrimSpace(identifier)
 	reason = strings.TrimSpace(reason)
 	disc := 0
+	clearMute := true
 	if discarded {
 		disc = 1
 		if reason == "" {
 			reason = DiscardReasonManual
+		}
+		if reason == DiscardReasonMuted {
+			clearMute = false
 		}
 	} else {
 		reason = DiscardReasonNone
 	}
 	res, err := db.sql.ExecContext(ctx, `
 UPDATE pool_accounts
-SET discarded = ?, discard_reason = ?
+SET discarded = ?, discard_reason = ?, mute_until = CASE WHEN ? THEN '' ELSE mute_until END
 WHERE id IN (
   SELECT pa.id FROM pool_accounts pa
   INNER JOIN pool_bindings pb ON pb.account_id = pa.id
   WHERE pb.api_key = ? AND pa.identifier = ?
 )
-`, disc, reason, apiKey, identifier)
+`, disc, reason, clearMute, apiKey, identifier)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("account not in pool")
+	}
+	return nil
+}
+
+// SetAccountMuted marks an account muted and stores the unblock time when known.
+func (db *DB) SetAccountMuted(ctx context.Context, apiKey, identifier string, muteUntil *time.Time) error {
+	if err := db.configured(); err != nil {
+		return err
+	}
+	apiKey = strings.TrimSpace(apiKey)
+	identifier = strings.TrimSpace(identifier)
+	muteUntilText := ""
+	if muteUntil != nil && !muteUntil.IsZero() {
+		muteUntilText = muteUntil.UTC().Format(time.RFC3339)
+	}
+	res, err := db.sql.ExecContext(ctx, `
+UPDATE pool_accounts
+SET discarded = 1, discard_reason = ?, mute_until = ?
+WHERE id IN (
+  SELECT pa.id FROM pool_accounts pa
+  INNER JOIN pool_bindings pb ON pb.account_id = pa.id
+  WHERE pb.api_key = ? AND pa.identifier = ?
+)
+`, DiscardReasonMuted, muteUntilText, apiKey, identifier)
 	if err != nil {
 		return err
 	}
@@ -110,7 +148,7 @@ func (db *DB) ListPoolAccountsAll(ctx context.Context, apiKey string, includeDis
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	q := `
-SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, '')
+SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, ''), pa.created_at, COALESCE(pa.mute_until, '')
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ?`

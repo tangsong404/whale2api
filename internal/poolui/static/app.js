@@ -1,5 +1,14 @@
 const TOKEN_KEY = "pool_ui_token";
 
+const ICON_TEST =
+  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6,4 6,12 12,8"/></svg>';
+const ICON_DISCARD =
+  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5h9"/><path d="M6.5 5V4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1"/><path d="M5.5 5l.5 8.5h4l.5-8.5"/></svg>';
+const ICON_RESTORE =
+  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 0 1 7.7-3.2"/><path d="M12.5 3.5V6h-2.5"/><path d="M12.5 8a4.5 4.5 0 0 1-7.7 3.2"/><path d="M3.5 12.5V10H6"/></svg>';
+
+const PAGE_SIZE = 50;
+
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
@@ -7,9 +16,9 @@ let state = {
   token: sessionStorage.getItem(TOKEN_KEY) || "",
   keys: [],
   currentKey: null,
-  keyVisible: false,
   accounts: [],
   tab: "active",
+  page: 1,
   testStatus: {},
   lastFailedIds: [],
   testing: false,
@@ -56,20 +65,20 @@ function toast(msg, isErr) {
   const el = $("#toast");
   el.textContent = msg;
   el.classList.toggle("hidden", false);
-  el.style.borderColor = isErr ? "var(--danger)" : "var(--border)";
+  el.classList.toggle("is-error", !!isErr);
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.add("hidden"), 3500);
 }
 
 function showApp() {
+  $("#loginPage").classList.add("hidden");
   $("#app").classList.remove("hidden");
-  $("#loginDialog").close?.();
+  setInspectorMode(false);
 }
 
 function showLogin() {
+  $("#loginPage").classList.remove("hidden");
   $("#app").classList.add("hidden");
-  const d = $("#loginDialog");
-  if (!d.open) d.showModal();
 }
 
 function openDialog(id) {
@@ -83,25 +92,23 @@ function closeDialogs() {
 
 function poolDisplayTitle(row) {
   if (row?.name?.trim()) return row.name.trim();
-  if (row?.remark?.trim()) return row.remark.trim();
   return "未命名号池";
 }
 
-function setKeyVisible(visible) {
-  state.keyVisible = visible;
-  const block = $("#keyRevealBlock");
-  const btn = $("#btnToggleKey");
-  if (!block || !btn) return;
-  block.classList.toggle("hidden", !visible);
-  btn.textContent = visible ? "隐藏 Key" : "显示 Key";
+function setInspectorMode(hasPool) {
+  $("#inspectorIdle")?.classList.toggle("hidden", hasPool);
+  $("#inspectorActive")?.classList.toggle("hidden", !hasPool);
 }
 
-function updateKeyRevealUI() {
-  const valueEl = $("#currentKeyValue");
-  if (valueEl) {
-    valueEl.textContent = state.currentKey || "";
-  }
-  setKeyVisible(state.keyVisible);
+function discardFailedCount() {
+  return state.lastFailedIds.filter((id) => {
+    const acc = state.accounts.find((a) => a.identifier === id);
+    return acc && !acc.discarded;
+  }).length;
+}
+
+function mutedCount() {
+  return state.accounts.filter((a) => a.discarded && a.discard_reason === "muted").length;
 }
 
 function setTestingUI(testing) {
@@ -112,10 +119,10 @@ function setTestingUI(testing) {
     "#btnDiscardFailed",
     "#btnRotateKey",
     "#btnDeletePool",
+    "#btnRenamePool",
     "#btnExportCSV",
-    "#btnToggleKey",
-    "#btnCopyKey",
-    "#csvFile",
+    "#btnImportCSV",
+    "#btnViewKey",
   ];
   busy.forEach((sel) => {
     const el = $(sel);
@@ -123,27 +130,17 @@ function setTestingUI(testing) {
   });
   $$(".tab").forEach((b) => { b.disabled = testing; });
   const stopBtn = $("#btnStopTest");
-  if (stopBtn) {
-    stopBtn.classList.toggle("hidden", !testing);
-    if (testing) stopBtn.disabled = false;
-  }
+  if (stopBtn) stopBtn.disabled = testing ? false : true;
 }
 
 function progressPercent(done, total, testing) {
-  if (total <= 0) {
-    return 0;
-  }
+  if (total <= 0) return 0;
   let value = done;
-  if (testing && done < total) {
-    // In-flight account counts as half a step so the bar moves before the first completes.
-    value = done + 0.5;
-  }
+  if (testing && done < total) value = done + 0.5;
   let pct = Math.round((value / total) * 100);
   if (testing) {
     pct = Math.max(pct, 8);
-    if (done < total) {
-      pct = Math.min(pct, 99);
-    }
+    if (done < total) pct = Math.min(pct, 99);
   } else if (done >= total) {
     pct = 100;
   }
@@ -151,78 +148,120 @@ function progressPercent(done, total, testing) {
 }
 
 function updateProgressUI() {
+  const slot = $("#mainProgressSlot");
   const wrap = $("#testProgressWrap");
   const fill = $("#testProgressFill");
-  const label = $("#testProgressLabel");
-  if (!wrap || !fill || !label) return;
+  if (!wrap || !fill) return;
   const { done, total } = state.testProgress;
-  const shouldShow = state.testing || state.testProgressEverShown || total > 0;
-  if (!shouldShow) {
-    wrap.classList.add("hidden");
+  slot?.classList.toggle("is-active", state.testing);
+  wrap.classList.toggle("is-visible", state.testing);
+  if (!state.testing) {
     fill.style.width = "0%";
     fill.classList.remove("is-active");
     return;
   }
-  if (state.testing || total > 0) {
-    state.testProgressEverShown = true;
-  }
-  wrap.classList.remove("hidden");
   const pct = progressPercent(done, total, state.testing);
   fill.style.width = `${pct}%`;
   fill.classList.toggle("is-active", state.testing);
-  if (state.testing) {
-    const current = total > 0 ? Math.min(done + 1, total) : 0;
-    label.textContent = total > 0
-      ? `测号中 ${current} / ${total}（${pct}%）`
-      : "准备测号…";
-  } else if (state.testCancelled && total > 0) {
-    label.textContent = `测号已中止 ${done} / ${total}（已完成账号见下方状态列）`;
-  } else if (total > 0) {
-    label.textContent = `测号完成 ${done} / ${total}（成功/失败见下方状态列，不会自动清除）`;
-  } else {
-    label.textContent = "等待测号";
-  }
+}
+
+function updateTestModeButtons() {
+  const isDiscardedTab = state.tab === "discarded";
+  $("#btnTestAll")?.classList.toggle("hidden", isDiscardedTab);
+  $("#btnTestMuted")?.classList.toggle("hidden", !isDiscardedTab);
 }
 
 function updateDiscardFailedButton() {
   const btn = $("#btnDiscardFailed");
+  const desc = $("#btnDiscardFailedDesc");
   if (!btn) return;
-  const count = state.lastFailedIds.filter((id) => {
-    const acc = state.accounts.find((a) => a.identifier === id);
-    return acc && !acc.discarded;
-  }).length;
-  if (count > 0 && !state.testing) {
-    btn.classList.remove("hidden");
-    btn.textContent = `作废失败（${count}）`;
-  } else {
-    btn.classList.add("hidden");
-  }
+  const count = discardFailedCount();
+  if (desc) desc.textContent = count > 0 ? `${count} 个失败账号` : "—";
+  btn.classList.toggle("hidden", count === 0);
 }
 
 function updateMutedTestButton() {
-  const btn = $("#btnTestMuted");
-  if (!btn) return;
-  const muted = state.accounts.filter((a) => a.discarded && a.discard_reason === "muted");
-  if (muted.length > 0 && !state.testing) {
-    btn.classList.remove("hidden");
-    btn.textContent = `测禁言号（${muted.length}）`;
-  } else {
-    btn.classList.add("hidden");
-  }
+  const desc = $("#btnTestMutedDesc");
+  if (!desc) return;
+  const count = mutedCount();
+  desc.textContent = count > 0 ? `${count} 个禁言账号` : "检测禁言账号";
+}
+
+function accountOtherTitle(a) {
+  if (a.token_preview && a.token) return a.token;
+  return accountOtherText(a);
 }
 
 function poolStatusHTML(a) {
-  if (!a.discarded) {
-    return '<span class="badge ok">可用</span>';
-  }
-  if (a.discard_reason === "muted") {
-    return '<span class="badge off">禁言</span>';
-  }
-  if (a.discard_reason === "banned") {
-    return '<span class="badge off">封号</span>';
-  }
+  if (!a.discarded) return '<span class="badge ok">可用</span>';
+  if (a.discard_reason === "muted") return '<span class="badge off">禁言</span>';
+  if (a.discard_reason === "banned") return '<span class="badge off">封号</span>';
   const label = a.pool_status_text || "已作废";
   return `<span class="badge off">${escapeHtml(label)}</span>`;
+}
+
+function accountStatusHTML(a) {
+  const t = state.testStatus[a.identifier];
+  if (t) return testStatusBadgeHTML(a.identifier);
+  return poolStatusHTML(a);
+}
+
+function formatAccountDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function accountOtherText(a) {
+  if (a.discard_reason === "muted" && a.mute_until) {
+    return `解禁 ${formatAccountDate(a.mute_until)}`;
+  }
+  if (a.token_preview) return a.token_preview;
+  return "";
+}
+
+function accountOtherHTML(a) {
+  const text = accountOtherText(a);
+  if (!text) return "";
+  const title = accountOtherTitle(a);
+  return `<span class="cell-ellipsis" title="${escapeAttr(title)}">${escapeHtml(text)}</span>`;
+}
+
+function paginateRows(rows) {
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (state.page > totalPages) state.page = totalPages;
+  if (state.page < 1) state.page = 1;
+  const start = (state.page - 1) * PAGE_SIZE;
+  return {
+    pageRows: rows.slice(start, start + PAGE_SIZE),
+    total,
+    totalPages,
+    page: state.page,
+  };
+}
+
+function renderPagination(meta) {
+  const el = $("#accountPagination");
+  if (!el) return;
+  if (meta.total <= PAGE_SIZE) {
+    el.innerHTML = "";
+    return;
+  }
+  const prevDisabled = meta.page <= 1 ? "disabled" : "";
+  const nextDisabled = meta.page >= meta.totalPages ? "disabled" : "";
+  el.innerHTML = `
+    <span class="pagination-info">第 ${meta.page} / ${meta.totalPages} 页 · 共 ${meta.total} 条</span>
+    <button type="button" class="btn sm" data-page="prev" ${prevDisabled}>上一页</button>
+    <button type="button" class="btn sm" data-page="next" ${nextDisabled}>下一页</button>
+  `;
 }
 
 function applyTestResult(ident, data) {
@@ -252,6 +291,9 @@ function applyTestResult(ident, data) {
   if (acc && data.auto_discarded) {
     acc.discarded = true;
     acc.discard_reason = data.discard_reason || "";
+    if (data.discard_reason === "muted" && data.mute_until) {
+      acc.mute_until = data.mute_until;
+    }
     acc.pool_status_text =
       data.discard_reason === "muted"
         ? "禁言"
@@ -270,21 +312,18 @@ function applyTestResult(ident, data) {
   }
 }
 
-function testStatusHTML(identifier) {
+function testStatusBadgeHTML(identifier) {
   const t = state.testStatus[identifier];
   if (!t) return '<span class="muted">—</span>';
-  const msg = escapeHtml(t.message || "");
   switch (t.status) {
     case "pending":
-      return `<span class="badge warn">等待</span><span class="test-msg muted">${msg}</span>`;
+      return '<span class="badge warn">等待</span>';
     case "testing":
-      return `<span class="badge testing">测号中</span>`;
-    case "ok": {
-      const tokenNote = t.token_updated ? '<span class="test-msg muted"> · token已更新</span>' : "";
-      return `<span class="badge ok">可用</span>${tokenNote}`;
-    }
+      return '<span class="badge testing">测号中</span>';
+    case "ok":
+      return '<span class="badge ok">可用</span>';
     case "skip":
-      return `<span class="badge warn">跳过</span><span class="test-msg muted" title="${msg}">${msg}</span>`;
+      return '<span class="badge warn">跳过</span>';
     case "fail": {
       const tag =
         t.pool_status === "muted"
@@ -294,8 +333,7 @@ function testStatusHTML(identifier) {
             : t.pool_status === "transport"
               ? "网络异常"
               : "失败";
-      const auto = t.auto_discarded ? " · 已自动作废" : "";
-      return `<span class="badge off">${tag}</span><span class="test-msg fail-msg" title="${msg}">${msg}${auto}</span>`;
+      return `<span class="badge off">${tag}</span>`;
     }
     default:
       return '<span class="muted">—</span>';
@@ -391,9 +429,7 @@ function startTestPolling({ awaitDone = false } = {}) {
           if (!isTestJobActive(job)) {
             stopTestPoll(job);
             if (job.status !== "running") {
-              if (job.status === "cancelled" || state.userStoppedTest) {
-                resetTestUI();
-              }
+              if (job.status === "cancelled" || state.userStoppedTest) resetTestUI();
               await loadAccounts();
               await loadKeys();
               updateDiscardFailedButton();
@@ -416,9 +452,7 @@ function startTestPolling({ awaitDone = false } = {}) {
     if (!isTestJobActive(job)) {
       stopTestPoll(job);
       if (job.status !== "running") {
-        if (job.status === "cancelled" || state.userStoppedTest) {
-          resetTestUI();
-        }
+        if (job.status === "cancelled" || state.userStoppedTest) resetTestUI();
         await loadAccounts();
         await loadKeys();
         updateDiscardFailedButton();
@@ -430,18 +464,12 @@ function startTestPolling({ awaitDone = false } = {}) {
 }
 
 function syncTestJobFromServer(job) {
-  if (!job || job.status === "idle") {
-    return;
-  }
+  if (!job || job.status === "idle") return;
   state.testProgress = { done: job.done || 0, total: job.total || 0 };
-  if (job.total > 0 || job.status === "running") {
-    state.testProgressEverShown = true;
-  }
+  if (job.total > 0 || job.status === "running") state.testProgressEverShown = true;
   state.testCancelled = job.status === "cancelled";
   const running = job.status === "running" && !state.userStoppedTest;
-  if (job.status === "cancelled" || job.status === "completed") {
-    state.userStoppedTest = false;
-  }
+  if (job.status === "cancelled" || job.status === "completed") state.userStoppedTest = false;
   setTestingUI(running);
   (job.results || []).forEach((row) => {
     if (row?.identifier) applyTestResult(row.identifier, row);
@@ -467,20 +495,16 @@ async function restoreTestJob() {
     return;
   }
   syncTestJobFromServer(job);
-  if (isTestJobActive(job)) {
-    startTestPolling();
-  }
+  if (isTestJobActive(job)) startTestPolling();
 }
 
 async function stopAccountTest() {
   if (!state.currentKey) return;
   const stopBtn = $("#btnStopTest");
   if (stopBtn) stopBtn.disabled = true;
-
   state.userStoppedTest = true;
   stopTestPoll();
   resetTestUI();
-
   try {
     await api(`/api/keys/${encKey(state.currentKey)}/accounts/test/cancel`, {
       method: "POST",
@@ -513,7 +537,7 @@ function testJobDoneToast(job) {
 async function selectKey(apiKey) {
   stopTestPoll();
   state.currentKey = apiKey;
-  state.keyVisible = false;
+  state.page = 1;
   state.testStatus = {};
   state.lastFailedIds = [];
   state.testProgress = { done: 0, total: 0 };
@@ -523,14 +547,15 @@ async function selectKey(apiKey) {
   renderKeys();
   $("#emptyState").classList.add("hidden");
   $("#poolView").classList.remove("hidden");
+  setInspectorMode(true);
   const row = state.keys.find((k) => k.api_key === apiKey);
   $("#currentPoolTitle").textContent = poolDisplayTitle(row);
   $("#currentKeyMeta").textContent = row
-    ? [row.remark, row.enabled ? "启用" : "停用", `${row.pool_size} 可用`].filter(Boolean).join(" · ")
+    ? [row.enabled ? "启用" : "停用", `${row.pool_size} 可用`].join(" · ")
     : "";
-  updateKeyRevealUI();
   updateDiscardFailedButton();
   updateMutedTestButton();
+  updateTestModeButtons();
   updateProgressUI();
   await loadAccounts();
   await restoreTestJob();
@@ -538,7 +563,7 @@ async function selectKey(apiKey) {
 
 async function loadAccounts() {
   if (!state.currentKey) return;
-  const include = state.tab !== "active";
+  const include = state.tab === "discarded";
   const q = include ? "?include_discarded=1" : "";
   const data = await api(`/api/keys/${encKey(state.currentKey)}/accounts${q}`);
   state.accounts = data.accounts || [];
@@ -547,59 +572,52 @@ async function loadAccounts() {
 
 function filterAccounts(list) {
   if (state.tab === "discarded") return list.filter((a) => a.discarded);
-  if (state.tab === "active") return list.filter((a) => !a.discarded);
-  return list;
+  return list.filter((a) => !a.discarded);
 }
 
 function rowActionsHTML(a) {
   const disabled = state.testing ? "disabled" : "";
+  const testBtn = `<button type="button" class="btn sm icon-btn" title="测号" data-test="${escapeAttr(a.identifier)}" ${disabled}>${ICON_TEST}</button>`;
+  const discardBtn = `<button type="button" class="btn sm icon-btn danger" title="作废" data-discard="${escapeAttr(a.identifier)}" ${disabled}>${ICON_DISCARD}</button>`;
+  const restoreBtn = `<button type="button" class="btn sm icon-btn" title="恢复" data-restore="${escapeAttr(a.identifier)}" ${disabled}>${ICON_RESTORE}</button>`;
   if (!a.discarded) {
-    return `<button type="button" class="btn sm" data-test="${escapeAttr(a.identifier)}" ${disabled}>测号</button>
-         <button type="button" class="btn sm danger" data-discard="${escapeAttr(a.identifier)}" ${disabled}>作废</button>`;
+    return `${testBtn}${discardBtn}`;
   }
   if (a.discard_reason === "muted") {
-    return `<button type="button" class="btn sm" data-test="${escapeAttr(a.identifier)}" ${disabled}>测号</button>
-         <button type="button" class="btn sm" data-restore="${escapeAttr(a.identifier)}" ${disabled}>恢复</button>`;
+    return `${testBtn}${restoreBtn}`;
   }
-  return `<button type="button" class="btn sm" data-restore="${escapeAttr(a.identifier)}" ${disabled}>恢复</button>`;
+  return restoreBtn;
 }
 
 function renderAccounts() {
   const tbody = $("#accountBody");
-  const rows = filterAccounts(state.accounts);
+  const filtered = filterAccounts(state.accounts);
+  const meta = paginateRows(filtered);
   tbody.innerHTML = "";
-  rows.forEach((a) => {
+  meta.pageRows.forEach((a) => {
     const tr = document.createElement("tr");
-    if (state.testStatus[a.identifier]?.status === "fail") {
-      tr.classList.add("row-fail");
-    } else if (state.testStatus[a.identifier]?.status === "ok") {
-      tr.classList.add("row-ok");
-    }
     tr.innerHTML = `
       <td>${a.position}</td>
       <td>${escapeHtml(a.identifier)}</td>
       <td>${a.has_password ? "●●●" : "—"}</td>
-      <td>${escapeHtml(a.token_preview || (a.has_token ? "有" : "—"))}</td>
-      <td>${poolStatusHTML(a)}</td>
-      <td class="test-cell">${testStatusHTML(a.identifier)}</td>
-      <td class="row-actions">${rowActionsHTML(a)}</td>
+      <td class="status-cell">${accountStatusHTML(a)}</td>
+      <td class="other-cell">${accountOtherHTML(a)}</td>
+      <td class="col-actions"><div class="row-actions">${rowActionsHTML(a)}</div></td>
     `;
     tbody.appendChild(tr);
   });
+  renderPagination(meta);
   const active = state.accounts.filter((a) => !a.discarded).length;
   const disc = state.accounts.filter((a) => a.discarded).length;
   const muted = state.accounts.filter((a) => a.discarded && a.discard_reason === "muted").length;
   const banned = state.accounts.filter((a) => a.discarded && a.discard_reason === "banned").length;
   let stats = `共 ${state.accounts.length} 条 · 可用 ${active} · 已作废 ${disc}`;
-  if (muted || banned) {
-    stats += `（禁言 ${muted} · 封号 ${banned}）`;
-  }
-  if (state.lastFailedIds.length) {
-    stats += ` · 最近失败 ${state.lastFailedIds.length}`;
-  }
+  if (muted || banned) stats += `（禁言 ${muted} · 封号 ${banned}）`;
+  if (state.lastFailedIds.length) stats += ` · 最近失败 ${state.lastFailedIds.length}`;
   $("#accountStats").textContent = stats;
   updateDiscardFailedButton();
   updateMutedTestButton();
+  updateTestModeButtons();
 }
 
 function escapeHtml(s) {
@@ -661,9 +679,7 @@ async function runBatchAccountTest(identifiers, activeOnly) {
   }
 }
 
-$("#btnStopTest").addEventListener("click", () => {
-  stopAccountTest();
-});
+$("#btnStopTest").addEventListener("click", () => stopAccountTest());
 
 $("#btnTestAll").addEventListener("click", () => {
   const rows = state.accounts.filter((a) => !a.discarded);
@@ -680,7 +696,6 @@ $("#btnTestMuted").addEventListener("click", () => {
     toast("没有禁言账号可测", true);
     return;
   }
-  if (!confirm(`对 ${rows.length} 个禁言账号测号？通过将自动恢复为可用。`)) return;
   runBatchAccountTest(rows.map((a) => a.identifier), false);
 });
 
@@ -720,12 +735,13 @@ $("#btnDiscardFailed").addEventListener("click", async () => {
   }
 });
 
-$("#btnToggleKey").addEventListener("click", () => {
+$("#btnViewKey").addEventListener("click", () => {
   if (!state.currentKey) return;
-  setKeyVisible(!state.keyVisible);
+  $("#viewKeyValue").textContent = state.currentKey;
+  openDialog("#viewKeyDialog");
 });
 
-$("#btnCopyKey").addEventListener("click", async () => {
+$("#btnDialogCopyKey").addEventListener("click", async () => {
   if (!state.currentKey) return;
   try {
     await navigator.clipboard.writeText(state.currentKey);
@@ -777,8 +793,85 @@ $$(".tab").forEach((btn) => {
     $$(".tab").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     state.tab = btn.dataset.tab;
+    state.page = 1;
+    updateTestModeButtons();
     await loadAccounts();
   });
+});
+
+$("#accountPagination").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-page]");
+  if (!btn || btn.disabled) return;
+  const filtered = filterAccounts(state.accounts);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (btn.dataset.page === "prev" && state.page > 1) state.page -= 1;
+  if (btn.dataset.page === "next" && state.page < totalPages) state.page += 1;
+  renderAccounts();
+});
+
+$("#btnRenamePool").addEventListener("click", () => {
+  if (!state.currentKey) return;
+  const row = state.keys.find((k) => k.api_key === state.currentKey);
+  $("#renamePoolName").value = row?.name?.trim() || "";
+  openDialog("#renamePoolDialog");
+});
+
+$("#renamePoolForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!state.currentKey) return;
+  const name = $("#renamePoolName").value.trim();
+  try {
+    await api(`/api/keys/${encKey(state.currentKey)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name }),
+    });
+    closeDialogs();
+    await loadKeys();
+    const row = state.keys.find((k) => k.api_key === state.currentKey);
+    $("#currentPoolTitle").textContent = poolDisplayTitle(row);
+    toast("名称已更新");
+  } catch (err) {
+    toast(err.message, true);
+  }
+});
+
+$("#btnImportCSV").addEventListener("click", () => {
+  if (!state.currentKey) return;
+  $("#csvFile").value = "";
+  $("#csvFileName").textContent = "未选择文件";
+  openDialog("#importCsvDialog");
+});
+
+$("#csvFile").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  $("#csvFileName").textContent = file ? file.name : "未选择文件";
+});
+
+$("#importCsvForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = $("#csvFile").files?.[0];
+  if (!file || !state.currentKey) return;
+  try {
+    const text = await file.text();
+    const res = await fetch(`/api/keys/${encKey(state.currentKey)}/import-csv`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${state.token}`,
+        "Content-Type": "text/csv",
+      },
+      body: text,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "导入失败");
+    closeDialogs();
+    const msg = `导入 ${data.imported} 条，跳过 ${data.skipped}`;
+    toast(data.errors?.length ? `${msg}（${data.errors.length} 条错误）` : msg);
+    state.page = 1;
+    await loadAccounts();
+    await loadKeys();
+  } catch (err) {
+    toast(err.message, true);
+  }
 });
 
 $("#loginForm").addEventListener("submit", async (e) => {
@@ -806,7 +899,6 @@ $("#btnLogout").addEventListener("click", () => {
 $("#btnNewKey").addEventListener("click", () => {
   fillNewKeyInput();
   $("#newKeyName").value = "";
-  $("#newKeyRemark").value = "";
   openDialog("#newKeyDialog");
 });
 
@@ -821,7 +913,7 @@ $("#newKeyForm").addEventListener("submit", async (e) => {
       body: JSON.stringify({
         api_key: $("#newKeyValue").value.trim(),
         name: $("#newKeyName").value.trim(),
-        remark: $("#newKeyRemark").value.trim(),
+        remark: "",
       }),
     });
     closeDialogs();
@@ -836,15 +928,15 @@ $("#newKeyForm").addEventListener("submit", async (e) => {
 
 $("#btnRotateKey").addEventListener("click", () => {
   if (!state.currentKey) return;
-  $("#rotateOld").value = state.currentKey;
   fillRotateKeyInput();
   openDialog("#rotateDialog");
 });
 
 $("#rotateForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const oldKey = $("#rotateOld").value.trim();
+  const oldKey = state.currentKey;
   const newKey = $("#rotateNew").value.trim();
+  if (!oldKey) return;
   try {
     await api("/api/keys/rotate", {
       method: "POST",
@@ -876,6 +968,7 @@ $("#btnDeletePool").addEventListener("click", async () => {
     state.currentKey = null;
     state.accounts = [];
     $("#poolView").classList.add("hidden");
+    setInspectorMode(false);
     $("#emptyState").classList.remove("hidden");
     await loadKeys();
     toast("号池已删除");
@@ -915,36 +1008,12 @@ $("#btnExportCSV").addEventListener("click", async () => {
   }
 });
 
-$("#csvFile").addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  e.target.value = "";
-  if (!file || !state.currentKey) return;
-  try {
-    const text = await file.text();
-    const res = await fetch(`/api/keys/${encKey(state.currentKey)}/import-csv`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${state.token}`,
-        "Content-Type": "text/csv",
-      },
-      body: text,
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "导入失败");
-    const msg = `导入 ${data.imported} 条，跳过 ${data.skipped}`;
-    toast(data.errors?.length ? `${msg}（${data.errors.length} 条错误）` : msg);
-    await loadAccounts();
-    await loadKeys();
-  } catch (err) {
-    toast(err.message, true);
-  }
-});
-
 $$("[data-close]").forEach((btn) => {
   btn.addEventListener("click", closeDialogs);
 });
 
 async function init() {
+  setInspectorMode(false);
   if (state.token) {
     try {
       await api("/api/keys");

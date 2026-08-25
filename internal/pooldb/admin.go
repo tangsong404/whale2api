@@ -18,14 +18,17 @@ type GatewayKeyRow struct {
 }
 
 type PoolAccountRow struct {
-	Identifier     string `json:"identifier"`
-	HasPassword    bool   `json:"has_password"`
-	TokenPreview   string `json:"token_preview,omitempty"`
-	HasToken       bool   `json:"has_token"`
-	Position       int    `json:"position"`
-	Discarded      bool   `json:"discarded"`
-	DiscardReason  string `json:"discard_reason,omitempty"`
-	PoolStatusText string `json:"pool_status_text"`
+	Identifier     string    `json:"identifier"`
+	HasPassword    bool      `json:"has_password"`
+	TokenPreview   string    `json:"token_preview,omitempty"`
+	Token          string    `json:"token,omitempty"`
+	HasToken       bool      `json:"has_token"`
+	Position       int       `json:"position"`
+	Discarded      bool      `json:"discarded"`
+	DiscardReason  string    `json:"discard_reason,omitempty"`
+	PoolStatusText string    `json:"pool_status_text"`
+	CreatedAt      time.Time `json:"created_at,omitempty"`
+	MuteUntil      time.Time `json:"mute_until,omitempty"`
 }
 
 func maskTokenPreview(token string) string {
@@ -140,7 +143,7 @@ func (db *DB) ListPoolAccounts(ctx context.Context, apiKey string) ([]PoolAccoun
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	rows, err := db.sql.QueryContext(ctx, `
-SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, '')
+SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, ''), pa.created_at, COALESCE(pa.mute_until, '')
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ?
@@ -157,16 +160,31 @@ func scanPoolAccountRows(rows *sql.Rows) ([]PoolAccountRow, error) {
 	var out []PoolAccountRow
 	for rows.Next() {
 		var row PoolAccountRow
-		var password, token string
+		var password, token, createdAt, muteUntil string
 		var discarded int
-		if err := rows.Scan(&row.Identifier, &password, &token, &row.Position, &discarded, &row.DiscardReason); err != nil {
+		if err := rows.Scan(&row.Identifier, &password, &token, &row.Position, &discarded, &row.DiscardReason, &createdAt, &muteUntil); err != nil {
 			return nil, err
 		}
 		row.Discarded = discarded != 0
 		row.HasPassword = strings.TrimSpace(password) != ""
 		row.HasToken = strings.TrimSpace(token) != ""
 		row.TokenPreview = maskTokenPreview(token)
+		if row.HasToken {
+			row.Token = token
+		}
 		row.PoolStatusText = PoolStatusLabel(row.Discarded, row.DiscardReason)
+		if t, err := time.Parse(time.RFC3339Nano, createdAt); err == nil {
+			row.CreatedAt = t
+		} else if t, err := time.Parse("2006-01-02 15:04:05", createdAt); err == nil {
+			row.CreatedAt = t
+		}
+		if t, err := time.Parse(time.RFC3339Nano, muteUntil); err == nil {
+			row.MuteUntil = t
+		} else if t, err := time.Parse(time.RFC3339, muteUntil); err == nil {
+			row.MuteUntil = t
+		} else if t, err := time.Parse("2006-01-02 15:04:05", muteUntil); err == nil {
+			row.MuteUntil = t
+		}
 		out = append(out, row)
 	}
 	return out, rows.Err()

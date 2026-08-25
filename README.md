@@ -31,12 +31,17 @@ go test ./...
 go run ./cmd/whale2api-tests # 集成测试
 ```
 
+
+
 ## 使用说明
 
-| 地址 | 用途 |
-|------|------|
-| http://127.0.0.1:5103/v1/chat/completions | 网关 API |
-| http://127.0.0.1:5010 | 号池 WebUI |
+
+| 地址                                                                                     | 用途       |
+| -------------------------------------------------------------------------------------- | -------- |
+| [http://127.0.0.1:5103/v1/chat/completions](http://127.0.0.1:5103/v1/chat/completions) | 网关 API   |
+| [http://127.0.0.1:5010](http://127.0.0.1:5010)                                         | 号池 WebUI |
+
+![号池 WebUI 预览](docs/screenshot.png)
 
 仅支持OpenAI Chat Completions兼容，高强度使用每天禁言2-3个号，建议50个号起用（批量注册参考我的仓库 `signup-god`）
 
@@ -54,7 +59,9 @@ go run ./cmd/whale2api-tests # 集成测试
 
 5.增加了对`禁言`（不是`封禁`）机制的检测
 
-6.支持多模态模型 `deepseek-v4-flash-vision-exp`
+6.号池持久化由json改为sqlite
+
+7.支持多模态模型 `deepseek-v4-flash-vision-exp`
 
 ## 参与贡献
 
