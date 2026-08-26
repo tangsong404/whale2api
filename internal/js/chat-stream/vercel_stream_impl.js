@@ -35,7 +35,7 @@ const {
 const DEEPSEEK_COMPLETION_URL = 'https://chat.deepseek.com/api/v0/chat/completion';
 const DEEPSEEK_CONTINUE_URL = 'https://chat.deepseek.com/api/v0/chat/continue';
 const EMPTY_OUTPUT_RETRY_SUFFIX = '前回の返信に可視の出力がなかった。可視の最終回答またはツール呼び出しを再生成すること。';
-const MISSING_TOOL_CALL_RETRY_SUFFIX = '本ターンではツール呼び出しが行われなかった。タスクが本当に完了したか（空想・叙述上の完了ではないか）を判断すること。例：ファイルを編集・書き込んだと宣言したのに Edit / Write / StrReplace 等の書き込み系ツール呼び出しがなければ、完了は空想である。未完了なら、直ちに完全なツール呼び出し形式で補うこと。';
+const MISSING_TOOL_CALL_RETRY_SUFFIX = '本ターンではツール呼び出しが行われなかった。タスクが本当に完了したか（空想・叙述上の完了ではないか）を判断すること。例：ファイルを編集・書き込んだと宣言したのに Edit / Write / StrReplace 等の書き込み系ツール呼び出しがなければ、完了は空想である。ユーザーが自分で手動修正したと述べた場合は、タスクは一時終了とみなしてよい。タスクがどうしても完了できない場合も終了してよい。未完了なら、直ちに完全なツール呼び出し形式で補うこと。本当に完了／一時終了と確定した場合は、他の内容を一切出さず『タスク完了』とのみ出力すること。完了不可と確定した場合は、他の内容を一切出さず『タスク完了不可』とのみ出力すること。直前の助手返信の言い換え・再挨拶・再説明・同趣旨の再出力は絶対に禁止。同じ文言・同じ説明の繰り返しは絶対に禁止。ユーザー向け本文はユーザーの言語、またはユーザーが明示した言語で書くこと。本指示の言語に合わせて出力してはならない。';
 const EMPTY_OUTPUT_RETRY_MAX_ATTEMPTS = 0;
 const AUTO_CONTINUE_MAX_ROUNDS = 8;
 

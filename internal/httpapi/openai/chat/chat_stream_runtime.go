@@ -53,6 +53,12 @@ type chatStreamRuntime struct {
 	finalErrorMessage string
 	finalErrorCode    string
 
+	// When a missing-tool-call synthetic retry follows a non-empty first attempt,
+	// suppress repeating visible narrative (keep tool_calls). Preserve the first
+	// answer for finalize/history if the retry still has no tools.
+	suppressVisibleContent bool
+	preservedVisibleText   string
+
 	diagCompletionPayload   map[string]any
 	diagClientContentLength *int64
 	logSurface              string
@@ -135,6 +141,23 @@ func newChatStreamRuntime(
 	}
 }
 
+func (s *chatStreamRuntime) beginMissingToolCallRetry() {
+	if s == nil {
+		return
+	}
+	preserved := strings.TrimSpace(s.finalText)
+	if preserved == "" {
+		preserved = strings.TrimSpace(s.accumulator.Text.String())
+	}
+	s.preservedVisibleText = preserved
+	s.suppressVisibleContent = preserved != ""
+	s.toolSieve = toolstream.State{}
+	s.thinkingSieve = toolstream.State{}
+	s.resetStreamToolCallState()
+	s.toolCallsEmitted = false
+	s.toolCallsDoneEmitted = false
+}
+
 func (s *chatStreamRuntime) sendKeepAlive() {
 	if !s.canFlush {
 		return
@@ -212,7 +235,11 @@ func (s *chatStreamRuntime) historyText() string {
 	if s == nil {
 		return ""
 	}
-	return historyTextForArchive(s.accumulator.RawText.String(), s.finalText)
+	visible := s.finalText
+	if s.suppressVisibleContent && strings.TrimSpace(s.preservedVisibleText) != "" {
+		visible = s.preservedVisibleText
+	}
+	return historyTextForArchive(s.accumulator.RawText.String(), visible)
 }
 
 func (s *chatStreamRuntime) historyThinking() string {
@@ -260,6 +287,11 @@ func (s *chatStreamRuntime) finalize(finishReason string, deferEmptyOutput bool)
 	})
 	s.finalThinking = turn.Thinking
 	s.finalText = turn.Text
+	if s.suppressVisibleContent && s.preservedVisibleText != "" && len(turn.ToolCalls) == 0 {
+		// Retry produced no tools — keep the first visible answer, drop duplicate narrative.
+		s.finalText = s.preservedVisibleText
+		turn.Text = s.preservedVisibleText
+	}
 	if len(turn.ToolCalls) > 0 && !s.toolCallsDoneEmitted {
 		s.sendDelta(map[string]any{
 			"tool_calls": formatFinalStreamToolCallsWithStableIDs(turn.ToolCalls, s.streamToolCallIDs, s.toolsRaw),
@@ -338,7 +370,9 @@ func (s *chatStreamRuntime) onParsed(parsed sse.LineResult) streamengine.ParsedD
 	for _, p := range accumulated.Parts {
 		if p.Type == "thinking" {
 			if !s.bufferToolContent {
-				batch.append("reasoning_content", p.VisibleText)
+				if !s.suppressVisibleContent {
+					batch.append("reasoning_content", p.VisibleText)
+				}
 				continue
 			}
 			if p.RawText == "" {
@@ -356,7 +390,9 @@ func (s *chatStreamRuntime) onParsed(parsed sse.LineResult) streamengine.ParsedD
 			continue
 		}
 		if !s.bufferToolContent {
-			batch.append("content", p.VisibleText)
+			if !s.suppressVisibleContent {
+				batch.append("content", p.VisibleText)
+			}
 		} else {
 			s.drainSieveEvents(&batch, toolstream.ProcessChunk(&s.toolSieve, p.RawText, s.toolNames), "content")
 		}
@@ -395,6 +431,9 @@ func (s *chatStreamRuntime) drainSieveEvents(batch *chatDeltaBatch, events []too
 			continue
 		}
 		if evt.Content == "" {
+			continue
+		}
+		if s.suppressVisibleContent {
 			continue
 		}
 		cleaned := cleanVisibleOutput(evt.Content, s.stripReferenceMarkers)

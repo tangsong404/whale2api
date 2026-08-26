@@ -199,6 +199,7 @@ func ExecuteNonStreamWithRetry(ctx context.Context, ds DeepSeekCaller, a *auth.R
 		attempts++
 		toolsAvailable := len(stdReq.ToolNames) > 0
 		suffix := shared.RetrySuffixForTurn(turn.Text, toolsAvailable)
+		priorTurn := turn
 		config.Logger.Info("[completion_runtime_empty_retry] attempting synthetic retry", "surface", stdReq.Surface, "stream", false, "retry_attempt", attempts, "parent_message_id", turn.ResponseMessageID, "retry_reason", shared.RetryReasonLabel(turn.Text, toolsAvailable))
 		retryPow, powErr := ds.GetPow(ctx, a, maxAttempts)
 		if powErr != nil {
@@ -212,6 +213,32 @@ func ExecuteNonStreamWithRetry(ctx context.Context, ds DeepSeekCaller, a *auth.R
 		}
 		usagePrompt = shared.UsagePromptWithRetrySuffix(usagePrompt, attempts, suffix)
 		currentResp = nextResp
+		retryTurn, outErr := collectAttempt(ctx, a, currentResp, stdReq, usagePrompt, opts)
+		if outErr != nil {
+			return NonStreamResult{SessionID: sessionID, Payload: payload, Turn: priorTurn, Attempts: attempts}, outErr
+		}
+		accumulatedThinking += sse.TrimContinuationOverlap(accumulatedThinking, retryTurn.Thinking)
+		accumulatedRawThinking += sse.TrimContinuationOverlap(accumulatedRawThinking, retryTurn.RawThinking)
+		accumulatedToolDetectionThinking += sse.TrimContinuationOverlap(accumulatedToolDetectionThinking, retryTurn.DetectionThinking)
+		retryTurn.Thinking = accumulatedThinking
+		retryTurn.RawThinking = accumulatedRawThinking
+		retryTurn.DetectionThinking = accumulatedToolDetectionThinking
+		retryTurn = assistantturn.BuildTurnFromCollected(sse.CollectResult{
+			Text:                  retryTurn.RawText,
+			Thinking:              retryTurn.RawThinking,
+			ToolDetectionThinking: retryTurn.DetectionThinking,
+			ContentFilter:         retryTurn.ContentFilter,
+			CitationLinks:         retryTurn.CitationLinks,
+			ResponseMessageID:     retryTurn.ResponseMessageID,
+		}, buildOptions(stdReq, usagePrompt, opts))
+		if len(retryTurn.ToolCalls) == 0 && strings.TrimSpace(priorTurn.Text) != "" {
+			priorTurn.ResponseMessageID = retryTurn.ResponseMessageID
+			return NonStreamResult{SessionID: sessionID, Payload: payload, Turn: priorTurn, Attempts: attempts}, priorTurn.Error
+		}
+		if retryTurn.Error != nil && retryTurn.Error.Code == "upstream_empty_output" {
+			assistantturn.LogUpstreamEmptyOutputDiagnostic(stdReq.Surface, false, "nonstream_terminal", retryTurn, payload, opts.ClientHTTPRequestContentLength)
+		}
+		return NonStreamResult{SessionID: sessionID, Payload: payload, Turn: retryTurn, Attempts: attempts}, retryTurn.Error
 	}
 }
 

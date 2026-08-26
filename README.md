@@ -62,7 +62,7 @@ go run ./cmd/whale2api-tests # 集成测试
 
 1.不再使用 `deepseek-v4-pro`
 
-2.暂时仅支持OpenAI Chat Completions兼容，高强度使用每天禁言2-3个号，
+2.暂时仅支持OpenAI Chat Completions兼容
 
 3.所有模型上下文限制为 256K
 

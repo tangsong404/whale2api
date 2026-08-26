@@ -40,7 +40,10 @@ func (h *Handler) handleResponsesStreamWithRetry(w http.ResponseWriter, r *http.
 		attempts++
 		toolsAvailable := len(toolNames) > 0
 		suffix := retrySuffixForTurn(streamRuntime.finalText, toolsAvailable)
-		config.Logger.Info("[openai_empty_retry] attempting synthetic retry", "surface", "responses", "stream", true, "retry_attempt", attempts, "parent_message_id", streamRuntime.responseMessageID, "retry_reason", retryReasonLabel(streamRuntime.finalText, toolsAvailable))
+		if toolsAvailable && strings.TrimSpace(streamRuntime.finalText) != "" {
+			streamRuntime.beginMissingToolCallRetry()
+		}
+		config.Logger.Info("[openai_empty_retry] attempting synthetic retry", "surface", "responses", "stream", true, "retry_attempt", attempts, "parent_message_id", streamRuntime.responseMessageID, "retry_reason", retryReasonLabel(streamRuntime.finalText, toolsAvailable), "suppress_visible_retry", streamRuntime.suppressVisibleContent)
 		retryPow, powErr := h.DS.GetPow(r.Context(), a, 3)
 		if powErr != nil {
 			config.Logger.Warn("[openai_empty_retry] retry PoW fetch failed, falling back to original PoW", "surface", "responses", "stream", true, "retry_attempt", attempts, "error", powErr)

@@ -63,12 +63,41 @@ type responsesStreamRuntime struct {
 	finalErrorMessage string
 	finalErrorCode    string
 
+	suppressVisibleContent bool
+	preservedVisibleText   string
+
 	diagCompletionPayload   map[string]any
 	diagClientContentLength *int64
 	logSurface              string
 
 	persistResponse func(obj map[string]any)
 	history         *responsehistory.Session
+}
+
+func (s *responsesStreamRuntime) beginMissingToolCallRetry() {
+	if s == nil {
+		return
+	}
+	preserved := strings.TrimSpace(s.finalText)
+	if preserved == "" {
+		preserved = strings.TrimSpace(s.visibleText.String())
+	}
+	if preserved == "" {
+		preserved = strings.TrimSpace(s.accumulator.Text.String())
+	}
+	s.preservedVisibleText = preserved
+	s.suppressVisibleContent = preserved != ""
+	s.sieve = toolstream.State{}
+	s.thinkingSieve = toolstream.State{}
+	s.toolCallsEmitted = false
+	s.toolCallsDoneEmitted = false
+	s.streamToolCallIDs = map[int]string{}
+	s.functionItemIDs = map[int]string{}
+	s.functionOutputIDs = map[int]int{}
+	s.functionArgs = map[int]string{}
+	s.functionDone = map[int]bool{}
+	s.functionAdded = map[int]bool{}
+	s.functionNames = map[int]string{}
 }
 
 func (s *responsesStreamRuntime) attachUpstreamEmptyDiagnostics(payload map[string]any, clientContentLength *int64) {
@@ -218,6 +247,10 @@ func (s *responsesStreamRuntime) finalize(finishReason string, deferEmptyOutput 
 		AlreadyEmittedToolCalls: s.toolCallsEmitted || s.toolCallsDoneEmitted,
 	})
 	s.finalText = turn.Text
+	if s.suppressVisibleContent && s.preservedVisibleText != "" && len(detected) == 0 {
+		s.finalText = s.preservedVisibleText
+		turn.Text = s.preservedVisibleText
+	}
 	if outcome.ShouldFail {
 		status, message, code := outcome.Error.Status, outcome.Error.Message, outcome.Error.Code
 		if deferEmptyOutput {
@@ -299,7 +332,9 @@ func (s *responsesStreamRuntime) onParsed(parsed sse.LineResult) streamengine.Pa
 	for _, p := range accumulated.Parts {
 		if p.Type == "thinking" {
 			if !s.bufferToolContent {
-				batch.append("reasoning", p.VisibleText)
+				if !s.suppressVisibleContent {
+					batch.append("reasoning", p.VisibleText)
+				}
 				continue
 			}
 			if p.RawText == "" {
@@ -316,7 +351,9 @@ func (s *responsesStreamRuntime) onParsed(parsed sse.LineResult) streamengine.Pa
 			continue
 		}
 		if !s.bufferToolContent {
-			batch.append("text", p.VisibleText)
+			if !s.suppressVisibleContent {
+				batch.append("text", p.VisibleText)
+			}
 			continue
 		}
 		batch.flush()

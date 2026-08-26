@@ -120,6 +120,12 @@ func TestBuildToolCallInstructions_AnchorsMissingOpeningWrapperFailureMode(t *te
 	if !strings.Contains(out, "誤り 4 — ファイルを編集・書き込んだと宣言した") {
 		t.Fatalf("expected imaginary edit-completion negative example, got: %s", out)
 	}
+	if !strings.Contains(out, "ユーザーの言語、またはユーザーが明示した言語") {
+		t.Fatalf("expected user-language output rule, got: %s", out)
+	}
+	if !strings.Contains(out, "手動修正") || !strings.Contains(out, "タスク完了不可") {
+		t.Fatalf("expected manual-fix / cannot-complete terminal guidance, got: %s", out)
+	}
 	if strings.Contains(out, "让我先找") || strings.Contains(out, "口頭だけで止まる") {
 		t.Fatalf("announce-then-stop strengthening must not live in format instructions, got: %s", out)
 	}

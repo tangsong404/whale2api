@@ -71,6 +71,13 @@ func (h *Handler) handleNonStreamWithRetry(w http.ResponseWriter, ctx context.Co
 		attempts++
 		toolsAvailable := len(toolNames) > 0
 		suffix := retrySuffixForTurn(result.text, toolsAvailable)
+		priorText := strings.TrimSpace(result.text)
+		priorThinking := result.thinking
+		priorRawThinking := result.rawThinking
+		priorToolDetectionThinking := result.toolDetectionThinking
+		priorRawText := result.rawText
+		priorBody := result.body
+		priorFinish := result.finishReason
 		config.Logger.Info("[openai_empty_retry] attempting synthetic retry", "surface", "chat.completions", "stream", false, "retry_attempt", attempts, "parent_message_id", result.responseMessageID, "retry_reason", retryReasonLabel(result.text, toolsAvailable))
 		retryPow, powErr := h.DS.GetPow(ctx, a, 3)
 		if powErr != nil {
@@ -89,6 +96,37 @@ func (h *Handler) handleNonStreamWithRetry(w http.ResponseWriter, ctx context.Co
 		}
 		usagePrompt = usagePromptWithRetrySuffix(usagePrompt, attempts, suffix)
 		currentResp = nextResp
+		retryResult, ok := h.collectChatNonStreamAttempt(ctx, a, w, currentResp, completionID, model, usagePrompt, thinkingEnabled, searchEnabled, toolNames, toolsRaw)
+		if !ok {
+			return
+		}
+		accumulatedThinking += sse.TrimContinuationOverlap(accumulatedThinking, retryResult.thinking)
+		accumulatedRawThinking += sse.TrimContinuationOverlap(accumulatedRawThinking, retryResult.rawThinking)
+		accumulatedToolDetectionThinking += sse.TrimContinuationOverlap(accumulatedToolDetectionThinking, retryResult.toolDetectionThinking)
+		retryResult.thinking = accumulatedThinking
+		retryResult.rawThinking = accumulatedRawThinking
+		retryResult.toolDetectionThinking = accumulatedToolDetectionThinking
+		detected = detectAssistantToolCalls(retryResult.rawText, retryResult.text, retryResult.rawThinking, retryResult.toolDetectionThinking, toolNames)
+		retryResult.detectedCalls = len(detected.Calls)
+		if retryResult.detectedCalls == 0 && priorText != "" {
+			// Keep the first visible answer; drop duplicate retry narrative.
+			result.text = priorText
+			result.rawText = priorRawText
+			result.thinking = priorThinking
+			result.rawThinking = priorRawThinking
+			result.toolDetectionThinking = priorToolDetectionThinking
+			result.body = priorBody
+			result.finishReason = priorFinish
+			result.responseMessageID = retryResult.responseMessageID
+			result.detectedCalls = 0
+			h.finishChatNonStreamResult(w, result, attempts, model, payload, usagePrompt, refFileTokens, historySession, clientContentLength, logSurface)
+			return
+		}
+		retryResult.body = openaifmt.BuildChatCompletionWithToolCalls(completionID, model, usagePrompt, retryResult.thinking, retryResult.text, detected.Calls, toolsRaw)
+		addRefFileTokensToUsage(retryResult.body, refFileTokens)
+		retryResult.finishReason = chatFinishReason(retryResult.body)
+		h.finishChatNonStreamResult(w, retryResult, attempts, model, payload, usagePrompt, refFileTokens, historySession, clientContentLength, logSurface)
+		return
 	}
 }
 
@@ -217,7 +255,10 @@ func (h *Handler) handleStreamWithRetry(w http.ResponseWriter, r *http.Request, 
 		attempts++
 		toolsAvailable := len(toolNames) > 0
 		suffix := retrySuffixForTurn(streamRuntime.finalText, toolsAvailable)
-		config.Logger.Info("[openai_empty_retry] attempting synthetic retry", "surface", "chat.completions", "stream", true, "retry_attempt", attempts, "parent_message_id", streamRuntime.responseMessageID, "retry_reason", retryReasonLabel(streamRuntime.finalText, toolsAvailable))
+		if toolsAvailable && strings.TrimSpace(streamRuntime.finalText) != "" {
+			streamRuntime.beginMissingToolCallRetry()
+		}
+		config.Logger.Info("[openai_empty_retry] attempting synthetic retry", "surface", "chat.completions", "stream", true, "retry_attempt", attempts, "parent_message_id", streamRuntime.responseMessageID, "retry_reason", retryReasonLabel(streamRuntime.finalText, toolsAvailable), "suppress_visible_retry", streamRuntime.suppressVisibleContent)
 		retryPow, powErr := h.DS.GetPow(r.Context(), a, 3)
 		if powErr != nil {
 			config.Logger.Warn("[openai_empty_retry] retry PoW fetch failed, falling back to original PoW", "surface", "chat.completions", "stream", true, "retry_attempt", attempts, "error", powErr)
