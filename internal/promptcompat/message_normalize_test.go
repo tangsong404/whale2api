@@ -38,10 +38,10 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantToolCallsAndToolResult(t *tes
 		t.Fatalf("expected 4 normalized messages with assistant tool history preserved, got %d", len(normalized))
 	}
 	assistantContent, _ := normalized[2]["content"].(string)
-	if !strings.Contains(assistantContent, "<|ZJML|工具调用>") {
-		t.Fatalf("assistant tool history should be preserved in ZJML form, got %q", assistantContent)
+	if !strings.Contains(assistantContent, "::tc::") {
+		t.Fatalf("assistant tool history should be preserved in colon markup form, got %q", assistantContent)
 	}
-	if !strings.Contains(assistantContent, `<|ZJML|调用项 name="get_weather">`) {
+	if !strings.Contains(assistantContent, `::invoke name="get_weather"::`) {
 		t.Fatalf("expected tool name in preserved history, got %q", assistantContent)
 	}
 	if !strings.Contains(normalized[3]["content"].(string), `"temp":18`) {
@@ -49,7 +49,7 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantToolCallsAndToolResult(t *tes
 	}
 
 	prompt := util.MessagesPrepare(normalized)
-	if !strings.Contains(prompt, "<|ZJML|工具调用>") {
+	if !strings.Contains(prompt, "::tc::") {
 		t.Fatalf("expected preserved assistant tool history in prompt: %q", prompt)
 	}
 }
@@ -177,10 +177,10 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantMultipleToolCallsRemainSepara
 		t.Fatalf("expected assistant tool_call-only message preserved, got %#v", normalized)
 	}
 	content, _ := normalized[0]["content"].(string)
-	if strings.Count(content, "<|ZJML|调用项 name=") != 2 {
+	if strings.Count(content, `::invoke name=`) != 2 {
 		t.Fatalf("expected two preserved tool call blocks, got %q", content)
 	}
-	if !strings.Contains(content, `<|ZJML|调用项 name="search_web">`) || !strings.Contains(content, `<|ZJML|调用项 name="eval_javascript">`) {
+	if !strings.Contains(content, `::invoke name="search_web"::`) || !strings.Contains(content, `::invoke name="eval_javascript"::`) {
 		t.Fatalf("expected both tool names in preserved history, got %q", content)
 	}
 }
@@ -258,7 +258,7 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantNilContentDoesNotInjectNullLi
 	if strings.Contains(content, "null") {
 		t.Fatalf("expected no null literal injection, got %q", content)
 	}
-	if !strings.Contains(content, "<|ZJML|工具调用>") {
+	if !strings.Contains(content, "::tc::") {
 		t.Fatalf("expected assistant tool history in normalized content, got %q", content)
 	}
 }
@@ -311,7 +311,7 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantReasoningContentPreserved(t *
 		t.Fatalf("expected one normalized assistant message, got %#v", normalized)
 	}
 	content, _ := normalized[0]["content"].(string)
-	if !strings.Contains(content, "[推理内容]") {
+	if !strings.Contains(content, "[推論内容]") {
 		t.Fatalf("expected labeled reasoning block in assistant content, got %q", content)
 	}
 	if !strings.Contains(content, "internal reasoning") {
@@ -320,7 +320,7 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantReasoningContentPreserved(t *
 	if !strings.Contains(content, "visible answer") {
 		t.Fatalf("expected visible answer in assistant content, got %q", content)
 	}
-	if reasoningIdx := strings.Index(content, "[推理内容]"); reasoningIdx < 0 || reasoningIdx > strings.Index(content, "visible answer") {
+	if reasoningIdx := strings.Index(content, "[推論内容]"); reasoningIdx < 0 || reasoningIdx > strings.Index(content, "visible answer") {
 		t.Fatalf("expected reasoning block before visible answer, got %q", content)
 	}
 }

@@ -40,6 +40,7 @@ type responsesStreamRuntime struct {
 	toolCallsDoneEmitted bool
 
 	sieve             toolstream.State
+	thinkingSieve     toolstream.State
 	accumulator       shared.StreamAccumulator
 	visibleText       strings.Builder
 	responseMessageID int
@@ -57,6 +58,7 @@ type responsesStreamRuntime struct {
 	messagePartAdded  bool
 	sequence          int
 	failed            bool
+	finalText         string
 	finalErrorStatus  int
 	finalErrorMessage string
 	finalErrorCode    string
@@ -174,7 +176,8 @@ func (s *responsesStreamRuntime) finalize(finishReason string, deferEmptyOutput 
 	s.finalErrorMessage = ""
 	s.finalErrorCode = ""
 	if s.bufferToolContent {
-		s.processToolStreamEvents(toolstream.Flush(&s.sieve, s.toolNames), true, true)
+		s.processToolStreamEvents(toolstream.Flush(&s.thinkingSieve, s.toolNames), true, true, true)
+		s.processToolStreamEvents(toolstream.Flush(&s.sieve, s.toolNames), true, true, false)
 	}
 
 	finalThinking := s.accumulator.Thinking.String()
@@ -211,11 +214,10 @@ func (s *responsesStreamRuntime) finalize(finishReason string, deferEmptyOutput 
 		}
 	}
 
-	s.closeMessageItem()
-
 	outcome := assistantturn.FinalizeTurn(turn, assistantturn.FinalizeOptions{
 		AlreadyEmittedToolCalls: s.toolCallsEmitted || s.toolCallsDoneEmitted,
 	})
+	s.finalText = turn.Text
 	if outcome.ShouldFail {
 		status, message, code := outcome.Error.Status, outcome.Error.Message, outcome.Error.Code
 		if deferEmptyOutput {
@@ -231,9 +233,16 @@ func (s *responsesStreamRuntime) finalize(finishReason string, deferEmptyOutput 
 			}
 			assistantturn.LogUpstreamEmptyOutputDiagnostic(surf, true, "responses_stream_finalize", turn, s.diagCompletionPayload, s.diagClientContentLength)
 		}
+		s.closeMessageItem()
 		s.failResponse(status, message, code)
 		return true
 	}
+	// Tools were declared but this attempt produced no tool_calls: keep the SSE
+	// connection open so a synthetic retry can continue on the same response.
+	if deferEmptyOutput && len(s.toolNames) > 0 && !outcome.HasToolCalls && finishReason != "content_filter" {
+		return false
+	}
+	s.closeMessageItem()
 	s.closeIncompleteFunctionItems()
 
 	obj := s.buildCompletedResponseObject(turn.Thinking, turn.Text, detected)
@@ -289,7 +298,15 @@ func (s *responsesStreamRuntime) onParsed(parsed sse.LineResult) streamengine.Pa
 	accumulated := s.accumulator.Apply(parsed)
 	for _, p := range accumulated.Parts {
 		if p.Type == "thinking" {
-			batch.append("reasoning", p.VisibleText)
+			if !s.bufferToolContent {
+				batch.append("reasoning", p.VisibleText)
+				continue
+			}
+			if p.RawText == "" {
+				continue
+			}
+			batch.flush()
+			s.processToolStreamEvents(toolstream.ProcessChunk(&s.thinkingSieve, p.RawText, s.toolNames), true, true, true)
 			continue
 		}
 		if p.RawText == "" {
@@ -303,7 +320,7 @@ func (s *responsesStreamRuntime) onParsed(parsed sse.LineResult) streamengine.Pa
 			continue
 		}
 		batch.flush()
-		s.processToolStreamEvents(toolstream.ProcessChunk(&s.sieve, p.RawText, s.toolNames), true, true)
+		s.processToolStreamEvents(toolstream.ProcessChunk(&s.sieve, p.RawText, s.toolNames), true, true, false)
 	}
 
 	batch.flush()

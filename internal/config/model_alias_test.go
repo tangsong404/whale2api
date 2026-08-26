@@ -42,6 +42,13 @@ func TestOpenAIModelByIDPreservesFlashVisionExpID(t *testing.T) {
 	if !ok || info.ID != "deepseek-v4-flash-vision-exp" {
 		t.Fatalf("expected advertised deepseek-v4-flash-vision-exp, got ok=%v id=%q", ok, info.ID)
 	}
+	if !info.Multimodal {
+		t.Fatal("expected deepseek-v4-flash-vision-exp multimodal=true")
+	}
+	flash, ok := OpenAIModelByID("deepseek-v4-flash")
+	if !ok || flash.Multimodal {
+		t.Fatalf("expected deepseek-v4-flash multimodal=false, got ok=%v multimodal=%v", ok, flash.Multimodal)
+	}
 }
 
 func TestResolveModelRejectsUnknownAliases(t *testing.T) {

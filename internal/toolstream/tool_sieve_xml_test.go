@@ -647,6 +647,8 @@ func TestFindToolSegmentStartDetectsXMLToolCalls(t *testing.T) {
 		{"dsml_trailing_pipe_tag", "some text <|DSML|tool_calls| \n", 10},
 		{"dsml_extra_leading_less_than", "some text <<|DSML|tool_calls>\n", 10},
 		{"invoke_tag_missing_wrapper", "some text <invoke name=\"read_file\">\n", 10},
+		{"colon_tc_tag", "some text ::tc::\n", 10},
+		{"colon_invoke_tag", "some text ::invoke name=\"WebSearch\"::\n", 10},
 		{"bare_tool_call_text", "prefix <tool_call>\n", -1},
 		{"xml_inside_code_fence", "```xml\n<tool_calls><invoke name=\"read_file\"></invoke></tool_calls>\n```", -1},
 		{"no_xml", "just plain text", -1},
@@ -677,6 +679,12 @@ func TestFindPartialXMLToolTagStart(t *testing.T) {
 		{"complete_tag", "Text <tool_calls>done", -1},
 		{"no_lt", "plain text", -1},
 		{"closed_lt", "a < b > c", -1},
+		{"partial_colon_tc", "Hello ::tc", 6},
+		{"partial_colon_only", "Text ::", 5},
+		{"partial_colon_invoke", "Hello ::inv", 6},
+		{"partial_colon_tc_one_closer", "Hello ::tc:", 6},
+		{"complete_colon_tag_continues", "Text ::tc::done", -1},
+		{"lone_colon_held", "see:", 3},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -685,6 +693,85 @@ func TestFindPartialXMLToolTagStart(t *testing.T) {
 				t.Fatalf("findPartialXMLToolTagStart(%q) = %d, want %d", tc.input, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestProcessToolSieveDoesNotLeakColonToolMarkupAsText(t *testing.T) {
+	state := State{}
+	chunks := []string{
+		"  ::",
+		"tc::\n",
+		"    ::invoke name=\"WebSearch\"::\n",
+		"      ::param name=\"query\"::[[GitHub Trending]]::/param::\n",
+		"    ::/invoke::\n",
+		"  ::/tc::",
+	}
+	var text strings.Builder
+	toolCalls := 0
+	for _, chunk := range chunks {
+		for _, evt := range ProcessChunk(&state, chunk, []string{"WebSearch"}) {
+			if evt.Content != "" {
+				text.WriteString(evt.Content)
+			}
+			if len(evt.ToolCalls) > 0 {
+				toolCalls += len(evt.ToolCalls)
+			}
+		}
+	}
+	for _, evt := range Flush(&state, []string{"WebSearch"}) {
+		if evt.Content != "" {
+			text.WriteString(evt.Content)
+		}
+		if len(evt.ToolCalls) > 0 {
+			toolCalls += len(evt.ToolCalls)
+		}
+	}
+	if toolCalls != 1 {
+		t.Fatalf("expected 1 tool call, got %d text=%q", toolCalls, text.String())
+	}
+	if strings.Contains(text.String(), "::tc::") || strings.Contains(text.String(), "::invoke") {
+		t.Fatalf("colon tool markup leaked as text: %q", text.String())
+	}
+}
+
+func TestProcessToolSieveDoesNotLeakUserColonPayloadCharByChar(t *testing.T) {
+	payload := "  ::tc::\n" +
+		"    ::invoke name=\"Bash\"::\n" +
+		"      ::param name=\"command\"::[[find . -name \"TODO.md\" -type f 2>/dev/null]]::/param::\n" +
+		"      ::param name=\"description\"::查找TODO.md文件::/param::\n" +
+		"    ::/invoke::\n" +
+		"    ::invoke name=\"Bash\"::\n" +
+		"      ::param name=\"command\"::[[find . -name \"TODO\" -type f 2>/dev/null | head -20]]::/param::\n" +
+		"      ::param name=\"description\"::查找包含TODO的文件::/param::\n" +
+		"    ::/invoke::\n" +
+		"    ::invoke name=\"Grep\"::\n" +
+		"      ::param name=\"pattern\"::[[P0-1]]::/param::\n" +
+		"      ::param name=\"output_mode\"::[[files_with_matches]]::/param::\n" +
+		"    ::/invoke::\n" +
+		"  ::/tc::"
+	names := []string{"Bash", "Grep"}
+	var state State
+	var text strings.Builder
+	toolCalls := 0
+	for _, r := range payload {
+		for _, evt := range ProcessChunk(&state, string(r), names) {
+			if evt.Content != "" {
+				text.WriteString(evt.Content)
+			}
+			toolCalls += len(evt.ToolCalls)
+		}
+	}
+	for _, evt := range Flush(&state, names) {
+		if evt.Content != "" {
+			text.WriteString(evt.Content)
+		}
+		toolCalls += len(evt.ToolCalls)
+	}
+	if toolCalls != 3 {
+		t.Fatalf("expected 3 tool calls, got %d text=%q", toolCalls, text.String())
+	}
+	if strings.Contains(text.String(), "::tc::") || strings.Contains(text.String(), "::invoke") || strings.Contains(text.String(), "::param") {
+		t.Fatalf("colon tool markup leaked as text: %q", text.String())
 	}
 }
 

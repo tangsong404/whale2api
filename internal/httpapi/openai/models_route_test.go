@@ -94,6 +94,7 @@ func TestListModelsIncludesContextLength(t *testing.T) {
 	if !ok || len(data) == 0 {
 		t.Fatalf("expected data array, got %#v", body["data"])
 	}
+	sawVision := false
 	for _, it := range data {
 		m, ok := it.(map[string]any)
 		if !ok {
@@ -104,6 +105,20 @@ func TestListModelsIncludesContextLength(t *testing.T) {
 		if !ok || int(cl) != config.AdvertisedMaxContextTokens {
 			t.Fatalf("model %q: expected context_length=%d, got %v", id, config.AdvertisedMaxContextTokens, m["context_length"])
 		}
+		multimodal, ok := m["multimodal"].(bool)
+		if !ok {
+			t.Fatalf("model %q: expected multimodal bool, got %v", id, m["multimodal"])
+		}
+		wantMultimodal := id == "deepseek-v4-flash-vision-exp"
+		if multimodal != wantMultimodal {
+			t.Fatalf("model %q: expected multimodal=%v, got %v", id, wantMultimodal, multimodal)
+		}
+		if wantMultimodal {
+			sawVision = true
+		}
+	}
+	if !sawVision {
+		t.Fatal("expected deepseek-v4-flash-vision-exp in model list")
 	}
 }
 
@@ -125,5 +140,30 @@ func TestGetModelByIDIncludesContextLength(t *testing.T) {
 	cl, ok := body["context_length"].(float64)
 	if !ok || int(cl) != config.AdvertisedMaxContextTokens {
 		t.Fatalf("expected context_length=%d, got %v", config.AdvertisedMaxContextTokens, body["context_length"])
+	}
+	multimodal, ok := body["multimodal"].(bool)
+	if !ok || multimodal {
+		t.Fatalf("expected multimodal=false for flash, got %v", body["multimodal"])
+	}
+}
+
+func TestGetModelByIDIncludesMultimodalForVision(t *testing.T) {
+	h := &openAITestSurface{}
+	r := chi.NewRouter()
+	registerOpenAITestRoutes(r, h)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash-vision-exp", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	var body map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("json: %v", err)
+	}
+	multimodal, ok := body["multimodal"].(bool)
+	if !ok || !multimodal {
+		t.Fatalf("expected multimodal=true for vision-exp, got %v", body["multimodal"])
 	}
 }

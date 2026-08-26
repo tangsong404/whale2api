@@ -9,7 +9,7 @@ func TestStringifyToolCallArgumentsPreservesConcatenatedJSON(t *testing.T) {
 	}
 }
 
-func TestFormatToolCallsForPromptZJML(t *testing.T) {
+func TestFormatToolCallsForPromptColonMarkup(t *testing.T) {
 	got := FormatToolCallsForPrompt([]any{
 		map[string]any{
 			"id": "call_1",
@@ -22,7 +22,7 @@ func TestFormatToolCallsForPromptZJML(t *testing.T) {
 	if got == "" {
 		t.Fatal("expected non-empty formatted tool calls")
 	}
-	want := "<|ZJML|工具调用>\n  <|ZJML|调用项 name=\"search_web\">\n    <|ZJML|形参 name=\"query\"><![CDATA[latest]]></|ZJML|形参>\n  </|ZJML|调用项>\n</|ZJML|工具调用>"
+	want := "::tc::\n  ::invoke name=\"search_web\"::\n    ::param name=\"query\"::[[latest]]::/param::\n  ::/invoke::\n::/tc::"
 	if got != want {
 		t.Fatalf("unexpected formatted tool call markup: %q", got)
 	}
@@ -35,13 +35,13 @@ func TestFormatToolCallsForPromptEscapesXMLEntities(t *testing.T) {
 			"arguments": `{"q":"a < b && c > d"}`,
 		},
 	})
-	want := "<|ZJML|工具调用>\n  <|ZJML|调用项 name=\"search&lt;&amp;&gt;\">\n    <|ZJML|形参 name=\"q\"><![CDATA[a < b && c > d]]></|ZJML|形参>\n  </|ZJML|调用项>\n</|ZJML|工具调用>"
+	want := "::tc::\n  ::invoke name=\"search&lt;&amp;&gt;\"::\n    ::param name=\"q\"::[[a < b && c > d]]::/param::\n  ::/invoke::\n::/tc::"
 	if got != want {
 		t.Fatalf("unexpected escaped tool call XML: %q", got)
 	}
 }
 
-func TestFormatToolCallsForPromptUsesCDATAForMultilineContent(t *testing.T) {
+func TestFormatToolCallsForPromptUsesRawForMultilineContent(t *testing.T) {
 	got := FormatToolCallsForPrompt([]any{
 		map[string]any{
 			"name": "write_file",
@@ -51,8 +51,8 @@ func TestFormatToolCallsForPromptUsesCDATAForMultilineContent(t *testing.T) {
 			},
 		},
 	})
-	want := "<|ZJML|工具调用>\n  <|ZJML|调用项 name=\"write_file\">\n    <|ZJML|形参 name=\"content\"><![CDATA[#!/bin/bash\nprintf \"hello\"\n]]></|ZJML|形参>\n    <|ZJML|形参 name=\"path\"><![CDATA[script.sh]]></|ZJML|形参>\n  </|ZJML|调用项>\n</|ZJML|工具调用>"
+	want := "::tc::\n  ::invoke name=\"write_file\"::\n    ::param name=\"content\"::[[#!/bin/bash\nprintf \"hello\"\n]]::/param::\n    ::param name=\"path\"::[[script.sh]]::/param::\n  ::/invoke::\n::/tc::"
 	if got != want {
-		t.Fatalf("unexpected multiline cdata tool call XML: %q", got)
+		t.Fatalf("unexpected multiline raw tool call markup: %q", got)
 	}
 }

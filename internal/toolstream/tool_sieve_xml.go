@@ -149,6 +149,9 @@ func shouldKeepBareInvokeCapture(captured string) bool {
 }
 
 func findPartialXMLToolTagStart(s string) int {
+	if idx := findPartialColonToolMarkupTagStart(s); idx >= 0 {
+		return idx
+	}
 	lastLT := strings.LastIndex(s, "<")
 	if lastLT < 0 {
 		return -1
@@ -161,6 +164,28 @@ func findPartialXMLToolTagStart(s string) int {
 	}
 	if toolcall.IsPartialToolMarkupTagPrefix(tail) {
 		return start
+	}
+	return -1
+}
+
+// findPartialColonToolMarkupTagStart returns the start of a trailing incomplete
+// ::tag:: sequence. It must not split a longer incomplete tag like "::tc:" at
+// the final colon (that bug leaked "::tc" as visible text during streaming).
+func findPartialColonToolMarkupTagStart(s string) int {
+	for pos := 0; pos < len(s); {
+		rel := strings.IndexByte(s[pos:], ':')
+		if rel < 0 {
+			return -1
+		}
+		start := pos + rel
+		if tag, ok := toolcall.FindToolMarkupTagOutsideIgnored(s, start); ok && tag.Start == start {
+			pos = tag.End + 1
+			continue
+		}
+		if toolcall.IsPartialToolMarkupTagPrefix(s[start:]) {
+			return start
+		}
+		pos = start + 1
 	}
 	return -1
 }

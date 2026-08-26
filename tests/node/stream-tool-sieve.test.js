@@ -57,6 +57,14 @@ test('parseToolCalls parses DSML shell as XML-compatible tool call', () => {
   assert.deepEqual(calls[0].input, { path: 'README.MD' });
 });
 
+test('parseToolCalls parses colon shell with double-bracket raw', () => {
+  const payload = '::tc::\n  ::invoke name="read_file"::\n    ::param name="path"::[[README.MD]]::/param::\n  ::/invoke::\n::/tc::';
+  const calls = parseToolCalls(payload, ['read_file']);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].name, 'read_file');
+  assert.deepEqual(calls[0].input, { path: 'README.MD' });
+});
+
 test('parseToolCalls parses hyphenated DSML shell with here-doc CDATA', () => {
   const payload = `<dsml-tool-calls>
 <dsml-invoke name="Bash">

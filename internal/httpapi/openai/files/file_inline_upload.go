@@ -5,11 +5,13 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"whale2api/internal/auth"
 	"whale2api/internal/config"
@@ -18,7 +20,14 @@ import (
 	"whale2api/internal/promptcompat"
 )
 
-const maxInlineFilesPerRequest = 50
+const (
+	maxInlineFilesPerRequest = 50
+	// Limits aligned with DeepSeek vision docs:
+	// https://api-docs.deepseek.com/zh-cn/guides/vision
+	maxRemoteImageURLLen     = 8192
+	maxRemoteImageBytes      = 32 << 20 // 32 MiB
+	remoteImageFetchTimeout  = 60 * time.Second
+)
 
 type inlineFileUploadError struct {
 	status  int
@@ -54,6 +63,7 @@ type inlineDecodedFile struct {
 	ContentType     string
 	Filename        string
 	ReplacementType string
+	RemoteURL       string
 }
 
 func (h *Handler) PreprocessInlineFileInputs(ctx context.Context, a *auth.RequestAuth, req map[string]any) error {
@@ -126,7 +136,7 @@ func (s *inlineUploadState) walk(raw any) (any, error) {
 		if replacement, replaced, err := s.tryUploadBlock(x); replaced || err != nil {
 			return replacement, err
 		}
-		for _, key := range []string{"messages", "input", "attachments", "content", "files", "items", "data", "source", "file", "image_url"} {
+		for _, key := range []string{"messages", "input", "attachments", "content", "files", "items", "data", "file", "image_url"} {
 			if nested, ok := x[key]; ok {
 				updated, err := s.walk(nested)
 				if err != nil {
@@ -148,6 +158,24 @@ func (s *inlineUploadState) tryUploadBlock(block map[string]any) (map[string]any
 	}
 	if !ok {
 		return nil, false, nil
+	}
+	if remote := strings.TrimSpace(decoded.RemoteURL); remote != "" {
+		data, contentType, fetchErr := fetchRemoteImage(s.ctx, remote)
+		if fetchErr != nil {
+			return nil, true, &inlineFileUploadError{status: http.StatusBadRequest, message: fetchErr.Error(), err: fetchErr}
+		}
+		decoded.Data = data
+		if strings.TrimSpace(decoded.ContentType) == "" {
+			decoded.ContentType = contentType
+		}
+		if strings.TrimSpace(decoded.Filename) == "" {
+			decoded.Filename = pickInlineFilename(block, decoded.ContentType, "image")
+		}
+		decoded.RemoteURL = ""
+	}
+	if len(decoded.Data) == 0 {
+		err := fmt.Errorf("empty image payload")
+		return nil, true, &inlineFileUploadError{status: http.StatusBadRequest, message: err.Error(), err: err}
 	}
 	if s.uploadCount >= maxInlineFilesPerRequest {
 		err := fmt.Errorf("exceeded maximum of %d inline files per request", maxInlineFilesPerRequest)
@@ -203,6 +231,7 @@ func decodeOpenAIInlineFileBlock(block map[string]any) (inlineDecodedFile, bool,
 	if block == nil {
 		return inlineDecodedFile{}, false, nil
 	}
+	// Already uploaded / Files API reference — leave alone.
 	if strings.TrimSpace(shared.AsString(block["file_id"])) != "" {
 		return inlineDecodedFile{}, false, nil
 	}
@@ -216,9 +245,18 @@ func decodeOpenAIInlineFileBlock(block map[string]any) (inlineDecodedFile, bool,
 		}
 		return decoded, true, nil
 	}
+
 	blockType := strings.ToLower(strings.TrimSpace(shared.AsString(block["type"])))
-	if raw, matched := extractInlineImageDataURL(block); matched {
-		data, contentType, err := decodeInlinePayload(raw, contentTypeFromMap(block))
+	if payload, remoteURL, matched := extractInlineImagePayload(block, blockType); matched {
+		if remoteURL != "" {
+			return inlineDecodedFile{
+				RemoteURL:       remoteURL,
+				ContentType:     contentTypeFromMap(block),
+				Filename:        pickInlineFilename(block, contentTypeFromMap(block), "image"),
+				ReplacementType: "input_image",
+			}, true, nil
+		}
+		data, contentType, err := decodeInlinePayload(payload, contentTypeFromMap(block))
 		if err != nil {
 			return inlineDecodedFile{}, true, fmt.Errorf("invalid image input")
 		}
@@ -234,35 +272,84 @@ func decodeOpenAIInlineFileBlock(block map[string]any) (inlineDecodedFile, bool,
 		if err != nil {
 			return inlineDecodedFile{}, true, fmt.Errorf("invalid file input")
 		}
+		replacementType := "input_file"
+		if isImageContentType(contentType) || looksLikeImageFilename(pickInlineFilename(block, contentType, "upload")) {
+			replacementType = "input_image"
+		}
 		return inlineDecodedFile{
 			Data:            data,
 			ContentType:     contentType,
-			Filename:        pickInlineFilename(block, contentType, defaultInlinePrefix(blockType)),
-			ReplacementType: "input_file",
+			Filename:        pickInlineFilename(block, contentType, defaultInlinePrefix(replacementType)),
+			ReplacementType: replacementType,
 		}, true, nil
 	}
 	return inlineDecodedFile{}, false, nil
 }
 
-func extractInlineImageDataURL(block map[string]any) (string, bool) {
-	imageURL := block["image_url"]
-	switch x := imageURL.(type) {
+// extractInlineImagePayload accepts OpenAI Chat / DeepSeek vision formats:
+//   - {"type":"image_url","image_url":{"url":"data:..."|"https://..."}}
+//   - compact {"type":"image","mediaType":"...","data":"..."}
+//
+// Responses input_image and Anthropic image+source blocks are intentionally
+// unsupported. Returns either an inline payload string or a remote http(s) URL.
+func extractInlineImagePayload(block map[string]any, blockType string) (payload string, remoteURL string, matched bool) {
+	if isUnsupportedVisionBlockType(blockType) {
+		return "", "", false
+	}
+	if blockType == "image_url" || blockType == "" {
+		if payload, remoteURL, ok := extractInlineImageURL(block); ok {
+			return payload, remoteURL, true
+		}
+	}
+	if blockType != "image" {
+		return "", "", false
+	}
+	for _, value := range []any{block["data"], block["base64"], block["image_data"], block["imageData"]} {
+		if raw := strings.TrimSpace(shared.AsString(value)); raw != "" {
+			return raw, "", true
+		}
+	}
+	return "", "", false
+}
+
+func isUnsupportedVisionBlockType(blockType string) bool {
+	blockType = strings.ToLower(strings.TrimSpace(blockType))
+	return blockType == "input_image" || strings.HasPrefix(blockType, "input_image")
+}
+
+func extractInlineImageURL(block map[string]any) (payload string, remoteURL string, matched bool) {
+	switch x := block["image_url"].(type) {
 	case string:
-		if isDataURL(x) {
-			return strings.TrimSpace(x), true
+		raw := strings.TrimSpace(x)
+		if isDataURL(raw) {
+			return raw, "", true
+		}
+		if isHTTPURL(raw) {
+			return "", raw, true
 		}
 	case map[string]any:
-		if raw := strings.TrimSpace(shared.AsString(x["url"])); isDataURL(raw) {
-			return raw, true
+		if raw := strings.TrimSpace(shared.AsString(x["url"])); raw != "" {
+			if isDataURL(raw) {
+				return raw, "", true
+			}
+			if isHTTPURL(raw) {
+				return "", raw, true
+			}
+		}
+		for _, value := range []any{x["data"], x["base64"]} {
+			if raw := strings.TrimSpace(shared.AsString(value)); raw != "" {
+				return raw, "", true
+			}
 		}
 	}
-	if raw := strings.TrimSpace(shared.AsString(block["url"])); isDataURL(raw) {
-		return raw, true
-	}
-	return "", false
+	return "", "", false
 }
 
 func extractInlineFilePayload(block map[string]any, blockType string) (string, bool) {
+	// Image-shaped blocks belong to extractInlineImagePayload.
+	if strings.Contains(blockType, "image") {
+		return "", false
+	}
 	for _, value := range []any{block["file_data"], block["base64"], block["data"]} {
 		if raw := strings.TrimSpace(shared.AsString(value)); raw != "" {
 			if strings.Contains(blockType, "file") || block["file_data"] != nil || block["filename"] != nil || block["file_name"] != nil || block["name"] != nil {
@@ -271,6 +358,90 @@ func extractInlineFilePayload(block map[string]any, blockType string) (string, b
 		}
 	}
 	return "", false
+}
+
+func fetchRemoteImage(ctx context.Context, rawURL string) ([]byte, string, error) {
+	rawURL = strings.TrimSpace(rawURL)
+	if len(rawURL) > maxRemoteImageURLLen {
+		return nil, "", fmt.Errorf("image url exceeds %d characters", maxRemoteImageURLLen)
+	}
+	if !isHTTPURL(rawURL) {
+		return nil, "", fmt.Errorf("image url must be http(s)")
+	}
+	reqCtx := ctx
+	cancel := func() {}
+	if ctx == nil {
+		reqCtx, cancel = context.WithTimeout(context.Background(), remoteImageFetchTimeout)
+	} else if _, ok := ctx.Deadline(); !ok {
+		reqCtx, cancel = context.WithTimeout(ctx, remoteImageFetchTimeout)
+	}
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, rawURL, nil)
+	if err != nil {
+		return nil, "", fmt.Errorf("invalid image url")
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to download image: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, "", fmt.Errorf("failed to download image: status %d", resp.StatusCode)
+	}
+	limited := io.LimitReader(resp.Body, int64(maxRemoteImageBytes)+1)
+	data, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to download image: %w", err)
+	}
+	if len(data) > maxRemoteImageBytes {
+		return nil, "", fmt.Errorf("image exceeds %d MiB limit", maxRemoteImageBytes>>20)
+	}
+	contentType := strings.TrimSpace(strings.Split(resp.Header.Get("Content-Type"), ";")[0])
+	if contentType == "" || contentType == "application/octet-stream" {
+		contentType = http.DetectContentType(data)
+	}
+	if !isImageContentType(contentType) {
+		// Still accept if magic bytes look like an image; otherwise reject.
+		detected := http.DetectContentType(data)
+		if !isImageContentType(detected) {
+			return nil, "", fmt.Errorf("url did not return an image")
+		}
+		contentType = detected
+	}
+	return data, contentType, nil
+}
+
+func isHTTPURL(raw string) bool {
+	raw = strings.TrimSpace(raw)
+	u, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	scheme := strings.ToLower(u.Scheme)
+	return (scheme == "http" || scheme == "https") && u.Host != ""
+}
+
+func isImageContentType(contentType string) bool {
+	contentType = strings.ToLower(strings.TrimSpace(contentType))
+	if comma := strings.Index(contentType, ";"); comma >= 0 {
+		contentType = strings.TrimSpace(contentType[:comma])
+	}
+	switch contentType {
+	case "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp":
+		return true
+	default:
+		return strings.HasPrefix(contentType, "image/")
+	}
+}
+
+func looksLikeImageFilename(name string) bool {
+	switch strings.ToLower(filepath.Ext(strings.TrimSpace(name))) {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
+		return true
+	default:
+		return false
+	}
 }
 
 func decodeInlinePayload(raw string, explicitContentType string) ([]byte, string, error) {

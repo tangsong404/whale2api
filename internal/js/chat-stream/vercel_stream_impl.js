@@ -34,7 +34,8 @@ const {
 
 const DEEPSEEK_COMPLETION_URL = 'https://chat.deepseek.com/api/v0/chat/completion';
 const DEEPSEEK_CONTINUE_URL = 'https://chat.deepseek.com/api/v0/chat/continue';
-const EMPTY_OUTPUT_RETRY_SUFFIX = '上一轮回复没有可见输出。请重新生成可见的最终答案或工具调用。';
+const EMPTY_OUTPUT_RETRY_SUFFIX = '前回の返信に可視の出力がなかった。可視の最終回答またはツール呼び出しを再生成すること。';
+const MISSING_TOOL_CALL_RETRY_SUFFIX = '本ターンではツール呼び出しが行われなかった。タスクが本当に完了したか（空想・叙述上の完了ではないか）を判断すること。例：ファイルを編集・書き込んだと宣言したのに Edit / Write / StrReplace 等の書き込み系ツール呼び出しがなければ、完了は空想である。未完了なら、直ちに完全なツール呼び出し形式で補うこと。';
 const EMPTY_OUTPUT_RETRY_MAX_ATTEMPTS = 0;
 const AUTO_CONTINUE_MAX_ROUNDS = 8;
 
@@ -227,18 +228,23 @@ async function handleVercelStream(req, res, rawBody, payload) {
       if (detected.length > 0 || toolCallsEmitted) {
         reason = 'tool_calls';
       }
-      if (detected.length === 0 && !toolCallsEmitted && outputText.trim() === '') {
-        if (options.deferEmpty && reason !== 'content_filter') {
-          return false;
+      if (detected.length === 0 && !toolCallsEmitted) {
+        const toolsAvailable = Array.isArray(toolNames) && toolNames.length > 0;
+        if (outputText.trim() === '' || toolsAvailable) {
+          if (options.deferEmpty && reason !== 'content_filter') {
+            return false;
+          }
         }
-        ended = true;
-        const detail = upstreamEmptyOutputDetail(reason === 'content_filter', outputText, thinkingText);
-        sendFailedChunk(res, detail.status, detail.message, detail.code);
-        await releaseLease();
-        if (!res.writableEnded && !res.destroyed) {
-          res.end();
+        if (outputText.trim() === '') {
+          ended = true;
+          const detail = upstreamEmptyOutputDetail(reason === 'content_filter', outputText, thinkingText);
+          sendFailedChunk(res, detail.status, detail.message, detail.code);
+          await releaseLease();
+          if (!res.writableEnded && !res.destroyed) {
+            res.end();
+          }
+          return true;
         }
-        return true;
       }
       ended = true;
       sendFrame({
@@ -423,20 +429,23 @@ async function handleVercelStream(req, res, rawBody, payload) {
         return;
       }
       retryAttempts += 1;
+      const toolsAvailable = Array.isArray(toolNames) && toolNames.length > 0;
+      const suffix = retrySuffixForTurn(outputText, toolsAvailable);
       console.info('[openai_empty_retry] attempting synthetic retry', {
         surface: 'chat.completions',
         stream: true,
         retry_attempt: retryAttempts,
         parent_message_id: processed.responseMessageID || 0,
+        retry_reason: retryReasonLabel(outputText, toolsAvailable),
       });
-      usagePrompt = usagePromptWithEmptyOutputRetry(finalPrompt, retryAttempts);
+      usagePrompt = usagePromptWithRetrySuffix(finalPrompt, retryAttempts, suffix);
       const retryPowHeader = await refreshPowHeader('retry');
       if (!retryPowHeader) {
         return;
       }
       completionRes = await fetchDeepSeekStream(
         DEEPSEEK_COMPLETION_URL,
-        clonePayloadForEmptyOutputRetry(completionPayload, processed.responseMessageID),
+        clonePayloadForAssistantRetry(completionPayload, processed.responseMessageID, suffix),
         retryPowHeader,
       );
       if (completionRes === null) {
@@ -459,9 +468,13 @@ function toBool(v) {
 }
 
 function clonePayloadForEmptyOutputRetry(payload, parentMessageID) {
+  return clonePayloadForAssistantRetry(payload, parentMessageID, EMPTY_OUTPUT_RETRY_SUFFIX);
+}
+
+function clonePayloadForAssistantRetry(payload, parentMessageID, suffix) {
   const clone = {
     ...(payload || {}),
-    prompt: appendEmptyOutputRetrySuffix(asString(payload && payload.prompt)),
+    prompt: appendRetrySuffix(asString(payload && payload.prompt), suffix),
   };
   if (parentMessageID && parentMessageID > 0) {
     clone.parent_message_id = parentMessageID;
@@ -469,22 +482,51 @@ function clonePayloadForEmptyOutputRetry(payload, parentMessageID) {
   return clone;
 }
 
-function appendEmptyOutputRetrySuffix(prompt) {
-  const base = asString(prompt).trimEnd();
-  if (!base) {
+function retrySuffixForTurn(visibleText, toolsAvailable) {
+  if (asString(visibleText).trim() === '') {
     return EMPTY_OUTPUT_RETRY_SUFFIX;
   }
-  return `${base}\n\n${EMPTY_OUTPUT_RETRY_SUFFIX}`;
+  if (toolsAvailable) {
+    return MISSING_TOOL_CALL_RETRY_SUFFIX;
+  }
+  return EMPTY_OUTPUT_RETRY_SUFFIX;
+}
+
+function retryReasonLabel(visibleText, toolsAvailable) {
+  if (asString(visibleText).trim() === '') {
+    return 'empty_output';
+  }
+  if (toolsAvailable) {
+    return 'missing_tool_calls';
+  }
+  return 'empty_output';
+}
+
+function appendEmptyOutputRetrySuffix(prompt) {
+  return appendRetrySuffix(prompt, EMPTY_OUTPUT_RETRY_SUFFIX);
+}
+
+function appendRetrySuffix(prompt, suffix) {
+  const base = asString(prompt).trimEnd();
+  const tip = asString(suffix).trim() || EMPTY_OUTPUT_RETRY_SUFFIX;
+  if (!base) {
+    return tip;
+  }
+  return `${base}\n\n${tip}`;
 }
 
 function usagePromptWithEmptyOutputRetry(originalPrompt, attempts) {
+  return usagePromptWithRetrySuffix(originalPrompt, attempts, EMPTY_OUTPUT_RETRY_SUFFIX);
+}
+
+function usagePromptWithRetrySuffix(originalPrompt, attempts, suffix) {
   if (!attempts || attempts <= 0) {
     return originalPrompt;
   }
   const parts = [originalPrompt];
   let next = originalPrompt;
   for (let i = 0; i < attempts; i += 1) {
-    next = appendEmptyOutputRetrySuffix(next);
+    next = appendRetrySuffix(next, suffix);
     parts.push(next);
   }
   return parts.join('\n');

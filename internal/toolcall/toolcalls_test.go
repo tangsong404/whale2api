@@ -41,6 +41,82 @@ func TestParseToolCallsSupportsZJMLChineseShell(t *testing.T) {
 	}
 }
 
+func TestParseToolCallsSupportsColonShell(t *testing.T) {
+	text := `::tc::
+  ::invoke name="Bash"::
+    ::param name="command"::[[pwd]]::/param::
+  ::/invoke::
+::/tc::`
+	calls := ParseToolCalls(text, []string{"Bash"})
+	if len(calls) != 1 {
+		t.Fatalf("expected 1 colon call, got %#v", calls)
+	}
+	if calls[0].Name != "Bash" || calls[0].Input["command"] != "pwd" {
+		t.Fatalf("unexpected colon parse result: %#v", calls[0])
+	}
+}
+
+func TestParseToolCallsSupportsExtraColonWrapperTypos(t *testing.T) {
+	text := `:::tc::
+::invoke name="subagent"::
+::param name="description"::读取 url_mp3_module.c::/param::
+::param name="prompt"::请读取文件 /tmp/a.c::/param::
+::param name="run_in_background"::true::/param::
+::/invoke::
+::invoke name="Read"::
+::param name="file_path"::[[/tmp/b.c]]::/param::
+::/invoke::
+::: /tc:::`
+	calls := ParseToolCalls(text, []string{"subagent", "Read"})
+	if len(calls) != 2 {
+		t.Fatalf("expected 2 calls from typo wrapper, got %#v", calls)
+	}
+	if calls[0].Name != "subagent" {
+		t.Fatalf("unexpected first call: %#v", calls[0])
+	}
+	if calls[0].Input["description"] != "读取 url_mp3_module.c" {
+		t.Fatalf("expected plain param text preserved, got %#v", calls[0].Input)
+	}
+	if calls[0].Input["run_in_background"] != true && calls[0].Input["run_in_background"] != "true" {
+		t.Fatalf("expected bool-ish run_in_background, got %#v", calls[0].Input["run_in_background"])
+	}
+	if calls[1].Name != "Read" {
+		t.Fatalf("unexpected second call: %#v", calls[1])
+	}
+}
+
+func TestScanColonToolMarkupTagAcceptsTripleColonClose(t *testing.T) {
+	tag, ok := scanColonToolMarkupTagAt("::: /tc:::", 0)
+	if !ok || !tag.Closing || tag.Name != "tool_calls" {
+		t.Fatalf("expected closing tool_calls tag, got ok=%v %#v", ok, tag)
+	}
+	open, ok := scanColonToolMarkupTagAt(":::tc::", 0)
+	if !ok || open.Closing || open.Name != "tool_calls" {
+		t.Fatalf("expected opening tool_calls tag, got ok=%v %#v", ok, open)
+	}
+}
+
+func TestScanColonToolMarkupTagAcceptsSingleColonCloseTypo(t *testing.T) {
+	tag, ok := scanColonToolMarkupTagAt("::/tc:", 0)
+	if !ok || !tag.Closing || tag.Name != "tool_calls" {
+		t.Fatalf("expected closing tool_calls with single trailing colon, got ok=%v %#v", ok, tag)
+	}
+}
+
+func TestParseToolCallsSupportsSingleColonCloseTypo(t *testing.T) {
+	text := `::tc:: ::invoke name="edit":: ::param name="file_path"::[[a.c]]::/param:: ::param name="old_string"::[[foo]]::/param:: ::param name="new_string"::[[bar]]::/param:: ::param name="replace_all"::true::/param:: ::/invoke:: ::/tc:`
+	calls := ParseToolCalls(text, []string{"edit"})
+	if len(calls) != 1 {
+		t.Fatalf("expected 1 call from ::/tc: typo, got %#v", calls)
+	}
+	if calls[0].Name != "edit" || calls[0].Input["file_path"] != "a.c" {
+		t.Fatalf("unexpected parse result: %#v", calls[0])
+	}
+	if calls[0].Input["replace_all"] != true && calls[0].Input["replace_all"] != "true" {
+		t.Fatalf("expected replace_all preserved, got %#v", calls[0].Input["replace_all"])
+	}
+}
+
 func TestParseToolCallsSupportsDSMLShell(t *testing.T) {
 	text := `<|DSML|tool_calls><|DSML|invoke name="Bash"><|DSML|parameter name="command"><![CDATA[pwd]]></|DSML|parameter></|DSML|invoke></|DSML|tool_calls>`
 	calls := ParseToolCalls(text, []string{"Bash"})

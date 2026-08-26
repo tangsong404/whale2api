@@ -389,14 +389,20 @@ func TestChatCompletionsUploadsPrivateContextWithoutPromptingAboutFile(t *testin
 			t.Fatalf("uploaded private context leaked transport wording %q in %q", forbidden, uploadedText)
 		}
 	}
-	if !strings.Contains(uploadedText, "系统:\nbe precise") || !strings.Contains(uploadedText, "助手:\nprevious answer") || !strings.Contains(uploadedText, "用户:\nlatest user turn") {
+	if strings.Contains(uploadedText, "システム:\nbe precise") {
+		t.Fatalf("expected system persona to stay in live prompt, not upload, got %q", uploadedText)
+	}
+	if !strings.Contains(uploadedText, "アシスタント:\nprevious answer") || !strings.Contains(uploadedText, "ユーザー:\nlatest user turn") {
 		t.Fatalf("uploaded private context did not preserve transcript, got %q", uploadedText)
 	}
 	prompt, _ := ds.completionReq["prompt"].(string)
-	if !strings.Contains(prompt, "请自然延续对话，并直接回应用户的最新请求。") {
+	if !strings.Contains(prompt, promptcompat.PrivateContextLivePrompt) {
 		t.Fatalf("expected upstream prompt to use neutral continuation, got %q", prompt)
 	}
-	for _, contextText := range []string{"be precise", "first user turn", "previous answer", "latest user turn"} {
+	if !strings.Contains(prompt, "be precise") {
+		t.Fatalf("expected live prompt to keep system persona, got %q", prompt)
+	}
+	for _, contextText := range []string{"first user turn", "previous answer", "latest user turn"} {
 		if strings.Contains(prompt, contextText) {
 			t.Fatalf("expected upstream prompt to exclude private context %q, got %q", contextText, prompt)
 		}
@@ -440,7 +446,7 @@ func TestChatCompletionsMovesPostUserToolHistoryToPrivateContext(t *testing.T) {
 	uploadedText := string(ds.uploadCalls[0].Data)
 	for _, want := range []string{
 		"find email parser language support",
-		"<|ZJML|工具调用>",
+		"::tc::",
 		"search_code",
 		"email parser language support",
 		"found: parser supports en, zh",
@@ -452,7 +458,7 @@ func TestChatCompletionsMovesPostUserToolHistoryToPrivateContext(t *testing.T) {
 	prompt, _ := ds.completionReq["prompt"].(string)
 	for _, moved := range []string{
 		"find email parser language support",
-		"<|ZJML|工具调用>",
+		"::tc::",
 		"email parser language support",
 		"found: parser supports en, zh",
 	} {
@@ -460,7 +466,10 @@ func TestChatCompletionsMovesPostUserToolHistoryToPrivateContext(t *testing.T) {
 			t.Fatalf("expected live prompt to exclude moved context %q, got %q", moved, prompt)
 		}
 	}
-	if !strings.Contains(prompt, "请自然延续对话，并直接回应用户的最新请求。") {
+	if !strings.Contains(prompt, "old system context") {
+		t.Fatalf("expected live prompt to keep system persona, got %q", prompt)
+	}
+	if !strings.Contains(prompt, promptcompat.PrivateContextLivePrompt) {
 		t.Fatalf("expected live prompt to use neutral continuation, got %q", prompt)
 	}
 }

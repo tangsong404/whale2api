@@ -19,7 +19,7 @@ var promptXMLTextEscaper = strings.NewReplacer(
 var promptXMLNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.:-]*$`)
 
 func markupParameterOpen(paramName string) string {
-	return "<|" + toolcall.MarkupPipeChannel + "|" + toolcall.MarkupTagParameter + ` name="` + escapeXMLAttribute(paramName) + `">`
+	return toolcall.MarkupParamOpen(escapeXMLAttribute(paramName))
 }
 
 func markupParameterClose() string {
@@ -49,32 +49,6 @@ func FormatToolCallsForPrompt(raw any) string {
 		return ""
 	}
 	return toolcall.MarkupPipeOpenTag(toolcall.MarkupTagToolCalls) + "\n" + strings.Join(blocks, "\n") + "\n" + toolcall.MarkupPipeCloseTag(toolcall.MarkupTagToolCalls)
-}
-
-// StringifyToolCallArguments normalizes tool arguments into a compact string
-// while preserving raw concatenated payloads when they already look like model
-// output rather than a single JSON object.
-func StringifyToolCallArguments(v any) string {
-	switch x := v.(type) {
-	case nil:
-		return "{}"
-	case string:
-		s := strings.TrimSpace(x)
-		if s == "" {
-			return "{}"
-		}
-		s = normalizeToolArgumentString(s)
-		if s == "" {
-			return "{}"
-		}
-		return s
-	default:
-		b, err := json.Marshal(x)
-		if err != nil || len(b) == 0 {
-			return "{}"
-		}
-		return string(b)
-	}
 }
 
 func formatToolCallForPrompt(call map[string]any) string {
@@ -111,6 +85,32 @@ func formatToolCallForPrompt(call map[string]any) string {
 	return "  " + toolcall.MarkupPipeInvokeOpen(escapedName) + "\n" +
 		parameters + "\n" +
 		"  " + toolcall.MarkupPipeCloseTag(toolcall.MarkupTagInvoke)
+}
+
+// StringifyToolCallArguments normalizes tool arguments into a compact string
+// while preserving raw concatenated payloads when they already look like model
+// output rather than a single JSON object.
+func StringifyToolCallArguments(v any) string {
+	switch x := v.(type) {
+	case nil:
+		return "{}"
+	case string:
+		s := strings.TrimSpace(x)
+		if s == "" {
+			return "{}"
+		}
+		s = normalizeToolArgumentString(s)
+		if s == "" {
+			return "{}"
+		}
+		return s
+	default:
+		b, err := json.Marshal(x)
+		if err != nil || len(b) == 0 {
+			return "{}"
+		}
+		return string(b)
+	}
 }
 
 func formatToolCallParametersForPrompt(raw any) string {
@@ -312,16 +312,10 @@ func renderPromptToolXMLNode(name string, value any, indent string) (string, boo
 	}
 }
 
-// renderPromptXMLText emits CDATA for every string so prompt-visible tool
+// renderPromptXMLText emits [[...]] for every string so prompt-visible tool
 // history stays uniform and does not drift back toward ad-hoc escaping.
 func renderPromptXMLText(text string) string {
-	if text == "" {
-		return ""
-	}
-	if strings.Contains(text, "]]>") {
-		return "<![CDATA[" + strings.ReplaceAll(text, "]]>", "]]]]><![CDATA[>") + "]]>"
-	}
-	return "<![CDATA[" + text + "]]>"
+	return toolcall.MarkupWrapRaw(text)
 }
 
 func isValidPromptXMLName(name string) bool {

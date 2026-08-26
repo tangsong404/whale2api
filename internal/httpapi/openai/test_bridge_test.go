@@ -135,8 +135,11 @@ func TestApplyThinkingInjectionAppendsLatestUserPrompt(t *testing.T) {
 	if len(ds.uploadCalls) != 0 {
 		t.Fatalf("expected no upload for first short turn, got %d", len(ds.uploadCalls))
 	}
-	if !strings.Contains(out.FinalPrompt, "hello\n\n"+promptcompat.ThinkingInjectionMarker) {
-		t.Fatalf("expected thinking injection after latest user message, got %s", out.FinalPrompt)
+	if !strings.Contains(out.FinalPrompt, promptcompat.ThinkingInjectionMarker) {
+		t.Fatalf("expected thinking injection in system section, got %s", out.FinalPrompt)
+	}
+	if !strings.Contains(out.FinalPrompt, "hello") {
+		t.Fatalf("expected user text preserved, got %s", out.FinalPrompt)
 	}
 }
 
@@ -164,8 +167,11 @@ func TestApplyThinkingInjectionUsesCustomPrompt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("apply transforms failed: %v", err)
 	}
-	if !strings.Contains(out.FinalPrompt, "hello\n\ncustom thinking format") {
-		t.Fatalf("expected custom thinking injection after latest user message, got %s", out.FinalPrompt)
+	if !strings.Contains(out.FinalPrompt, "custom thinking format") {
+		t.Fatalf("expected custom thinking injection in system section, got %s", out.FinalPrompt)
+	}
+	if strings.Contains(out.FinalPrompt, "hello\n\ncustom thinking format") {
+		t.Fatalf("expected custom injection not appended to user text, got %s", out.FinalPrompt)
 	}
 }
 

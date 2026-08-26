@@ -419,6 +419,44 @@ func TestHandleStreamPromotesThinkingToolCallsOnFinalizeWithoutMidstreamIntercep
 	}
 }
 
+func TestHandleStreamDoesNotLeakColonToolMarkupFromThinkingChunks(t *testing.T) {
+	h := &Handler{}
+	resp := makeSSEHTTPResponse(
+		`data: {"p":"response/thinking_content","v":"::tc"}`,
+		`data: {"p":"response/thinking_content","v":"::\n  ::invoke name=\"Glob\"::\n    ::param name=\"pattern\"::[[**/*.md]]::/param::\n  ::/invoke::\n::/tc::"}`,
+		`data: [DONE]`,
+	)
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+
+	h.handleStream(rec, req, resp, "cid-thinking-colon-stream", "deepseek-v4-pro", "prompt", 0, true, false, []string{"Glob"}, nil, nil)
+
+	frames, done := parseSSEDataFrames(t, rec.Body.String())
+	if !done {
+		t.Fatalf("expected [DONE], body=%s", rec.Body.String())
+	}
+	if !streamHasToolCallsDelta(frames) {
+		t.Fatalf("expected tool_calls delta from thinking colon markup, body=%s", rec.Body.String())
+	}
+	var reasoning, content strings.Builder
+	for _, frame := range frames {
+		choices, _ := frame["choices"].([]any)
+		for _, item := range choices {
+			choice, _ := item.(map[string]any)
+			delta, _ := choice["delta"].(map[string]any)
+			reasoning.WriteString(asString(delta["reasoning_content"]))
+			content.WriteString(asString(delta["content"]))
+		}
+	}
+	joined := reasoning.String() + content.String()
+	if strings.Contains(joined, "::tc::") || strings.Contains(joined, "::invoke") {
+		t.Fatalf("colon tool markup leaked into stream text: reasoning=%q content=%q body=%s", reasoning.String(), content.String(), rec.Body.String())
+	}
+	if streamFinishReason(frames) != "tool_calls" {
+		t.Fatalf("expected finish_reason=tool_calls, body=%s", rec.Body.String())
+	}
+}
+
 func TestHandleStreamPromotesHiddenThinkingDSMLToolCallsOnFinalize(t *testing.T) {
 	h := &Handler{}
 	resp := makeSSEHTTPResponse(

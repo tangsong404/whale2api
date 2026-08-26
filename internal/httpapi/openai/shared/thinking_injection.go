@@ -26,7 +26,7 @@ func ApplyThinkingInjection(store ThinkingInjectionConfig, stdReq promptcompat.S
 	}
 	messages, changed := promptcompat.AppendThinkingInjectionPromptToLatestUser(stdReq.Messages, store.ThinkingInjectionPrompt())
 	if !changed {
-		config.Logger.Debug("[thinking_injection] skip: duplicate marker or no user message")
+		config.Logger.Debug("[thinking_injection] skip: duplicate marker or no system slot")
 		return stdReq
 	}
 	finalPrompt, toolNames := promptcompat.BuildOpenAIPrompt(messages, stdReq.ToolsRaw, "", stdReq.ToolChoice, stdReq.Thinking)
@@ -35,7 +35,8 @@ func ApplyThinkingInjection(store ThinkingInjectionConfig, stdReq promptcompat.S
 	}
 	stdReq.Messages = messages
 	stdReq.FinalPrompt = finalPrompt
+	stdReq.PromptTokenText = finalPrompt
 	stdReq.ToolNames = toolNames
-	config.Logger.Debug("[thinking_injection] applied: appended prompt to latest user")
+	config.Logger.Debug("[thinking_injection] applied: appended prompt to system")
 	return stdReq
 }

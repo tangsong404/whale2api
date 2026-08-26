@@ -12,11 +12,11 @@ func BuildToolCallInstructions(toolNames []string) string {
 	tcO := MarkupPipeOpenTag(MarkupTagToolCalls)
 	tcC := MarkupPipeCloseTag(MarkupTagToolCalls)
 	ivC := MarkupPipeCloseTag(MarkupTagInvoke)
-	paramPH := wrapParameter("PARAMETER_NAME", "<![CDATA[PARAMETER_VALUE]]>")
+	paramPH := wrapParameter("PARAMETER_NAME", MarkupWrapRaw("PARAMETER_VALUE"))
 	invokePH := MarkupPipeInvokeOpen("TOOL_NAME_HERE")
 	invokeNamed := MarkupPipeInvokeOpen("TOOL_NAME")
 
-	return `工具调用格式 — 请严格遵守：
+	return `ツール呼び出し形式 — 厳守すること：
 
 ` + tcO + `
   ` + invokePH + `
@@ -24,39 +24,40 @@ func BuildToolCallInstructions(toolNames []string) string {
   ` + ivC + `
 ` + tcC + `
 
-规则：
-1）必须使用 ` + tcO + ` 作为外层包裹格式。
-2）在同一个 ` + tcO + ` 根节点下放置一个或多个 ` + MarkupPipeOpenTag(MarkupTagInvoke) + `。
-3）工具名称写在「调用项」的 name 属性中：` + MarkupPipeInvokeOpen("TOOL_NAME") + `。
-4）所有字符串值必须使用 <![CDATA[...]]>，包括很短的值；代码、脚本、文件内容、提示词、路径、名称、查询等均适用。
-5）每个顶层参数必须写成完整节点，例如：` + wrapParameter("ARG_NAME", "…") + `。
-6）对象在参数体内使用嵌套 XML；数组可重复 <item> 子节点。
-7）数字、布尔值与 null 使用纯文本，不用 CDATA。
-8）只能使用工具 schema 中声明的参数名，禁止臆造字段。
-9）不要用 Markdown 代码围栏包裹 XML；不要输出解释性说明、角色标记或内心独白。
-10）若调用工具，该工具块的首个非空白字符必须恰好是 ` + tcO + `。
-11）即使随后会闭合 ` + tcC + `，也禁止省略开头的 ` + tcO + ` 标签。
-12）兼容说明：运行时仍接受旧版标签 <tool_calls> / <invoke> / <parameter> 以及历史格式 <|DSML|…>，请优先使用本节的 <|ZJML|…> 形式。
+規則：
+1）外側の包みはコロンちょうど2つで書く：` + tcO + ` と ` + tcC + `。
+2）同一の ` + tcO + ` ルートの下に、1つ以上の ` + MarkupPipeOpenTag(MarkupTagInvoke) + ` を置くこと。
+3）ツール名は呼び出し項の name 属性に書く：` + MarkupPipeInvokeOpen("TOOL_NAME") + `。
+4）文字列値は短いものも含め、必ず [[...]] を使う。コード、スクリプト、ファイル内容、プロンプト、パス、名前、クエリも同様。
+5）各トップレベル引数は完全なノードにすること。例：` + wrapParameter("ARG_NAME", "…") + `。
+6）オブジェクト・配列は [[...]] 内の JSON で渡してよい。入れ子マーカーは使わないこと。
+7）数値・真偽値・null はプレーンテキスト。[[...]] は使わない。
+8）スキーマで宣言された引数名だけを使い、勝手にフィールドを作らないこと。
+9）Markdown のコードフェンスでツールタグを包まないこと。タグの後に文字を足さないこと。
+10）ツールを呼ぶ場合、そのブロックの最初の非空白文字は必ず ` + tcO + ` であること。
+11）後で ` + tcC + ` を閉じる場合でも、先頭の ` + tcO + ` を省略してはならない。
 
-参数形态：
-- 字符串 => ` + wrapParameter("x", "<![CDATA[value]]>") + `
-- 对象 => ` + "<|" + MarkupPipeChannel + "|" + MarkupTagParameter + ` name="x"><field>...</field>` + MarkupPipeCloseTag(MarkupTagParameter) + `
-- 数组 => ` + "<|" + MarkupPipeChannel + "|" + MarkupTagParameter + ` name="x"><item>...</item><item>...</item>` + MarkupPipeCloseTag(MarkupTagParameter) + `
-- 数字/布尔/null => ` + "<|" + MarkupPipeChannel + "|" + MarkupTagParameter + ` name="x">纯文本` + MarkupPipeCloseTag(MarkupTagParameter) + `
+引数の形：
+- 文字列 => ` + wrapParameter("x", MarkupWrapRaw("value")) + `
+- オブジェクト/配列 => ` + wrapParameter("x", MarkupWrapRaw(`{"k":"v"}`)) + `
+- 数値/真偽/null => ` + wrapParameter("x", "プレーンテキスト") + `
 
-【错误示例 — 禁止如下】：
+【誤った例 — 禁止】：
 
-错误 1 — XML 后夹杂说明文字：
-  ` + tcO + `...` + tcC + ` 希望这能帮到你。
-错误 2 — Markdown 代码围栏：
-  ` + "```xml" + `
+誤り 1 — タグの後に説明文：
+  ` + tcO + `...` + tcC + ` お役に立てれば幸いです。
+誤り 2 — Markdown フェンス：
+  ` + "```text" + `
   ` + tcO + `...` + tcC + `
   ` + "```" + `
-错误 3 — 缺少开头包裹：
+誤り 3 — 先頭の包みがない：
   ` + invokeNamed + `...` + ivC + `
   ` + tcC + `
+誤り 4 — ファイルを編集・書き込んだと宣言したが、Edit / Write / StrReplace / write_to_file 等の書き込み系ツール呼び出しがない：
+  「TODO.MD を修正しました。タスク完了です。」（ツール呼び出しなし）
+  → 空想上の完了。書き込みが必要なら本物のツール呼び出しを出すこと。口頭の完了宣言だけでは不可。
 
-请记住：唯一合法的工具调用方式是在回复末尾使用 ` + tcO + `...` + tcC + ` 代码块。
+覚えておくこと：合法なツール呼び出しは、返信末尾に ` + tcO + `...` + tcC + ` のタグ対を出すこと。Markdown フェンスで包まないこと。
 
 ` + buildCorrectToolExamples(toolNames)
 }
@@ -71,25 +72,25 @@ func buildCorrectToolExamples(toolNames []string) string {
 	examples := make([]string, 0, 4)
 
 	if single, ok := firstBasicExample(names); ok {
-		examples = append(examples, "示例 A — 单个工具：\n"+renderToolExampleBlock([]promptToolExample{single}))
+		examples = append(examples, "例 A — 単一ツール：\n"+renderToolExampleBlock([]promptToolExample{single}))
 	}
 
 	if parallel := firstNBasicExamples(names, 2); len(parallel) >= 2 {
-		examples = append(examples, "示例 B — 并行两个工具：\n"+renderToolExampleBlock(parallel))
+		examples = append(examples, "例 B — 2つのツールを並列：\n"+renderToolExampleBlock(parallel))
 	}
 
 	if nested, ok := firstNestedExample(names); ok {
-		examples = append(examples, "示例 C — 含嵌套 XML 参数的工具：\n"+renderToolExampleBlock([]promptToolExample{nested}))
+		examples = append(examples, "例 C — JSON 入れ子引数のあるツール：\n"+renderToolExampleBlock([]promptToolExample{nested}))
 	}
 
 	if script, ok := firstScriptExample(names); ok {
-		examples = append(examples, "示例 D — 使用 CDATA 的长脚本（适合代码/脚本）：\n"+renderToolExampleBlock([]promptToolExample{script}))
+		examples = append(examples, "例 D — [[...]] を使う長いスクリプト（コード/スクリプト向け）：\n"+renderToolExampleBlock([]promptToolExample{script}))
 	}
 
 	if len(examples) == 0 {
 		return ""
 	}
-	return "【正确示例】：\n\n" + strings.Join(examples, "\n\n") + "\n\n"
+	return "【正しい例】：\n\n" + strings.Join(examples, "\n\n") + "\n\n"
 }
 
 func uniqueToolNames(toolNames []string) []string {
@@ -160,7 +161,7 @@ func renderToolExampleBlock(calls []promptToolExample) string {
 
 func indentPromptParameters(body, indent string) string {
 	if strings.TrimSpace(body) == "" {
-		return indent + "<|" + MarkupPipeChannel + "|" + MarkupTagParameter + ` name="content">` + MarkupPipeCloseTag(MarkupTagParameter)
+		return indent + MarkupParamOpen("content") + MarkupPipeCloseTag(MarkupTagParameter)
 	}
 	lines := strings.Split(body, "\n")
 	for i, line := range lines {
@@ -174,33 +175,33 @@ func indentPromptParameters(body, indent string) string {
 }
 
 func wrapParameter(name, inner string) string {
-	return "<|" + MarkupPipeChannel + "|" + MarkupTagParameter + ` name="` + name + `">` + inner + MarkupPipeCloseTag(MarkupTagParameter)
+	return MarkupParamOpen(name) + inner + MarkupPipeCloseTag(MarkupTagParameter)
 }
 
 func exampleBasicParams(name string) (string, bool) {
 	switch strings.TrimSpace(name) {
 	case "Read":
-		return wrapParameter("file_path", promptCDATA("README.md")), true
+		return wrapParameter("file_path", promptRaw("README.md")), true
 	case "Glob":
-		return wrapParameter("pattern", promptCDATA("**/*.go")) + "\n" + wrapParameter("path", promptCDATA(".")), true
+		return wrapParameter("pattern", promptRaw("**/*.go")) + "\n" + wrapParameter("path", promptRaw(".")), true
 	case "read_file":
-		return wrapParameter("path", promptCDATA("src/main.go")), true
+		return wrapParameter("path", promptRaw("src/main.go")), true
 	case "list_files":
-		return wrapParameter("path", promptCDATA(".")), true
+		return wrapParameter("path", promptRaw(".")), true
 	case "search_files":
-		return wrapParameter("query", promptCDATA("工具调用解析器")), true
+		return wrapParameter("query", promptRaw("ツール呼び出しパーサー")), true
 	case "Bash", "execute_command":
-		return wrapParameter("command", promptCDATA("pwd")), true
+		return wrapParameter("command", promptRaw("pwd")), true
 	case "exec_command":
-		return wrapParameter("cmd", promptCDATA("pwd")), true
+		return wrapParameter("cmd", promptRaw("pwd")), true
 	case "Write":
-		return wrapParameter("file_path", promptCDATA("notes.txt")) + "\n" + wrapParameter("content", promptCDATA("Hello world")), true
+		return wrapParameter("file_path", promptRaw("notes.txt")) + "\n" + wrapParameter("content", promptRaw("Hello world")), true
 	case "write_to_file":
-		return wrapParameter("path", promptCDATA("notes.txt")) + "\n" + wrapParameter("content", promptCDATA("Hello world")), true
+		return wrapParameter("path", promptRaw("notes.txt")) + "\n" + wrapParameter("content", promptRaw("Hello world")), true
 	case "Edit":
-		return wrapParameter("file_path", promptCDATA("README.md")) + "\n" + wrapParameter("old_string", promptCDATA("foo")) + "\n" + wrapParameter("new_string", promptCDATA("bar")), true
+		return wrapParameter("file_path", promptRaw("README.md")) + "\n" + wrapParameter("old_string", promptRaw("foo")) + "\n" + wrapParameter("new_string", promptRaw("bar")), true
 	case "MultiEdit":
-		return wrapParameter("file_path", promptCDATA("README.md")) + "\n" + wrapParameter("edits", `<item><old_string>`+promptCDATA("foo")+`</old_string><new_string>`+promptCDATA("bar")+`</new_string></item>`), true
+		return wrapParameter("file_path", promptRaw("README.md")) + "\n" + wrapParameter("edits", promptRaw(`[{"old_string":"foo","new_string":"bar"}]`)), true
 	}
 	return "", false
 }
@@ -208,11 +209,11 @@ func exampleBasicParams(name string) (string, bool) {
 func exampleNestedParams(name string) (string, bool) {
 	switch strings.TrimSpace(name) {
 	case "MultiEdit":
-		return wrapParameter("file_path", promptCDATA("README.md")) + "\n" + wrapParameter("edits", `<item><old_string>`+promptCDATA("foo")+`</old_string><new_string>`+promptCDATA("bar")+`</new_string></item>`), true
+		return wrapParameter("file_path", promptRaw("README.md")) + "\n" + wrapParameter("edits", promptRaw(`[{"old_string":"foo","new_string":"bar"}]`)), true
 	case "Task":
-		return wrapParameter("description", promptCDATA("排查不稳定测试")) + "\n" + wrapParameter("prompt", promptCDATA("运行定向测试并汇总失败原因")), true
+		return wrapParameter("description", promptRaw("不安定なテストを調査")) + "\n" + wrapParameter("prompt", promptRaw("対象テストを実行し失敗理由をまとめる")), true
 	case "ask_followup_question":
-		return wrapParameter("question", promptCDATA("你更倾向哪种方案？")) + "\n" + wrapParameter("follow_up", `<item><text>`+promptCDATA("方案 A")+`</text></item><item><text>`+promptCDATA("方案 B")+`</text></item>`), true
+		return wrapParameter("question", promptRaw("どの案がよいですか？")) + "\n" + wrapParameter("follow_up", promptRaw(`[{"text":"案 A"},{"text":"案 B"}]`)), true
 	}
 	return "", false
 }
@@ -230,25 +231,19 @@ echo "literal dollar: $HOME"`
 
 	switch strings.TrimSpace(name) {
 	case "Bash":
-		return wrapParameter("command", promptCDATA(scriptCommand)) + "\n" + wrapParameter("description", promptCDATA("测试 Shell 转义")), true
+		return wrapParameter("command", promptRaw(scriptCommand)) + "\n" + wrapParameter("description", promptRaw("シェルエスケープの確認")), true
 	case "execute_command":
-		return wrapParameter("command", promptCDATA(scriptCommand)), true
+		return wrapParameter("command", promptRaw(scriptCommand)), true
 	case "exec_command":
-		return wrapParameter("cmd", promptCDATA(scriptCommand)), true
+		return wrapParameter("cmd", promptRaw(scriptCommand)), true
 	case "Write":
-		return wrapParameter("file_path", promptCDATA("test_escape.sh")) + "\n" + wrapParameter("content", promptCDATA(scriptContent)), true
+		return wrapParameter("file_path", promptRaw("test_escape.sh")) + "\n" + wrapParameter("content", promptRaw(scriptContent)), true
 	case "write_to_file":
-		return wrapParameter("path", promptCDATA("test_escape.sh")) + "\n" + wrapParameter("content", promptCDATA(scriptContent)), true
+		return wrapParameter("path", promptRaw("test_escape.sh")) + "\n" + wrapParameter("content", promptRaw(scriptContent)), true
 	}
 	return "", false
 }
 
-func promptCDATA(text string) string {
-	if text == "" {
-		return ""
-	}
-	if strings.Contains(text, "]]>") {
-		return "<![CDATA[" + strings.ReplaceAll(text, "]]>", "]]]]><![CDATA[>") + "]]>"
-	}
-	return "<![CDATA[" + text + "]]>"
+func promptRaw(text string) string {
+	return MarkupWrapRaw(text)
 }

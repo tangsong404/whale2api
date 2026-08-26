@@ -10,6 +10,7 @@ import (
 
 
 
+	"whale2api/internal/prompt"
 	"whale2api/internal/promptcompat"
 
 )
@@ -204,7 +205,7 @@ func TestNormalizeOpenAIResponsesRequestAlwaysAcceptsWideInput(t *testing.T) {
 
 	}
 
-	if !strings.Contains(out.FinalPrompt, "<｜User｜>hi") {
+	if !strings.Contains(out.FinalPrompt, prompt.UserOpenMarker+"hi") {
 
 		t.Fatalf("unexpected final prompt: %q", out.FinalPrompt)
 

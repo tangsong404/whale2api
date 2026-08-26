@@ -189,7 +189,7 @@ func ExecuteNonStreamWithRetry(ctx context.Context, ds DeepSeekCaller, a *auth.R
 		if retryMax <= 0 {
 			retryMax = shared.EmptyOutputRetryMaxAttempts()
 		}
-		if !opts.RetryEnabled || !assistantturn.ShouldRetryEmptyOutput(turn, attempts, retryMax) {
+		if !opts.RetryEnabled || !assistantturn.ShouldRetryIncompleteAssistantTurn(turn, len(stdReq.ToolNames) > 0, attempts, retryMax) {
 			if turn.Error != nil && turn.Error.Code == "upstream_empty_output" {
 				assistantturn.LogUpstreamEmptyOutputDiagnostic(stdReq.Surface, false, "nonstream_terminal", turn, payload, opts.ClientHTTPRequestContentLength)
 			}
@@ -197,18 +197,20 @@ func ExecuteNonStreamWithRetry(ctx context.Context, ds DeepSeekCaller, a *auth.R
 		}
 
 		attempts++
-		config.Logger.Info("[completion_runtime_empty_retry] attempting synthetic retry", "surface", stdReq.Surface, "stream", false, "retry_attempt", attempts, "parent_message_id", turn.ResponseMessageID)
+		toolsAvailable := len(stdReq.ToolNames) > 0
+		suffix := shared.RetrySuffixForTurn(turn.Text, toolsAvailable)
+		config.Logger.Info("[completion_runtime_empty_retry] attempting synthetic retry", "surface", stdReq.Surface, "stream", false, "retry_attempt", attempts, "parent_message_id", turn.ResponseMessageID, "retry_reason", shared.RetryReasonLabel(turn.Text, toolsAvailable))
 		retryPow, powErr := ds.GetPow(ctx, a, maxAttempts)
 		if powErr != nil {
 			config.Logger.Warn("[completion_runtime_empty_retry] retry PoW fetch failed, falling back to original PoW", "surface", stdReq.Surface, "retry_attempt", attempts, "error", powErr)
 			retryPow = pow
 		}
-		retryPayload := shared.ClonePayloadForEmptyOutputRetry(payload, turn.ResponseMessageID)
+		retryPayload := shared.ClonePayloadForAssistantRetry(payload, turn.ResponseMessageID, suffix)
 		nextResp, err := ds.CallCompletion(ctx, a, retryPayload, retryPow, maxAttempts)
 		if err != nil {
 			return NonStreamResult{SessionID: sessionID, Payload: payload, Turn: turn, Attempts: attempts}, &assistantturn.OutputError{Status: http.StatusInternalServerError, Message: "Failed to get completion.", Code: "error"}
 		}
-		usagePrompt = shared.UsagePromptWithEmptyOutputRetry(usagePrompt, attempts)
+		usagePrompt = shared.UsagePromptWithRetrySuffix(usagePrompt, attempts, suffix)
 		currentResp = nextResp
 	}
 }

@@ -108,8 +108,20 @@ func clonePayloadForEmptyOutputRetry(payload map[string]any, parentMessageID int
 	return shared.ClonePayloadForEmptyOutputRetry(payload, parentMessageID)
 }
 
+func clonePayloadForAssistantRetry(payload map[string]any, parentMessageID int, suffix string) map[string]any {
+	return shared.ClonePayloadForAssistantRetry(payload, parentMessageID, suffix)
+}
+
+func retrySuffixForTurn(visibleText string, toolsAvailable bool) string {
+	return shared.RetrySuffixForTurn(visibleText, toolsAvailable)
+}
+
 func usagePromptWithEmptyOutputRetry(originalPrompt string, retryAttempts int) string {
 	return shared.UsagePromptWithEmptyOutputRetry(originalPrompt, retryAttempts)
+}
+
+func usagePromptWithRetrySuffix(originalPrompt string, retryAttempts int, suffix string) string {
+	return shared.UsagePromptWithRetrySuffix(originalPrompt, retryAttempts, suffix)
 }
 
 func formatIncrementalStreamToolCallDeltas(deltas []toolstream.ToolCallDelta, ids map[int]string) []map[string]any {

@@ -9,12 +9,14 @@ type toolMarkupNameAlias struct {
 }
 
 var toolMarkupNames = []toolMarkupNameAlias{
+	{raw: "tc", canonical: "tool_calls"},
 	{raw: "tool-calls", canonical: "tool_calls", dsmlOnly: true},
 	{raw: "工具-调用", canonical: "tool_calls", dsmlOnly: true},
 	{raw: "tool_calls", canonical: "tool_calls"},
 	{raw: "工具调用", canonical: "tool_calls", dsmlOnly: true},
 	{raw: "invoke", canonical: "invoke"},
 	{raw: "调用项", canonical: "invoke", dsmlOnly: true},
+	{raw: "param", canonical: "parameter"},
 	{raw: "parameter", canonical: "parameter"},
 	{raw: "形参", canonical: "parameter", dsmlOnly: true},
 }
@@ -29,6 +31,7 @@ type ToolMarkupTag struct {
 	SelfClosing bool
 	DSMLLike    bool
 	Canonical   bool
+	ColonStyle  bool
 }
 
 func ContainsToolMarkupSyntaxOutsideIgnored(text string) (hasDSML, hasCanonical bool) {
@@ -138,7 +141,13 @@ func FindMatchingToolMarkupClose(text string, open ToolMarkupTag) (ToolMarkupTag
 }
 
 func scanToolMarkupTagAt(text string, start int) (ToolMarkupTag, bool) {
-	if start < 0 || start >= len(text) || text[start] != '<' {
+	if start < 0 || start >= len(text) {
+		return ToolMarkupTag{}, false
+	}
+	if text[start] == ':' {
+		return scanColonToolMarkupTagAt(text, start)
+	}
+	if text[start] != '<' {
 		return ToolMarkupTag{}, false
 	}
 	lower := strings.ToLower(text)
@@ -191,8 +200,88 @@ func scanToolMarkupTagAt(text string, start int) (ToolMarkupTag, bool) {
 	}, true
 }
 
+func scanColonToolMarkupTagAt(text string, start int) (ToolMarkupTag, bool) {
+	if start < 0 || start >= len(text) || text[start] != ':' {
+		return ToolMarkupTag{}, false
+	}
+	// Accept "::tc::" and common model typos with extra colons (":::tc::").
+	i := start
+	for i < len(text) && text[i] == ':' {
+		i++
+	}
+	if i-start < 2 {
+		return ToolMarkupTag{}, false
+	}
+	closing := false
+	if i < len(text) && text[i] == '/' {
+		closing = true
+		i++
+	} else {
+		// Accept "::: /tc:::" with spaces between the colon run and '/'.
+		j := i
+		for j < len(text) && (text[j] == ' ' || text[j] == '\t') {
+			j++
+		}
+		if j > i && j < len(text) && text[j] == '/' {
+			closing = true
+			i = j + 1
+		}
+	}
+	lower := strings.ToLower(text)
+	name, nameLen := matchToolMarkupName(lower, i, true)
+	if nameLen == 0 {
+		return ToolMarkupTag{}, false
+	}
+	nameStart := i
+	nameEnd := i + nameLen
+	closeRel := strings.Index(text[nameEnd:], ":")
+	if closeRel < 0 {
+		return ToolMarkupTag{}, false
+	}
+	closeStart := nameEnd + closeRel
+	attrs := text[nameEnd:closeStart]
+	if attrs != "" {
+		switch attrs[0] {
+		case ' ', '\t', '\n', '\r':
+		default:
+			return ToolMarkupTag{}, false
+		}
+	}
+	closeEnd := closeStart
+	for closeEnd < len(text) && text[closeEnd] == ':' {
+		closeEnd++
+	}
+	// Opening tags keep the canonical "::" terminator. Closing tags also accept a
+	// single trailing colon typo ("::/tc:") which models emit often enough to
+	// otherwise leak the whole tool block as visible text.
+	minClose := 2
+	if closing {
+		minClose = 1
+	}
+	if closeEnd-closeStart < minClose {
+		return ToolMarkupTag{}, false
+	}
+	return ToolMarkupTag{
+		Start:      start,
+		End:        closeEnd - 1,
+		NameStart:  nameStart,
+		NameEnd:    nameEnd,
+		Name:       name,
+		Closing:    closing,
+		DSMLLike:   true,
+		Canonical:  false,
+		ColonStyle: true,
+	}, true
+}
+
 func IsPartialToolMarkupTagPrefix(text string) bool {
-	if text == "" || text[0] != '<' || strings.Contains(text, ">") {
+	if text == "" {
+		return false
+	}
+	if text[0] == ':' {
+		return isPartialColonToolMarkupTagPrefix(text)
+	}
+	if text[0] != '<' || strings.Contains(text, ">") {
 		return false
 	}
 	lower := strings.ToLower(text)
@@ -226,6 +315,49 @@ func IsPartialToolMarkupTagPrefix(text string) bool {
 		i = next
 	}
 	return false
+}
+
+func isPartialColonToolMarkupTagPrefix(text string) bool {
+	if text == "" || text[0] != ':' {
+		return false
+	}
+	// A lone ':' may become "::…".
+	if text == ":" {
+		return true
+	}
+	i := 0
+	for i < len(text) && text[i] == ':' {
+		i++
+	}
+	if i < 2 {
+		return false
+	}
+	if _, ok := scanColonToolMarkupTagAt(text, 0); ok {
+		return false
+	}
+	rest := strings.ToLower(text[i:])
+	if rest == "" {
+		return true
+	}
+	j := 0
+	for j < len(rest) && (rest[j] == ' ' || rest[j] == '\t') {
+		j++
+	}
+	if j > 0 {
+		if j >= len(rest) {
+			return true
+		}
+		if rest[j] != '/' {
+			return false
+		}
+	}
+	if j < len(rest) && rest[j] == '/' {
+		rest = rest[j+1:]
+		if rest == "" {
+			return true
+		}
+	}
+	return hasToolMarkupNamePrefix(rest)
 }
 
 func consumeToolMarkupNamePrefix(lower, text string, idx int) (int, bool) {
@@ -274,15 +406,18 @@ func hasToolMarkupNamePrefix(lowerTail string) bool {
 }
 
 func matchToolMarkupName(lower string, start int, dsmlLike bool) (string, int) {
+	bestCanonical := ""
+	bestLen := 0
 	for _, name := range toolMarkupNames {
 		if name.dsmlOnly && !dsmlLike {
 			continue
 		}
-		if strings.HasPrefix(lower[start:], name.raw) {
-			return name.canonical, len(name.raw)
+		if strings.HasPrefix(lower[start:], name.raw) && len(name.raw) > bestLen {
+			bestCanonical = name.canonical
+			bestLen = len(name.raw)
 		}
 	}
-	return "", 0
+	return bestCanonical, bestLen
 }
 
 func consumeToolMarkupPipe(text string, idx int) (int, bool) {

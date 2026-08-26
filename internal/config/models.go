@@ -8,6 +8,7 @@ type ModelInfo struct {
 	Created       int64  `json:"created"`
 	OwnedBy       string `json:"owned_by"`
 	ContextLength int    `json:"context_length"`
+	Multimodal    bool   `json:"multimodal"`
 	Permission    []any  `json:"permission,omitempty"`
 }
 
@@ -27,8 +28,8 @@ var supportedModelIDs = map[string]struct{}{
 const AdvertisedMaxContextTokens = 256_000
 
 var deepSeekBaseModels = []ModelInfo{
-	{ID: modelIDDeepSeekFlash, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Permission: []any{}},
-	{ID: modelIDDeepSeekFlashVisionExp, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Permission: []any{}},
+	{ID: modelIDDeepSeekFlash, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Multimodal: false, Permission: []any{}},
+	{ID: modelIDDeepSeekFlashVisionExp, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Multimodal: true, Permission: []any{}},
 }
 
 // DeepSeekModels lists client-visible model ids.

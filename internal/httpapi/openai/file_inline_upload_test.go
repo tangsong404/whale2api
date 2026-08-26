@@ -122,6 +122,221 @@ func TestPreprocessInlineFileInputsReplacesDataURLAndCollectsRefFileIDs(t *testi
 	}
 }
 
+func TestPreprocessInlineFileInputsSupportsCompactImageMediaTypeData(t *testing.T) {
+	ds := &inlineUploadDSStub{}
+	h := &openAITestSurface{DS: ds}
+	req := map[string]any{
+		"model": "deepseek-v4-flash-vision-exp",
+		"messages": []any{
+			map[string]any{
+				"role": "user",
+				"content": []any{
+					map[string]any{
+						"type":      "image",
+						"mediaType": "image/png",
+						"data":      "QUJDRA==",
+						"name":      "image.png",
+					},
+					map[string]any{
+						"type": "text",
+						"text": "这是啥",
+					},
+				},
+			},
+		},
+	}
+
+	if err := h.preprocessInlineFileInputs(context.Background(), &auth.RequestAuth{DeepSeekToken: "token"}, req); err != nil {
+		t.Fatalf("preprocess failed: %v", err)
+	}
+	if len(ds.uploadCalls) != 1 {
+		t.Fatalf("expected 1 upload, got %d", len(ds.uploadCalls))
+	}
+	if ds.uploadCalls[0].ModelType != "vision" {
+		t.Fatalf("expected vision model type, got %q", ds.uploadCalls[0].ModelType)
+	}
+	if ds.uploadCalls[0].ContentType != "image/png" {
+		t.Fatalf("expected image/png, got %q", ds.uploadCalls[0].ContentType)
+	}
+	if ds.uploadCalls[0].Filename != "image.png" {
+		t.Fatalf("expected filename image.png, got %q", ds.uploadCalls[0].Filename)
+	}
+	if string(ds.uploadCalls[0].Data) != "ABCD" {
+		t.Fatalf("expected decoded payload ABCD, got %q", ds.uploadCalls[0].Data)
+	}
+	messages, _ := req["messages"].([]any)
+	first, _ := messages[0].(map[string]any)
+	content, _ := first["content"].([]any)
+	if len(content) != 2 {
+		t.Fatalf("expected 2 content parts, got %#v", content)
+	}
+	block, _ := content[0].(map[string]any)
+	if block["type"] != "input_image" {
+		t.Fatalf("expected input_image replacement, got %#v", block)
+	}
+	if block["file_id"] != "file-inline-1" {
+		t.Fatalf("expected file-inline-1, got %#v", block)
+	}
+	textBlock, _ := content[1].(map[string]any)
+	if textBlock["type"] != "text" || textBlock["text"] != "这是啥" {
+		t.Fatalf("expected text part preserved, got %#v", textBlock)
+	}
+}
+
+func TestPreprocessInlineFileInputsSupportsFileDataImage(t *testing.T) {
+	ds := &inlineUploadDSStub{}
+	h := &openAITestSurface{DS: ds}
+	req := map[string]any{
+		"messages": []any{
+			map[string]any{
+				"role": "user",
+				"content": []any{
+					map[string]any{
+						"type":      "file",
+						"file_data": "data:image/jpeg;base64,QUJDRA==",
+						"filename":  "image.jpg",
+					},
+				},
+			},
+		},
+	}
+
+	if err := h.preprocessInlineFileInputs(context.Background(), &auth.RequestAuth{DeepSeekToken: "token"}, req); err != nil {
+		t.Fatalf("preprocess failed: %v", err)
+	}
+	if len(ds.uploadCalls) != 1 {
+		t.Fatalf("expected 1 upload, got %d", len(ds.uploadCalls))
+	}
+	messages, _ := req["messages"].([]any)
+	first, _ := messages[0].(map[string]any)
+	content, _ := first["content"].([]any)
+	block, _ := content[0].(map[string]any)
+	if block["type"] != "input_image" {
+		t.Fatalf("expected image file_data to become input_image, got %#v", block)
+	}
+}
+
+func TestPreprocessInlineFileInputsFetchesRemoteImageURL(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write([]byte("remote-png"))
+	}))
+	defer server.Close()
+
+	ds := &inlineUploadDSStub{}
+	h := &openAITestSurface{DS: ds}
+	req := map[string]any{
+		"messages": []any{
+			map[string]any{
+				"role": "user",
+				"content": []any{
+					map[string]any{
+						"type":      "image_url",
+						"image_url": map[string]any{"url": server.URL + "/pic.png", "detail": "low"},
+					},
+				},
+			},
+		},
+	}
+
+	if err := h.preprocessInlineFileInputs(context.Background(), &auth.RequestAuth{DeepSeekToken: "token"}, req); err != nil {
+		t.Fatalf("preprocess failed: %v", err)
+	}
+	if len(ds.uploadCalls) != 1 {
+		t.Fatalf("expected 1 upload, got %d", len(ds.uploadCalls))
+	}
+	if string(ds.uploadCalls[0].Data) != "remote-png" {
+		t.Fatalf("expected downloaded payload, got %q", ds.uploadCalls[0].Data)
+	}
+	if ds.uploadCalls[0].ContentType != "image/png" {
+		t.Fatalf("expected image/png, got %q", ds.uploadCalls[0].ContentType)
+	}
+	messages, _ := req["messages"].([]any)
+	first, _ := messages[0].(map[string]any)
+	content, _ := first["content"].([]any)
+	block, _ := content[0].(map[string]any)
+	if block["type"] != "input_image" || block["file_id"] != "file-inline-1" {
+		t.Fatalf("expected input_image replacement, got %#v", block)
+	}
+}
+
+func TestPreprocessInlineFileInputsIgnoresAnthropicAndResponsesImageShapes(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write([]byte("should-not-fetch"))
+	}))
+	defer server.Close()
+
+	ds := &inlineUploadDSStub{}
+	h := &openAITestSurface{DS: ds}
+	req := map[string]any{
+		"messages": []any{
+			map[string]any{
+				"role": "user",
+				"content": []any{
+					map[string]any{
+						"type": "image",
+						"source": map[string]any{
+							"type":       "base64",
+							"media_type": "image/jpeg",
+							"data":       "QUJDRA==",
+						},
+					},
+					map[string]any{
+						"type":      "input_image",
+						"image_url": map[string]any{"url": "data:image/png;base64,QUJDRA=="},
+					},
+					map[string]any{
+						"type":      "input_image",
+						"image_url": server.URL + "/a.png",
+						"detail":    "low",
+					},
+				},
+			},
+		},
+	}
+
+	if err := h.preprocessInlineFileInputs(context.Background(), &auth.RequestAuth{DeepSeekToken: "token"}, req); err != nil {
+		t.Fatalf("preprocess failed: %v", err)
+	}
+	if len(ds.uploadCalls) != 0 {
+		t.Fatalf("expected no uploads for unsupported vision shapes, got %d", len(ds.uploadCalls))
+	}
+}
+
+func TestPreprocessInlineFileInputsLeavesFileIDReference(t *testing.T) {
+	ds := &inlineUploadDSStub{}
+	h := &openAITestSurface{DS: ds}
+	req := map[string]any{
+		"messages": []any{
+			map[string]any{
+				"role": "user",
+				"content": []any{
+					map[string]any{
+						"type":    "file",
+						"file_id": "file-api-xxxxxxxxxxxxxxxx",
+					},
+					map[string]any{
+						"type":    "image_url",
+						"file_id": "file-api-yyyyyyyyyyyyyyyy",
+					},
+				},
+			},
+		},
+	}
+
+	if err := h.preprocessInlineFileInputs(context.Background(), &auth.RequestAuth{DeepSeekToken: "token"}, req); err != nil {
+		t.Fatalf("preprocess failed: %v", err)
+	}
+	if len(ds.uploadCalls) != 0 {
+		t.Fatalf("expected no uploads for file_id refs, got %d", len(ds.uploadCalls))
+	}
+	refIDs, _ := req["ref_file_ids"].([]any)
+	if len(refIDs) != 2 {
+		t.Fatalf("expected both file_ids collected, got %#v", req["ref_file_ids"])
+	}
+}
+
 func TestPreprocessInlineFileInputsDeduplicatesIdenticalPayloads(t *testing.T) {
 	ds := &inlineUploadDSStub{}
 	h := &openAITestSurface{DS: ds}
@@ -211,7 +426,7 @@ func TestResponsesUploadsInlineFilesBeforeCompletion(t *testing.T) {
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
-	reqBody := `{"model":"deepseek-v4-flash","input":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"input_image","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
+	reqBody := `{"model":"deepseek-v4-flash","input":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(reqBody))
 	req.Header.Set("Authorization", "Bearer direct-token")
 	req.Header.Set("Content-Type", "application/json")

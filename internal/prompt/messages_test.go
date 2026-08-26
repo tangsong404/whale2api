@@ -32,16 +32,16 @@ func TestMessagesPrepareUsesTurnSuffixes(t *testing.T) {
 		{"role": "assistant", "content": "Answer"},
 	}
 	got := MessagesPrepare(messages)
-	if !strings.HasPrefix(got, "<｜begin▁of▁sentence｜>") {
-		t.Fatalf("expected begin-of-sentence marker, got %q", got)
+	if strings.Contains(got, "<｜begin▁of▁sentence｜>") || strings.Contains(got, "<｜System｜>") || strings.Contains(got, "<｜User｜>") || strings.Contains(got, "<｜Assistant｜>") {
+		t.Fatalf("did not expect DeepSeek special tokens, got %q", got)
 	}
-	if !strings.Contains(got, "<｜System｜>") || !strings.Contains(got, "<｜end▁of▁instructions｜>") || !strings.Contains(got, "System rule") {
+	if !strings.Contains(got, SystemOpenMarker) || !strings.Contains(got, SystemCloseMarker) || !strings.Contains(got, "System rule") {
 		t.Fatalf("expected system instructions to remain present, got %q", got)
 	}
-	if !strings.Contains(got, "<｜User｜>Question") {
+	if !strings.Contains(got, UserOpenMarker+"Question") {
 		t.Fatalf("expected user question, got %q", got)
 	}
-	if !strings.Contains(got, "<｜Assistant｜>Answer<｜end▁of▁sentence｜>") {
+	if !strings.Contains(got, AssistantOpenMarker+"Answer"+AssistantCloseMarker) {
 		t.Fatalf("expected assistant sentence suffix, got %q", got)
 	}
 	if strings.Contains(got, "<think>") || strings.Contains(got, "</think>") {
@@ -55,13 +55,13 @@ func TestMessagesPreparePrependsOutputIntegrityGuard(t *testing.T) {
 		{"role": "user", "content": "Question"},
 	}
 	got := MessagesPrepare(messages)
-	if !strings.HasPrefix(got, beginSentenceMarker+systemMarker+outputIntegrityGuardPrompt) {
+	if !strings.HasPrefix(got, SystemOpenMarker+outputIntegrityGuardPrompt) {
 		t.Fatalf("expected output integrity guard to be prepended, got %q", got)
 	}
 	if !strings.Contains(got, outputIntegrityGuardPrompt+"\n\nSystem rule") {
 		t.Fatalf("expected output integrity guard to precede system prompt content, got %q", got)
 	}
-	if !strings.Contains(got, "<｜User｜>Question") {
+	if !strings.Contains(got, UserOpenMarker+"Question") {
 		t.Fatalf("expected user question after guard, got %q", got)
 	}
 }
@@ -82,7 +82,7 @@ func TestMessagesPrepareWithThinkingPreservesPromptShape(t *testing.T) {
 	if gotThinking != gotPlain {
 		t.Fatalf("expected thinking flag not to add extra continuity instructions, got thinking=%q plain=%q", gotThinking, gotPlain)
 	}
-	if !strings.HasSuffix(gotThinking, "<｜Assistant｜>") {
+	if !strings.HasSuffix(gotThinking, AssistantOpenMarker) {
 		t.Fatalf("expected assistant suffix, got %q", gotThinking)
 	}
 }

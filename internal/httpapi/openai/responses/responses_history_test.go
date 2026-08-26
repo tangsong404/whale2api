@@ -15,6 +15,7 @@ import (
 	"whale2api/internal/chathistory"
 	"whale2api/internal/config"
 	dsclient "whale2api/internal/deepseek/client"
+	"whale2api/internal/promptcompat"
 )
 
 type responsesHistoryDS struct {
@@ -79,13 +80,13 @@ func TestResponsesUploadsPrivateContextAndReplacesLiveTail(t *testing.T) {
 	if !strings.HasSuffix(ds.uploads[0].Filename, ".txt") || strings.Contains(strings.ToLower(ds.uploads[0].Filename), "history") {
 		t.Fatalf("expected opaque .txt private context filename, got %q", ds.uploads[0].Filename)
 	}
-	if got := string(ds.uploads[0].Data); !strings.Contains(got, "old response context") || !strings.Contains(got, "find response language support") || !strings.Contains(got, "found: responses supports en, zh") {
-		t.Fatalf("expected upload to contain full private context, got %q", got)
+	if got := string(ds.uploads[0].Data); strings.Contains(got, "old response context") || !strings.Contains(got, "find response language support") || !strings.Contains(got, "found: responses supports en, zh") {
+		t.Fatalf("expected upload to contain dialogue history without system persona, got %q", got)
 	}
 	prompt, _ := ds.payload["prompt"].(string)
 	for _, moved := range []string{
 		"find response language support",
-		"<|ZJML|工具调用>",
+		"::tc::",
 		"response language support",
 		"found: responses supports en, zh",
 	} {
@@ -93,7 +94,10 @@ func TestResponsesUploadsPrivateContextAndReplacesLiveTail(t *testing.T) {
 			t.Fatalf("expected live prompt to exclude moved context %q, got %q", moved, prompt)
 		}
 	}
-	if !strings.Contains(prompt, "请自然延续对话，并直接回应用户的最新请求。") {
+	if !strings.Contains(prompt, "old response context") {
+		t.Fatalf("expected live prompt to keep system persona, got %q", prompt)
+	}
+	if !strings.Contains(prompt, promptcompat.PrivateContextLivePrompt) {
 		t.Fatalf("expected live prompt to use neutral continuation, got %q", prompt)
 	}
 	refIDs, _ := ds.payload["ref_file_ids"].([]any)

@@ -19,7 +19,7 @@ import (
 
 const (
 	defaultProbeModel  = "deepseek-v4-flash"
-	DefaultProbePrompt = "ping, 你只需返回pong"
+	DefaultProbePrompt = "ping、pong とだけ返すこと"
 )
 
 // Result is the outcome of login + minimal completion probe against DeepSeek.

@@ -9,6 +9,14 @@ import (
 	"whale2api/internal/toolcall"
 )
 
+// ToolActionNudgeMarker is appended to the latest non-system message when tools
+// are available. Kept off the system prompt so it sits next to the live turn.
+const ToolActionNudgeMarker = "【まずタスクが完了したか判断すること。未完了なら、出力に本物のツール呼び出し形式を必ず含めること。" +
+	"思考過程やユーザー向け本文の中で、ツールを既に呼んだかのように空想・叙述・模擬してはならない。" +
+	"ツール呼び出しタグを実際に出すこと。" +
+	"空想上のツール操作による空想上の完了は、タスク完了とみなさない。" +
+	"例：ファイルを編集したと宣言したのに Edit / Write / StrReplace 等の書き込み系呼び出しがなければ、それは空想である。】"
+
 func injectToolPrompt(messages []map[string]any, tools []any, policy ToolChoicePolicy) ([]map[string]any, []string) {
 	if policy.IsNone() {
 		return messages, nil
@@ -38,35 +46,94 @@ func injectToolPrompt(messages []map[string]any, tools []any, policy ToolChoiceP
 		}
 		names = append(names, name)
 		if desc == "" {
-			desc = "暂无说明"
+			desc = "説明なし"
 		}
 		b, _ := json.Marshal(schema)
-		toolSchemas = append(toolSchemas, fmt.Sprintf("工具：%s\n说明：%s\n参数：%s", name, desc, string(b)))
+		toolSchemas = append(toolSchemas, fmt.Sprintf("ツール：%s\n説明：%s\n引数：%s", name, desc, string(b)))
 	}
 	if len(toolSchemas) == 0 {
 		return messages, names
 	}
-	toolPrompt := "你可以使用以下工具：\n\n" + strings.Join(toolSchemas, "\n\n") + "\n\n" + toolcall.BuildToolCallInstructions(names)
+	toolPrompt := "次のツールを使用できる：\n\n" + strings.Join(toolSchemas, "\n\n") + "\n\n" + toolcall.BuildToolCallInstructions(names)
 	if hasReadLikeTool(names) {
-		toolPrompt += "\n\n读取类工具缓存提示：若 Read/read_file 等工具返回表示文件未变更、内容已在历史上下文中、应从先前上下文引用，或没有给出文件正文，请将结果视为“内容缺失”。不要为获取缺失正文而反复发起相同的读取请求；若工具支持全文读取请改用相应方式，否则请明确告知用户需要重新提供文件内容。"
+		toolPrompt += "\n\n読み取り系ツール：未変更・本文は文脈済み・本文なし、と返ってきた場合は内容欠落として扱う。同じ方法で繰り返し読まないこと。全文が取れないときはユーザーに知らせること。"
 	}
 	if policy.Mode == ToolChoiceRequired {
-		toolPrompt += "\n7）在本回复中，你必须从允许列表里至少调用一个工具。"
+		toolPrompt += "\nこの返信では、許可リストから少なくとも1つのツールを必ず呼び出すこと。"
 	}
 	if policy.Mode == ToolChoiceForced && strings.TrimSpace(policy.ForcedName) != "" {
-		toolPrompt += "\n7）在本回复中，你必须且只能调用以下工具名称：" + strings.TrimSpace(policy.ForcedName)
-		toolPrompt += "\n8）不要调用任何其它工具。"
+		toolPrompt += "\nこの返信では、次のツールのみを必ず呼び出すこと：" + strings.TrimSpace(policy.ForcedName) + "。他のツールは呼び出さないこと。"
 	}
 
+	injected := false
 	for i := range messages {
-		if messages[i]["role"] == "system" {
+		role := strings.ToLower(strings.TrimSpace(asString(messages[i]["role"])))
+		if role == "system" || role == "developer" {
 			old, _ := messages[i]["content"].(string)
 			messages[i]["content"] = strings.TrimSpace(old + "\n\n" + toolPrompt)
-			return messages, names
+			injected = true
+			break
 		}
 	}
-	messages = append([]map[string]any{{"role": "system", "content": toolPrompt}}, messages...)
-	return messages, names
+	if !injected {
+		messages = append([]map[string]any{{"role": "system", "content": toolPrompt}}, messages...)
+	}
+	return appendToolActionNudgeToLatestMessage(messages), names
+}
+
+func appendToolActionNudgeToLatestMessage(messages []map[string]any) []map[string]any {
+	if len(messages) == 0 {
+		return []map[string]any{{"role": "user", "content": ToolActionNudgeMarker}}
+	}
+	idx := -1
+	for i := len(messages) - 1; i >= 0; i-- {
+		role := strings.ToLower(strings.TrimSpace(asString(messages[i]["role"])))
+		if role == "system" || role == "developer" {
+			continue
+		}
+		idx = i
+		break
+	}
+	if idx < 0 {
+		return append(messages, map[string]any{"role": "user", "content": ToolActionNudgeMarker})
+	}
+	messages[idx]["content"] = appendToolActionNudgeToContent(messages[idx]["content"])
+	return messages
+}
+
+func appendToolActionNudgeToContent(content any) any {
+	switch x := content.(type) {
+	case string:
+		if strings.Contains(x, ToolActionNudgeMarker) {
+			return x
+		}
+		return appendTextBlock(x, ToolActionNudgeMarker)
+	case []any:
+		for _, item := range x {
+			m, ok := item.(map[string]any)
+			if !ok {
+				continue
+			}
+			if txt, _ := m["text"].(string); strings.Contains(txt, ToolActionNudgeMarker) {
+				return x
+			}
+			if txt, _ := m["content"].(string); strings.Contains(txt, ToolActionNudgeMarker) {
+				return x
+			}
+		}
+		out := append([]any(nil), x...)
+		out = append(out, map[string]any{
+			"type": "text",
+			"text": ToolActionNudgeMarker,
+		})
+		return out
+	default:
+		text := NormalizeOpenAIContentForPrompt(content)
+		if strings.Contains(text, ToolActionNudgeMarker) {
+			return text
+		}
+		return appendTextBlock(text, ToolActionNudgeMarker)
+	}
 }
 
 func hasReadLikeTool(names []string) bool {

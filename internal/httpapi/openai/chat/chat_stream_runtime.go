@@ -39,6 +39,7 @@ type chatStreamRuntime struct {
 	toolCallsDoneEmitted bool
 
 	toolSieve         toolstream.State
+	thinkingSieve     toolstream.State
 	streamToolCallIDs map[int]string
 	streamToolNames   map[int]string
 	accumulator       shared.StreamAccumulator
@@ -267,25 +268,8 @@ func (s *chatStreamRuntime) finalize(finishReason string, deferEmptyOutput bool)
 		s.toolCallsDoneEmitted = true
 	} else if s.bufferToolContent {
 		batch := chatDeltaBatch{runtime: s}
-		for _, evt := range toolstream.Flush(&s.toolSieve, s.toolNames) {
-			if len(evt.ToolCalls) > 0 {
-				batch.flush()
-				s.toolCallsEmitted = true
-				s.toolCallsDoneEmitted = true
-				s.sendDelta(map[string]any{
-					"tool_calls": formatFinalStreamToolCallsWithStableIDs(evt.ToolCalls, s.streamToolCallIDs, s.toolsRaw),
-				})
-				s.resetStreamToolCallState()
-			}
-			if evt.Content == "" {
-				continue
-			}
-			cleaned := cleanVisibleOutput(evt.Content, s.stripReferenceMarkers)
-			if cleaned == "" || (s.searchEnabled && sse.IsCitation(cleaned)) {
-				continue
-			}
-			batch.append("content", cleaned)
-		}
+		s.drainSieveEvents(&batch, toolstream.Flush(&s.thinkingSieve, s.toolNames), "reasoning_content")
+		s.drainSieveEvents(&batch, toolstream.Flush(&s.toolSieve, s.toolNames), "content")
 		batch.flush()
 	}
 
@@ -309,6 +293,11 @@ func (s *chatStreamRuntime) finalize(finishReason string, deferEmptyOutput bool)
 		}
 		s.sendFailedChunk(status, message, code)
 		return true
+	}
+	// Tools were declared but this attempt produced no tool_calls: keep the SSE
+	// connection open (no finish_reason / [DONE]) so a synthetic retry can continue.
+	if deferEmptyOutput && len(s.toolNames) > 0 && !outcome.HasToolCalls && finishReason != "content_filter" {
+		return false
 	}
 	usage := assistantturn.OpenAIChatUsage(turn)
 	s.finalFinishReason = outcome.FinishReason
@@ -348,7 +337,16 @@ func (s *chatStreamRuntime) onParsed(parsed sse.LineResult) streamengine.ParsedD
 	accumulated := s.accumulator.Apply(parsed)
 	for _, p := range accumulated.Parts {
 		if p.Type == "thinking" {
-			batch.append("reasoning_content", p.VisibleText)
+			if !s.bufferToolContent {
+				batch.append("reasoning_content", p.VisibleText)
+				continue
+			}
+			if p.RawText == "" {
+				continue
+			}
+			// Tool markup often arrives on the thinking channel. Route it through
+			// the sieve so partial ::tc:: / XML tags are not leaked as reasoning.
+			s.drainSieveEvents(&batch, toolstream.ProcessChunk(&s.thinkingSieve, p.RawText, s.toolNames), "reasoning_content")
 			continue
 		}
 		if p.RawText == "" {
@@ -360,49 +358,49 @@ func (s *chatStreamRuntime) onParsed(parsed sse.LineResult) streamengine.ParsedD
 		if !s.bufferToolContent {
 			batch.append("content", p.VisibleText)
 		} else {
-			events := toolstream.ProcessChunk(&s.toolSieve, p.RawText, s.toolNames)
-			for _, evt := range events {
-				if len(evt.ToolCallDeltas) > 0 {
-					if !s.emitEarlyToolDeltas {
-						continue
-					}
-					filtered := filterIncrementalToolCallDeltasByAllowed(evt.ToolCallDeltas, s.streamToolNames)
-					if len(filtered) == 0 {
-						continue
-					}
-					formatted := formatIncrementalStreamToolCallDeltas(filtered, s.streamToolCallIDs)
-					if len(formatted) == 0 {
-						continue
-					}
-					batch.flush()
-					tcDelta := map[string]any{
-						"tool_calls": formatted,
-					}
-					s.toolCallsEmitted = true
-					s.sendDelta(tcDelta)
-					continue
-				}
-				if len(evt.ToolCalls) > 0 {
-					batch.flush()
-					s.toolCallsEmitted = true
-					s.toolCallsDoneEmitted = true
-					tcDelta := map[string]any{
-						"tool_calls": formatFinalStreamToolCallsWithStableIDs(evt.ToolCalls, s.streamToolCallIDs, s.toolsRaw),
-					}
-					s.sendDelta(tcDelta)
-					s.resetStreamToolCallState()
-					continue
-				}
-				if evt.Content != "" {
-					cleaned := cleanVisibleOutput(evt.Content, s.stripReferenceMarkers)
-					if cleaned == "" || (s.searchEnabled && sse.IsCitation(cleaned)) {
-						continue
-					}
-					batch.append("content", cleaned)
-				}
-			}
+			s.drainSieveEvents(&batch, toolstream.ProcessChunk(&s.toolSieve, p.RawText, s.toolNames), "content")
 		}
 	}
 	batch.flush()
 	return streamengine.ParsedDecision{ContentSeen: accumulated.ContentSeen}
+}
+
+func (s *chatStreamRuntime) drainSieveEvents(batch *chatDeltaBatch, events []toolstream.Event, textField string) {
+	for _, evt := range events {
+		if len(evt.ToolCallDeltas) > 0 {
+			if !s.emitEarlyToolDeltas {
+				continue
+			}
+			filtered := filterIncrementalToolCallDeltasByAllowed(evt.ToolCallDeltas, s.streamToolNames)
+			if len(filtered) == 0 {
+				continue
+			}
+			formatted := formatIncrementalStreamToolCallDeltas(filtered, s.streamToolCallIDs)
+			if len(formatted) == 0 {
+				continue
+			}
+			batch.flush()
+			s.toolCallsEmitted = true
+			s.sendDelta(map[string]any{"tool_calls": formatted})
+			continue
+		}
+		if len(evt.ToolCalls) > 0 {
+			batch.flush()
+			s.toolCallsEmitted = true
+			s.toolCallsDoneEmitted = true
+			s.sendDelta(map[string]any{
+				"tool_calls": formatFinalStreamToolCallsWithStableIDs(evt.ToolCalls, s.streamToolCallIDs, s.toolsRaw),
+			})
+			s.resetStreamToolCallState()
+			continue
+		}
+		if evt.Content == "" {
+			continue
+		}
+		cleaned := cleanVisibleOutput(evt.Content, s.stripReferenceMarkers)
+		if cleaned == "" || (s.searchEnabled && sse.IsCitation(cleaned)) {
+			continue
+		}
+		batch.append(textField, cleaned)
+	}
 }

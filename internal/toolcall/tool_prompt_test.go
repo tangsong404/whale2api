@@ -7,20 +7,20 @@ import (
 
 func TestBuildToolCallInstructions_ExecCommandUsesCmdExample(t *testing.T) {
 	out := BuildToolCallInstructions([]string{"exec_command"})
-	if !strings.Contains(out, `<|ZJML|调用项 name="exec_command">`) {
+	if !strings.Contains(out, `::invoke name="exec_command"::`) {
 		t.Fatalf("expected exec_command in examples, got: %s", out)
 	}
-	if !strings.Contains(out, `<|ZJML|形参 name="cmd"><![CDATA[pwd]]></|ZJML|形参>`) {
+	if !strings.Contains(out, `::param name="cmd"::[[pwd]]::/param::`) {
 		t.Fatalf("expected cmd parameter example for exec_command, got: %s", out)
 	}
 }
 
 func TestBuildToolCallInstructions_ExecuteCommandUsesCommandExample(t *testing.T) {
 	out := BuildToolCallInstructions([]string{"execute_command"})
-	if !strings.Contains(out, `<|ZJML|调用项 name="execute_command">`) {
+	if !strings.Contains(out, `::invoke name="execute_command"::`) {
 		t.Fatalf("expected execute_command in examples, got: %s", out)
 	}
-	if !strings.Contains(out, `<|ZJML|形参 name="command"><![CDATA[pwd]]></|ZJML|形参>`) {
+	if !strings.Contains(out, `::param name="command"::[[pwd]]::/param::`) {
 		t.Fatalf("expected command parameter example for execute_command, got: %s", out)
 	}
 }
@@ -34,20 +34,20 @@ func TestBuildToolCallInstructions_BashUsesCommandAndDescriptionExamples(t *test
 
 	sawDescription := false
 	for _, block := range blocks {
-		if !strings.Contains(block, `<|ZJML|形参 name="command">`) {
+		if !strings.Contains(block, `::param name="command"::`) {
 			t.Fatalf("expected every Bash example to use command parameter, got: %s", block)
 		}
-		if strings.Contains(block, `<|ZJML|形参 name="path">`) || strings.Contains(block, `<|ZJML|形参 name="content">`) {
+		if strings.Contains(block, `::param name="path"::`) || strings.Contains(block, `::param name="content"::`) {
 			t.Fatalf("expected Bash examples not to use file write parameters, got: %s", block)
 		}
-		if strings.Contains(block, `<|ZJML|形参 name="description">`) {
+		if strings.Contains(block, `::param name="description"::`) {
 			sawDescription = true
 		}
 	}
 	if !sawDescription {
 		t.Fatalf("expected Bash long-script example to include description, got: %s", out)
 	}
-	if strings.Contains(out, `<|ZJML|调用项 name="Read">`) {
+	if strings.Contains(out, `::invoke name="Read"::`) {
 		t.Fatalf("expected examples to avoid unavailable hard-coded Read tool, got: %s", out)
 	}
 }
@@ -60,10 +60,10 @@ func TestBuildToolCallInstructions_ExecuteCommandLongScriptUsesCommand(t *testin
 	}
 
 	for _, block := range blocks {
-		if !strings.Contains(block, `<|ZJML|形参 name="command">`) {
+		if !strings.Contains(block, `::param name="command"::`) {
 			t.Fatalf("expected execute_command examples to use command parameter, got: %s", block)
 		}
-		if strings.Contains(block, `<|ZJML|形参 name="path">`) || strings.Contains(block, `<|ZJML|形参 name="content">`) {
+		if strings.Contains(block, `::param name="path"::`) || strings.Contains(block, `::param name="content"::`) {
 			t.Fatalf("expected execute_command examples not to use file write parameters, got: %s", block)
 		}
 	}
@@ -80,10 +80,10 @@ func TestBuildToolCallInstructions_ExecCommandLongScriptUsesCmd(t *testing.T) {
 	}
 
 	for _, block := range blocks {
-		if !strings.Contains(block, `<|ZJML|形参 name="cmd">`) {
+		if !strings.Contains(block, `::param name="cmd"::`) {
 			t.Fatalf("expected exec_command examples to use cmd parameter, got: %s", block)
 		}
-		if strings.Contains(block, `<|ZJML|形参 name="command">`) || strings.Contains(block, `<|ZJML|形参 name="path">`) || strings.Contains(block, `<|ZJML|形参 name="content">`) {
+		if strings.Contains(block, `::param name="command"::`) || strings.Contains(block, `::param name="path"::`) || strings.Contains(block, `::param name="content"::`) {
 			t.Fatalf("expected exec_command examples not to use command or file write parameters, got: %s", block)
 		}
 	}
@@ -100,10 +100,10 @@ func TestBuildToolCallInstructions_WriteUsesFilePathAndContent(t *testing.T) {
 	}
 
 	for _, block := range blocks {
-		if !strings.Contains(block, `<|ZJML|形参 name="file_path">`) || !strings.Contains(block, `<|ZJML|形参 name="content">`) {
+		if !strings.Contains(block, `::param name="file_path"::`) || !strings.Contains(block, `::param name="content"::`) {
 			t.Fatalf("expected Write examples to use file_path and content, got: %s", block)
 		}
-		if strings.Contains(block, `<|ZJML|形参 name="path">`) {
+		if strings.Contains(block, `::param name="path"::`) {
 			t.Fatalf("expected Write examples not to use path, got: %s", block)
 		}
 	}
@@ -111,16 +111,22 @@ func TestBuildToolCallInstructions_WriteUsesFilePathAndContent(t *testing.T) {
 
 func TestBuildToolCallInstructions_AnchorsMissingOpeningWrapperFailureMode(t *testing.T) {
 	out := BuildToolCallInstructions([]string{"read_file"})
-	if !strings.Contains(out, "禁止省略开头的 <|ZJML|工具调用> 标签") {
+	if !strings.Contains(out, "先頭の ::tc:: を省略してはならない") {
 		t.Fatalf("expected explicit missing-opening-tag warning, got: %s", out)
 	}
-	if !strings.Contains(out, "错误 3 — 缺少开头包裹") {
+	if !strings.Contains(out, "誤り 3 — 先頭の包みがない") {
 		t.Fatalf("expected missing-opening-wrapper negative example, got: %s", out)
+	}
+	if !strings.Contains(out, "誤り 4 — ファイルを編集・書き込んだと宣言した") {
+		t.Fatalf("expected imaginary edit-completion negative example, got: %s", out)
+	}
+	if strings.Contains(out, "让我先找") || strings.Contains(out, "口頭だけで止まる") {
+		t.Fatalf("announce-then-stop strengthening must not live in format instructions, got: %s", out)
 	}
 }
 
 func findInvokeBlocks(text, name string) []string {
-	open := `<|ZJML|调用项 name="` + name + `">`
+	open := `::invoke name="` + name + `"::`
 	remaining := text
 	blocks := []string{}
 	for {
@@ -129,11 +135,11 @@ func findInvokeBlocks(text, name string) []string {
 			return blocks
 		}
 		remaining = remaining[start:]
-		end := strings.Index(remaining, `</|ZJML|调用项>`)
+		end := strings.Index(remaining, `::/invoke::`)
 		if end < 0 {
 			return blocks
 		}
-		end += len(`</|ZJML|调用项>`)
+		end += len(`::/invoke::`)
 		blocks = append(blocks, remaining[:end])
 		remaining = remaining[end:]
 	}

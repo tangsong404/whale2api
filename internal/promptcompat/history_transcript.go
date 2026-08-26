@@ -71,17 +71,17 @@ func privateContextRoleLabel(role string) string {
 	role = strings.ToLower(strings.TrimSpace(role))
 	switch role {
 	case "function":
-		return "工具"
+		return "ツール"
 	case "system":
-		return "系统"
+		return "システム"
 	case "assistant":
-		return "助手"
+		return "アシスタント"
 	case "tool":
-		return "工具"
+		return "ツール"
 	case "user":
-		return "用户"
+		return "ユーザー"
 	case "":
-		return "用户"
+		return "ユーザー"
 	default:
 		return strings.ToUpper(role[:1]) + role[1:]
 	}

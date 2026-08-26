@@ -1,6 +1,9 @@
 package openai
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestSanitizeLeakedOutputRemovesEmptyJSONFence(t *testing.T) {
 	raw := "before\n```json\n```\nafter"
@@ -26,11 +29,11 @@ func TestSanitizeLeakedOutputRemovesStandaloneMetaMarkers(t *testing.T) {
 	}
 }
 
-func TestSanitizeLeakedOutputRemovesThinkAndBosMarkers(t *testing.T) {
-	raw := "A<think>B</think>C<｜begin▁of▁sentence｜>D<| begin_of_sentence |>E<｜begin_of_sentence｜>F"
+func TestSanitizeLeakedOutputRemovesRoleSegMarkers(t *testing.T) {
+	raw := "A::sys::B::/sys::::user::C::asst::D::/asst::::tool::E::/tool::F"
 	got := sanitizeLeakedOutput(raw)
 	if got != "ABCDEF" {
-		t.Fatalf("unexpected sanitize result for think/BOS markers: %q", got)
+		t.Fatalf("unexpected sanitize result for role seg markers: %q", got)
 	}
 }
 
@@ -47,6 +50,14 @@ func TestSanitizeLeakedOutputRemovesCompleteDSMLToolCallWrapper(t *testing.T) {
 	got := sanitizeLeakedOutput(raw)
 	if got != "前置文本\n\n后置文本" {
 		t.Fatalf("unexpected sanitize result for leaked dsml wrapper: %q", got)
+	}
+}
+
+func TestSanitizeLeakedOutputRemovesCompleteColonToolCallWrapper(t *testing.T) {
+	raw := "前置文本\n::tc::\n  ::invoke name=\"WebSearch\"::\n    ::param name=\"query\"::[[x]]::/param::\n  ::/invoke::\n::/tc::\n后置文本"
+	got := sanitizeLeakedOutput(raw)
+	if got != "前置文本\n\n后置文本" {
+		t.Fatalf("unexpected sanitize result for leaked colon wrapper: %q", got)
 	}
 }
 
@@ -88,5 +99,38 @@ func TestSanitizeLeakedOutputPreservesUnrelatedResultTagsWhenWrapperLeaks(t *tes
 	want := "Done.Some final answer\nExample XML: <result>value</result>"
 	if got != want {
 		t.Fatalf("unexpected sanitize result for mixed leaked wrapper + xml example: %q", got)
+	}
+}
+
+func TestSanitizeLeakedOutputRemovesPrivateContextToolTranscriptEcho(t *testing.T) {
+	raw := "前文\nツール: [tool_call_id=call_f1a338017c2b468baa08b78c4ae4f02b] Successfully modified file: taikongtu/bk_avdk/components/bk_player/core/bk_player.c\n\nツール: [tool_call_id=call_9639d25d54a54a6480df00b601926f51] Successfully modified file: taikongtu/bk_avdk/components/bk_player/core/bk_player.c\n后文"
+	got := sanitizeLeakedOutput(raw)
+	if strings.Contains(got, "tool_call_id=") || strings.Contains(got, "Successfully modified file") || strings.Contains(got, "ツール:") {
+		t.Fatalf("expected private-context tool echo stripped, got %q", got)
+	}
+	if !strings.Contains(got, "前文") || !strings.Contains(got, "后文") {
+		t.Fatalf("expected surrounding text preserved, got %q", got)
+	}
+}
+
+func TestSanitizeLeakedOutputRemovesMultilinePrivateContextToolEcho(t *testing.T) {
+	raw := "ok\nツール:\n[name=StrReplace tool_call_id=call_abc123]\nSuccessfully modified file: a.c\nnext"
+	got := sanitizeLeakedOutput(raw)
+	if strings.Contains(got, "tool_call_id=") || strings.Contains(got, "Successfully modified") {
+		t.Fatalf("expected multiline private-context tool echo stripped, got %q", got)
+	}
+	if !strings.Contains(got, "ok") || !strings.Contains(got, "next") {
+		t.Fatalf("expected surrounding text preserved, got %q", got)
+	}
+}
+
+func TestSanitizeLeakedOutputRemovesTruncatedColonToolCallClose(t *testing.T) {
+	raw := "前置\n::tc:: ::invoke name=\"edit\":: ::param name=\"file_path\"::[[a.c]]::/param:: ::/invoke:: ::/tc:\n后置"
+	got := sanitizeLeakedOutput(raw)
+	if strings.Contains(got, "::tc::") || strings.Contains(got, "invoke") || strings.Contains(got, "::/tc") {
+		t.Fatalf("expected truncated ::/tc: tool block stripped, got %q", got)
+	}
+	if !strings.Contains(got, "前置") || !strings.Contains(got, "后置") {
+		t.Fatalf("expected surrounding text preserved, got %q", got)
 	}
 }

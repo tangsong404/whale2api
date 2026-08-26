@@ -222,16 +222,6 @@ func UpstreamEmptyOutputDetail(contentFilter bool, text, thinking string) (int, 
 	return http.StatusTooManyRequests, "Upstream account hit a rate limit and returned empty output.", "upstream_empty_output"
 }
 
-// ShouldRetryEmptyOutput returns true when the turn produced no visible text
-// and has no tool calls or content filter. This includes thinking-only responses,
-// where the model returned reasoning but no answer — a retry may yield text.
-func ShouldRetryEmptyOutput(turn Turn, attempts, maxAttempts int) bool {
-	return attempts < maxAttempts &&
-		!turn.ContentFilter &&
-		len(turn.ToolCalls) == 0 &&
-		strings.TrimSpace(turn.Text) == ""
-}
-
 func FinalizeTurn(turn Turn, opts FinalizeOptions) FinalOutcome {
 	hasToolCalls := len(turn.ToolCalls) > 0 || opts.AlreadyEmittedToolCalls
 	hasVisibleText := strings.TrimSpace(turn.Text) != ""

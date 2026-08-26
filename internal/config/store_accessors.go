@@ -129,7 +129,7 @@ func (s *Store) ThinkingInjectionEnabled() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.cfg.ThinkingInjection.Enabled == nil {
-		return true
+		return false
 	}
 	return *s.cfg.ThinkingInjection.Enabled
 }

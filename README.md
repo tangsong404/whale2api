@@ -10,7 +10,7 @@ DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`以及 `deepseek-v
 
 CJackHwang佬的作品我个人使用过很长一段时间，为我减轻了许多经济上的负担，中转太多导致官方出手很是可惜
 
-本项目重新提供更稳定版本的开源。256K的 `deepseek-v4-flash` 效果很不好，还为了防封禁做了很多负面调整，希望自用而非盈利
+本项目重新提供更稳定版本的开源。256K的 `deepseek-v4-flash` 效果很不好，还为了防封禁做了很多限制，希望自用而非盈利
 
 ## 快速开始
 
@@ -32,7 +32,6 @@ go run ./cmd/whale2api-tests # 集成测试
 ```
 
 
-
 ## 使用说明
 
 
@@ -43,25 +42,29 @@ go run ./cmd/whale2api-tests # 集成测试
 
 ![号池 WebUI 预览](docs/screenshot.png)
 
-仅支持OpenAI Chat Completions兼容，高强度使用每天禁言2-3个号，建议50个号起用（批量注册参考我的仓库 `signup-god`）
+建议50个号起用（批量注册参考我的仓库 `signup-god`）
 
 导入csv格式: `email,password`
 
 ## 改了什么
 
-1.去除提示词中所有和`DS2API`相关文本
+### 优化
 
-2.将提示词全部转为中文，工具调用符号大改（经常导致出错）
+1.去除所有和`DS2API`相关文本，大改提示词、工具调用符号降低封禁率
 
-3.不再使用 `deepseek-v4-pro` (没有文件上传=没有长历史)
+2.号池增加了对`禁言`（不是`封禁`）机制的检测，且持久化由json改为sqlite
 
-4.限制上下文为 256K
+3.支持多模态模型 `deepseek-v4-flash-vision-exp`
 
-5.增加了对`禁言`（不是`封禁`）机制的检测
+4.优化工具调用，减少`光说不做`与`假想完成`的情况
 
-6.号池持久化由json改为sqlite
+### 限制
 
-7.支持多模态模型 `deepseek-v4-flash-vision-exp`
+1.不再使用 `deepseek-v4-pro`
+
+2.暂时仅支持OpenAI Chat Completions兼容，高强度使用每天禁言2-3个号，
+
+3.所有模型上下文限制为 256K
 
 ## 参与贡献
 

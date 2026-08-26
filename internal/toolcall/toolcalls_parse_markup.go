@@ -207,6 +207,10 @@ func findMatchingXMLEndTagOutsideCDATA(text, tag string, from int) (closeStart, 
 }
 
 func skipXMLIgnoredSection(text, lower string, i int) (next int, advanced bool, blocked bool) {
+	return skipXMLIgnoredSectionOpts(text, lower, i, true)
+}
+
+func skipXMLIgnoredSectionOpts(text, lower string, i int, skipRawBrackets bool) (next int, advanced bool, blocked bool) {
 	switch {
 	case strings.HasPrefix(lower[i:], "<![cdata["):
 		end := findToolCDATAEnd(text, lower, i+len("<![cdata["))
@@ -214,6 +218,12 @@ func skipXMLIgnoredSection(text, lower string, i int) (next int, advanced bool, 
 			return 0, false, true
 		}
 		return end + len("]]>"), true, false
+	case skipRawBrackets && strings.HasPrefix(text[i:], "[["):
+		end, ok := findDoubleBracketClose(text, i+2)
+		if !ok {
+			return 0, false, true
+		}
+		return end + 2, true, false
 	case strings.HasPrefix(lower[i:], "<!--"):
 		end := strings.Index(lower[i+len("<!--"):], "-->")
 		if end < 0 {

@@ -41,12 +41,18 @@ func (s *responsesStreamRuntime) sendDone() {
 	}
 }
 
-func (s *responsesStreamRuntime) processToolStreamEvents(events []toolstream.Event, emitContent bool, resetAfterToolCalls bool) {
+func (s *responsesStreamRuntime) processToolStreamEvents(events []toolstream.Event, emitContent bool, resetAfterToolCalls bool, asReasoning bool) {
 	for _, evt := range events {
 		if emitContent && evt.Content != "" {
 			cleaned := cleanVisibleOutput(evt.Content, s.stripReferenceMarkers)
 			if cleaned != "" && (!s.searchEnabled || !sse.IsCitation(cleaned)) {
-				s.emitTextDelta(cleaned)
+				if asReasoning {
+					batch := responsesDeltaBatch{runtime: s}
+					batch.append("reasoning", cleaned)
+					batch.flush()
+				} else {
+					s.emitTextDelta(cleaned)
+				}
 			}
 		}
 		if len(evt.ToolCallDeltas) > 0 {

@@ -19,7 +19,6 @@ import (
 const (
 	privateContextContentType = "text/plain; charset=utf-8"
 	privateContextPurpose     = "assistants"
-	privateContextLivePrompt  = "请自然延续对话，并直接回应用户的最新请求。"
 )
 
 type currentInputFileConfig interface {
@@ -36,7 +35,8 @@ func (h *Handler) applyCurrentInputFile(ctx context.Context, a *auth.RequestAuth
 		return stdReq, nil
 	}
 
-	contextText := promptcompat.BuildOpenAIPrivateContextTranscript(stdReq.Messages)
+	_, history := promptcompat.SplitMessagesForPrivateContext(stdReq.Messages)
+	contextText := promptcompat.BuildOpenAIPrivateContextTranscript(history)
 	if strings.TrimSpace(contextText) == "" {
 		return stdReq, errors.New("private context transcript is empty")
 	}
@@ -64,12 +64,7 @@ func (h *Handler) applyCurrentInputFile(ctx context.Context, a *auth.RequestAuth
 		return stdReq, errors.New("upload private context returned empty file id")
 	}
 
-	liveMessages := []any{
-		map[string]any{
-			"role":    "user",
-			"content": privateContextLivePrompt,
-		},
-	}
+	liveMessages := promptcompat.BuildPrivateContextLiveMessages(stdReq.Messages)
 	finalPrompt, toolNames := promptcompat.BuildOpenAIPrompt(liveMessages, stdReq.ToolsRaw, "", stdReq.ToolChoice, stdReq.Thinking)
 	stdReq.HistoryText = contextText
 	stdReq.FinalPrompt = finalPrompt
