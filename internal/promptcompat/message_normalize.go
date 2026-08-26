@@ -6,7 +6,7 @@ import (
 	"whale2api/internal/prompt"
 )
 
-const assistantReasoningLabel = "推論内容"
+const assistantReasoningLabel = "Reasoning"
 
 func NormalizeOpenAIMessagesForPrompt(raw []any, traceID string) []map[string]any {
 	_ = traceID

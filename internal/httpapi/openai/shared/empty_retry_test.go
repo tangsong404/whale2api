@@ -9,10 +9,10 @@ func TestRetrySuffixForTurn(t *testing.T) {
 	if got := RetrySuffixForTurn("", true); got != EmptyOutputRetrySuffix {
 		t.Fatalf("empty text should use empty suffix, got %q", got)
 	}
-	if got := RetrySuffixForTurn("叙述のみ", true); got != MissingToolCallRetrySuffix {
+	if got := RetrySuffixForTurn("narrative only", true); got != MissingToolCallRetrySuffix {
 		t.Fatalf("text with tools should use missing-tool suffix, got %q", got)
 	}
-	if got := RetrySuffixForTurn("叙述のみ", false); got != EmptyOutputRetrySuffix {
+	if got := RetrySuffixForTurn("narrative only", false); got != EmptyOutputRetrySuffix {
 		t.Fatalf("text without tools should fall back to empty suffix, got %q", got)
 	}
 }

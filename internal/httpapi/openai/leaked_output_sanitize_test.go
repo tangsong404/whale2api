@@ -103,9 +103,9 @@ func TestSanitizeLeakedOutputPreservesUnrelatedResultTagsWhenWrapperLeaks(t *tes
 }
 
 func TestSanitizeLeakedOutputRemovesPrivateContextToolTranscriptEcho(t *testing.T) {
-	raw := "前文\nツール: [tool_call_id=call_f1a338017c2b468baa08b78c4ae4f02b] Successfully modified file: taikongtu/bk_avdk/components/bk_player/core/bk_player.c\n\nツール: [tool_call_id=call_9639d25d54a54a6480df00b601926f51] Successfully modified file: taikongtu/bk_avdk/components/bk_player/core/bk_player.c\n后文"
+	raw := "前文\nTool: [tool_call_id=call_f1a338017c2b468baa08b78c4ae4f02b] Successfully modified file: taikongtu/bk_avdk/components/bk_player/core/bk_player.c\n\nTool: [tool_call_id=call_9639d25d54a54a6480df00b601926f51] Successfully modified file: taikongtu/bk_avdk/components/bk_player/core/bk_player.c\n后文"
 	got := sanitizeLeakedOutput(raw)
-	if strings.Contains(got, "tool_call_id=") || strings.Contains(got, "Successfully modified file") || strings.Contains(got, "ツール:") {
+	if strings.Contains(got, "tool_call_id=") || strings.Contains(got, "Successfully modified file") || strings.Contains(got, "Tool:") {
 		t.Fatalf("expected private-context tool echo stripped, got %q", got)
 	}
 	if !strings.Contains(got, "前文") || !strings.Contains(got, "后文") {
@@ -114,7 +114,7 @@ func TestSanitizeLeakedOutputRemovesPrivateContextToolTranscriptEcho(t *testing.
 }
 
 func TestSanitizeLeakedOutputRemovesMultilinePrivateContextToolEcho(t *testing.T) {
-	raw := "ok\nツール:\n[name=StrReplace tool_call_id=call_abc123]\nSuccessfully modified file: a.c\nnext"
+	raw := "ok\nTool:\n[name=StrReplace tool_call_id=call_abc123]\nSuccessfully modified file: a.c\nnext"
 	got := sanitizeLeakedOutput(raw)
 	if strings.Contains(got, "tool_call_id=") || strings.Contains(got, "Successfully modified") {
 		t.Fatalf("expected multiline private-context tool echo stripped, got %q", got)

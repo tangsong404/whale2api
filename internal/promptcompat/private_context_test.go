@@ -23,7 +23,7 @@ func TestSplitMessagesForPrivateContextKeepsSystemLive(t *testing.T) {
 	if strings.Contains(transcript, "persona") || strings.Contains(transcript, "dev rule") {
 		t.Fatalf("transcript should omit system/developer, got %q", transcript)
 	}
-	if !strings.Contains(transcript, "ユーザー:\nu1") || !strings.Contains(transcript, "アシスタント:\na1") {
+	if !strings.Contains(transcript, "User:\nu1") || !strings.Contains(transcript, "Assistant:\na1") {
 		t.Fatalf("transcript missing dialogue, got %q", transcript)
 	}
 }
@@ -70,7 +70,7 @@ func TestInjectToolPromptMergesIntoDeveloperRole(t *testing.T) {
 		t.Fatalf("expected tool prompt merged into developer, got %#v", out)
 	}
 	content, _ := out[0]["content"].(string)
-	if !strings.Contains(content, "dev") || !strings.Contains(content, "ツール呼び出し形式") {
+	if !strings.Contains(content, "dev") || !strings.Contains(content, "Tool-call format") {
 		t.Fatalf("expected developer content plus tool instructions, got %q", content)
 	}
 	if strings.Contains(content, ToolActionNudgeMarker) {
@@ -102,10 +102,7 @@ func TestInjectToolPromptRequiredHasNoFakeRuleNumber(t *testing.T) {
 		t.Fatalf("expected system tool prompt + user message, got %#v", out)
 	}
 	content, _ := out[0]["content"].(string)
-	if strings.Contains(content, "\n7）在本") || strings.Contains(content, "\n7）この返信") || strings.Contains(content, "\n7）本回复") {
-		t.Fatalf("required tool_choice must not reuse rule number 7, got %q", content)
-	}
-	if !strings.Contains(content, "少なくとも1つのツールを必ず呼び出すこと") {
+	if !strings.Contains(content, "must call at least one tool from the allow-list") {
 		t.Fatalf("missing required tool instruction, got %q", content)
 	}
 	userContent, _ := out[1]["content"].(string)

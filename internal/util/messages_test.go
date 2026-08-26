@@ -30,7 +30,7 @@ func TestMessagesPrepareRoles(t *testing.T) {
 		{"role": "user", "content": "How are you"},
 	}
 	got := MessagesPrepare(messages)
-	if !contains(got, "出力の完全性に関する注意") {
+	if !contains(got, "Output integrity note") {
 		t.Fatalf("expected output integrity guard in %q", got)
 	}
 	if !contains(got, "You are helper") || !contains(got, prompt.UserOpenMarker+"Hi") {
@@ -84,7 +84,7 @@ func TestMessagesPrepareArrayTextVariants(t *testing.T) {
 	if !contains(got, "line1\nline2") {
 		t.Fatalf("unexpected content from text variants: %q", got)
 	}
-	if !strings.Contains(got, "出力の完全性に関する注意") {
+	if !strings.Contains(got, "Output integrity note") {
 		t.Fatalf("expected output integrity guard in %q", got)
 	}
 }

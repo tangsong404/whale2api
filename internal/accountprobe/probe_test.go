@@ -45,7 +45,7 @@ func TestProbeLoginTLSHandshakeTimeoutTreatedAsOK(t *testing.T) {
 
 func TestProbeOKDespiteTransport(t *testing.T) {
 	r := probeOK("saved-token")
-	if !r.OK || r.Message != "可用" || r.Token != "saved-token" {
+	if !r.OK || r.Message != "available" || r.Token != "saved-token" {
 		t.Fatalf("unexpected probeOK result: %+v", r)
 	}
 	if r.PoolStatus != "active" || r.AutoDiscard {

@@ -389,10 +389,10 @@ func TestChatCompletionsUploadsPrivateContextWithoutPromptingAboutFile(t *testin
 			t.Fatalf("uploaded private context leaked transport wording %q in %q", forbidden, uploadedText)
 		}
 	}
-	if strings.Contains(uploadedText, "システム:\nbe precise") {
+	if strings.Contains(uploadedText, "System:\nbe precise") {
 		t.Fatalf("expected system persona to stay in live prompt, not upload, got %q", uploadedText)
 	}
-	if !strings.Contains(uploadedText, "アシスタント:\nprevious answer") || !strings.Contains(uploadedText, "ユーザー:\nlatest user turn") {
+	if !strings.Contains(uploadedText, "Assistant:\nprevious answer") || !strings.Contains(uploadedText, "User:\nlatest user turn") {
 		t.Fatalf("uploaded private context did not preserve transcript, got %q", uploadedText)
 	}
 	prompt, _ := ds.completionReq["prompt"].(string)

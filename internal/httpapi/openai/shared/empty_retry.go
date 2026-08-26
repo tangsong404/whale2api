@@ -2,21 +2,18 @@ package shared
 
 import "strings"
 
-const EmptyOutputRetrySuffix = "前回の返信に可視の出力がなかった。可視の最終回答またはツール呼び出しを再生成すること。"
+const EmptyOutputRetrySuffix = "The previous reply had no visible output. Regenerate a visible final answer or a tool call."
 
 // MissingToolCallRetrySuffix is appended when tools were available but the turn
 // produced no parseable tool calls (e.g. narrative-only "I'll read the file").
-const MissingToolCallRetrySuffix = "本ターンではツール呼び出しが行われなかった。" +
-	"タスクが本当に完了したか（空想・叙述上の完了ではないか）を判断すること。" +
-	"例：ファイルを編集・書き込んだと宣言したのに Edit / Write / StrReplace 等の書き込み系ツール呼び出しがなければ、完了は空想である。" +
-	"ユーザーが自分で手動修正したと述べた場合は、タスクは一時終了とみなしてよい。" +
-	"タスクがどうしても完了できない場合も終了してよい。" +
-	"未完了なら、直ちに完全なツール呼び出し形式で補うこと。" +
-	"本当に完了／一時終了と確定した場合は、他の内容を一切出さず『タスク完了』とのみ出力すること。" +
-	"完了不可と確定した場合は、他の内容を一切出さず『タスク完了不可』とのみ出力すること。" +
-	"直前の助手返信の言い換え・再挨拶・再説明・同趣旨の再出力は絶対に禁止。" +
-	"同じ文言・同じ説明の繰り返しは絶対に禁止。" +
-	"ユーザー向け本文はユーザーの言語、またはユーザーが明示した言語で書くこと。本指示の言語に合わせて出力してはならない。"
+const MissingToolCallRetrySuffix = "No tool call was made in this turn. " +
+	"Decide whether the task is truly complete (not an imaginary or narrative-only completion). " +
+	"Example: claiming a file was edited/written without an Edit / Write / StrReplace (or similar) write tool call is imaginary. " +
+	"If the user says they already made a manual change, treat the task as temporarily finished. " +
+	"If the task truly cannot be completed, you may stop. " +
+	"If incomplete, immediately supply a complete tool-call format. " +
+	"Do not rephrase, re-greet, re-explain, or restate the previous assistant reply. " +
+	"User-facing prose must use the user's language, or the language the user explicitly requested — not the language of these instructions."
 
 func EmptyOutputRetryEnabled() bool {
 	return true

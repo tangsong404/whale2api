@@ -207,7 +207,7 @@ test('vercel stream does not same-account synthetic-retry empty output', async (
   assert.equal(parsed[0].status_code, 429);
   assert.equal(parsed[0].error.code, 'upstream_empty_output');
   assert.equal(completionBodies.length, 1);
-	assert.equal(String(completionBodies[0].prompt || '').includes('前回の返信に可視の出力がなかった'), false);
+	assert.equal(String(completionBodies[0].prompt || '').includes('The previous reply had no visible output'), false);
 });
 
 test('vercel stream coalesces many small content deltas while keeping one choice', async () => {
@@ -255,7 +255,7 @@ test('vercel stream exhausts DeepSeek continue before synthetic retry', async ()
   assert.equal(fetchURLs.filter((url) => url.includes('__stream_pow=1')).length, 1);
   assert.equal(parsed[0].choices[0].delta.content, 'continued');
   assert.equal(parsed[1].choices[0].finish_reason, 'stop');
-	assert.equal(fetchBodies.some((body) => String(body.prompt || '').includes('前回の返信に可視の出力がなかった')), false);
+	assert.equal(fetchBodies.some((body) => String(body.prompt || '').includes('The previous reply had no visible output')), false);
 });
 
 test('vercel stream continues direct quasi_status incomplete before final tool call', async () => {

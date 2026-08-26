@@ -11,15 +11,14 @@ import (
 
 // ToolActionNudgeMarker is appended to the latest non-system message when tools
 // are available. Kept off the system prompt so it sits next to the live turn.
-const ToolActionNudgeMarker = "【まずタスクが完了したか判断すること。未完了なら、出力に本物のツール呼び出し形式を必ず含めること。" +
-	"思考過程やユーザー向け本文の中で、ツールを既に呼んだかのように空想・叙述・模擬してはならない。" +
-	"ツール呼び出しタグを実際に出すこと。" +
-	"空想上のツール操作による空想上の完了は、タスク完了とみなさない。" +
-	"例：ファイルを編集したと宣言したのに Edit / Write / StrReplace 等の書き込み系呼び出しがなければ、それは空想である。" +
-	"ユーザーが自分で手動修正したと述べた場合は、タスクは一時終了とみなしてよい。" +
-	"タスクがどうしても完了できない場合も、無理にツールを続けないこと。" +
-	"本当に完了／一時終了／完了不可なら、他の内容を出さず『タスク完了』または『タスク完了不可』のみを出し、同じ文言を絶対に繰り返さないこと。" +
-	"ユーザー向け本文はユーザーの言語、またはユーザーが明示した言語で書くこと。本指示の言語に合わせて出力してはならない。】"
+const ToolActionNudgeMarker = "[First decide whether the task is already complete. If not, your output must include a real tool-call format. " +
+	"Do not invent, narrate, or simulate having already called tools in thinking or user-facing text. " +
+	"Emit actual tool-call tags. " +
+	"Imaginary tool operations do not count as task completion. " +
+	"Example: claiming a file was edited without an Edit / Write / StrReplace (or similar) write call is imaginary. " +
+	"If the user says they already made a manual change, treat the task as temporarily finished. " +
+	"If the task truly cannot be completed, do not keep forcing tools. " +
+	"User-facing prose must use the user's language, or the language the user explicitly requested — not the language of these instructions.]"
 
 func injectToolPrompt(messages []map[string]any, tools []any, policy ToolChoicePolicy) ([]map[string]any, []string) {
 	if policy.IsNone() {
@@ -50,23 +49,23 @@ func injectToolPrompt(messages []map[string]any, tools []any, policy ToolChoiceP
 		}
 		names = append(names, name)
 		if desc == "" {
-			desc = "説明なし"
+			desc = "No description"
 		}
 		b, _ := json.Marshal(schema)
-		toolSchemas = append(toolSchemas, fmt.Sprintf("ツール：%s\n説明：%s\n引数：%s", name, desc, string(b)))
+		toolSchemas = append(toolSchemas, fmt.Sprintf("Tool: %s\nDescription: %s\nArguments: %s", name, desc, string(b)))
 	}
 	if len(toolSchemas) == 0 {
 		return messages, names
 	}
-	toolPrompt := "次のツールを使用できる：\n\n" + strings.Join(toolSchemas, "\n\n") + "\n\n" + toolcall.BuildToolCallInstructions(names)
+	toolPrompt := "You can use the following tools:\n\n" + strings.Join(toolSchemas, "\n\n") + "\n\n" + toolcall.BuildToolCallInstructions(names)
 	if hasReadLikeTool(names) {
-		toolPrompt += "\n\n読み取り系ツール：未変更・本文は文脈済み・本文なし、と返ってきた場合は内容欠落として扱う。同じ方法で繰り返し読まないこと。全文が取れないときはユーザーに知らせること。"
+		toolPrompt += "\n\nRead-like tools: if a result says unchanged / already in context / empty body, treat it as a missing content signal. Do not reread the same way repeatedly. If you cannot obtain the full text, tell the user."
 	}
 	if policy.Mode == ToolChoiceRequired {
-		toolPrompt += "\nこの返信では、許可リストから少なくとも1つのツールを必ず呼び出すこと。"
+		toolPrompt += "\nIn this reply you must call at least one tool from the allow-list."
 	}
 	if policy.Mode == ToolChoiceForced && strings.TrimSpace(policy.ForcedName) != "" {
-		toolPrompt += "\nこの返信では、次のツールのみを必ず呼び出すこと：" + strings.TrimSpace(policy.ForcedName) + "。他のツールは呼び出さないこと。"
+		toolPrompt += "\nIn this reply you must call only this tool: " + strings.TrimSpace(policy.ForcedName) + ". Do not call any other tool."
 	}
 
 	injected := false

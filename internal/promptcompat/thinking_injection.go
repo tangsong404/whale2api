@@ -3,9 +3,9 @@ package promptcompat
 import "strings"
 
 const (
-	ThinkingInjectionMarker        = "推論の強度：全力で取り組み、近道や手抜きは禁止。"
+	ThinkingInjectionMarker        = "Reasoning strength: give full effort; shortcuts and half-measures are forbidden."
 	DefaultThinkingInjectionPrompt = ThinkingInjectionMarker + "\n" +
-		"問題を根本原因まで分解し、あり得る経路・境界条件・敵対的ケースを厳しく点検すること。推論は思考過程のみに留め、ユーザーへの最終回答に独白を書かないこと。"
+		"Break the problem down to root causes. Strictly inspect likely paths, edge cases, and adversarial cases. Keep reasoning in the thinking process only; do not put monologue in the final user-facing answer."
 )
 
 // AppendThinkingInjectionToLatestUser is retained for callers; it injects into system.

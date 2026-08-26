@@ -187,7 +187,7 @@ func TestStartCompletionReuploadsPrivateContextAfterAccountSwitch(t *testing.T) 
 		PromptTokenText:         "history\nlatest",
 		FinalPrompt:             "latest",
 		RefFileIDs:              []string{"file-old", "file-user"},
-		PrivateContextText:      "ユーザー:\nold turn\n",
+		PrivateContextText:      "User:\nold turn\n",
 		PrivateContextAccountID: "acct-a",
 		PrivateContextRefFileID: "file-old",
 	}

@@ -2,7 +2,7 @@ package promptcompat
 
 import "strings"
 
-const PrivateContextLivePrompt = "提供済みの先行会話を踏まえ、ユーザーの最新の依頼に直接応えること。"
+const PrivateContextLivePrompt = "Using the prior conversation already provided, respond directly to the user's latest request."
 
 func SplitMessagesForPrivateContext(messages []any) (livePrefix, history []any) {
 	if len(messages) == 0 {

@@ -311,7 +311,7 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantReasoningContentPreserved(t *
 		t.Fatalf("expected one normalized assistant message, got %#v", normalized)
 	}
 	content, _ := normalized[0]["content"].(string)
-	if !strings.Contains(content, "[推論内容]") {
+	if !strings.Contains(content, "[Reasoning]") {
 		t.Fatalf("expected labeled reasoning block in assistant content, got %q", content)
 	}
 	if !strings.Contains(content, "internal reasoning") {
@@ -320,7 +320,7 @@ func TestNormalizeOpenAIMessagesForPrompt_AssistantReasoningContentPreserved(t *
 	if !strings.Contains(content, "visible answer") {
 		t.Fatalf("expected visible answer in assistant content, got %q", content)
 	}
-	if reasoningIdx := strings.Index(content, "[推論内容]"); reasoningIdx < 0 || reasoningIdx > strings.Index(content, "visible answer") {
+	if reasoningIdx := strings.Index(content, "[Reasoning]"); reasoningIdx < 0 || reasoningIdx > strings.Index(content, "visible answer") {
 		t.Fatalf("expected reasoning block before visible answer, got %q", content)
 	}
 }

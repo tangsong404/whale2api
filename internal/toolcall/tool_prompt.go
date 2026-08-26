@@ -16,7 +16,7 @@ func BuildToolCallInstructions(toolNames []string) string {
 	invokePH := MarkupPipeInvokeOpen("TOOL_NAME_HERE")
 	invokeNamed := MarkupPipeInvokeOpen("TOOL_NAME")
 
-	return `ツール呼び出し形式 — 厳守すること：
+	return `Tool-call format — follow strictly:
 
 ` + tcO + `
   ` + invokePH + `
@@ -24,42 +24,42 @@ func BuildToolCallInstructions(toolNames []string) string {
   ` + ivC + `
 ` + tcC + `
 
-規則：
-1）外側の包みはコロンちょうど2つで書く：` + tcO + ` と ` + tcC + `。
-2）同一の ` + tcO + ` ルートの下に、1つ以上の ` + MarkupPipeOpenTag(MarkupTagInvoke) + ` を置くこと。
-3）ツール名は呼び出し項の name 属性に書く：` + MarkupPipeInvokeOpen("TOOL_NAME") + `。
-4）文字列値は短いものも含め、必ず [[...]] を使う。コード、スクリプト、ファイル内容、プロンプト、パス、名前、クエリも同様。
-5）各トップレベル引数は完全なノードにすること。例：` + wrapParameter("ARG_NAME", "…") + `。
-6）オブジェクト・配列は [[...]] 内の JSON で渡してよい。入れ子マーカーは使わないこと。
-7）数値・真偽値・null はプレーンテキスト。[[...]] は使わない。
-8）スキーマで宣言された引数名だけを使い、勝手にフィールドを作らないこと。
-9）Markdown のコードフェンスでツールタグを包まないこと。タグの後に文字を足さないこと。
-10）ツールを呼ぶ場合、そのブロックの最初の非空白文字は必ず ` + tcO + ` であること。
-11）後で ` + tcC + ` を閉じる場合でも、先頭の ` + tcO + ` を省略してはならない。
-12）ユーザー向け本文は、ユーザーの言語、またはユーザーが明示した言語で書くこと。本指示文・システム文の言語に合わせて出力してはならない。
-13）ユーザーが自分で手動修正したと述べた場合は、タスクは一時終了とみなしてよい。タスクがどうしても完了できない場合も、無理に続けないこと。完了／一時終了なら『タスク完了』のみ、完了不可なら『タスク完了不可』のみを出し、同じ文言の繰り返しは絶対に禁止。
+Rules:
+1) Outer wrappers must use exactly two colons: ` + tcO + ` and ` + tcC + `.
+2) Place one or more ` + MarkupPipeOpenTag(MarkupTagInvoke) + ` under the same ` + tcO + ` root.
+3) Put the tool name in the invoke name attribute: ` + MarkupPipeInvokeOpen("TOOL_NAME") + `.
+4) String values — including short ones — must use [[...]]. Same for code, scripts, file contents, prompts, paths, names, and queries.
+5) Each top-level argument must be a complete node. Example: ` + wrapParameter("ARG_NAME", "…") + `.
+6) Objects/arrays may be passed as JSON inside [[...]]. Do not use nested markers.
+7) Numbers, booleans, and null are plain text. Do not wrap them in [[...]].
+8) Use only argument names declared in the schema; do not invent fields.
+9) Do not wrap tool tags in Markdown fences. Do not append text after the tags.
+10) When calling tools, the first non-whitespace character of that block must be ` + tcO + `.
+11) Even if you close with ` + tcC + ` later, never omit the leading ` + tcO + `.
+12) User-facing prose must use the user's language, or the language the user explicitly requested. Do not match the language of these instructions or system text.
+13) If the user says they already made a manual change, treat the task as temporarily finished. If the task truly cannot be completed, do not keep forcing tools.
 
-引数の形：
-- 文字列 => ` + wrapParameter("x", MarkupWrapRaw("value")) + `
-- オブジェクト/配列 => ` + wrapParameter("x", MarkupWrapRaw(`{"k":"v"}`)) + `
-- 数値/真偽/null => ` + wrapParameter("x", "プレーンテキスト") + `
+Argument shapes:
+- string => ` + wrapParameter("x", MarkupWrapRaw("value")) + `
+- object/array => ` + wrapParameter("x", MarkupWrapRaw(`{"k":"v"}`)) + `
+- number/bool/null => ` + wrapParameter("x", "plain text") + `
 
-【誤った例 — 禁止】：
+[Wrong examples — forbidden]:
 
-誤り 1 — タグの後に説明文：
-  ` + tcO + `...` + tcC + ` お役に立てれば幸いです。
-誤り 2 — Markdown フェンス：
+Wrong 1 — explanation after tags:
+  ` + tcO + `...` + tcC + ` Hope this helps.
+Wrong 2 — Markdown fence:
   ` + "```text" + `
   ` + tcO + `...` + tcC + `
   ` + "```" + `
-誤り 3 — 先頭の包みがない：
+Wrong 3 — missing opening wrapper:
   ` + invokeNamed + `...` + ivC + `
   ` + tcC + `
-誤り 4 — ファイルを編集・書き込んだと宣言したが、Edit / Write / StrReplace / write_to_file 等の書き込み系ツール呼び出しがない：
-  「TODO.MD を修正しました。タスク完了です。」（ツール呼び出しなし）
-  → 空想上の完了。書き込みが必要なら本物のツール呼び出しを出すこと。口頭の完了宣言だけでは不可。
+Wrong 4 — claim a file was edited/written without a write tool call such as Edit / Write / StrReplace / write_to_file:
+  "Updated TODO.MD. Task done." (no tool call)
+  → Imaginary completion. If a write is needed, emit a real tool call. A spoken completion claim alone is invalid.
 
-覚えておくこと：合法なツール呼び出しは、返信末尾に ` + tcO + `...` + tcC + ` のタグ対を出すこと。Markdown フェンスで包まないこと。
+Remember: a valid tool call ends the reply with a ` + tcO + `...` + tcC + ` pair. Do not wrap it in Markdown fences.
 
 ` + buildCorrectToolExamples(toolNames)
 }
@@ -74,25 +74,25 @@ func buildCorrectToolExamples(toolNames []string) string {
 	examples := make([]string, 0, 4)
 
 	if single, ok := firstBasicExample(names); ok {
-		examples = append(examples, "例 A — 単一ツール：\n"+renderToolExampleBlock([]promptToolExample{single}))
+		examples = append(examples, "Example A — single tool:\n"+renderToolExampleBlock([]promptToolExample{single}))
 	}
 
 	if parallel := firstNBasicExamples(names, 2); len(parallel) >= 2 {
-		examples = append(examples, "例 B — 2つのツールを並列：\n"+renderToolExampleBlock(parallel))
+		examples = append(examples, "Example B — two tools in parallel:\n"+renderToolExampleBlock(parallel))
 	}
 
 	if nested, ok := firstNestedExample(names); ok {
-		examples = append(examples, "例 C — JSON 入れ子引数のあるツール：\n"+renderToolExampleBlock([]promptToolExample{nested}))
+		examples = append(examples, "Example C — tool with nested JSON args:\n"+renderToolExampleBlock([]promptToolExample{nested}))
 	}
 
 	if script, ok := firstScriptExample(names); ok {
-		examples = append(examples, "例 D — [[...]] を使う長いスクリプト（コード/スクリプト向け）：\n"+renderToolExampleBlock([]promptToolExample{script}))
+		examples = append(examples, "Example D — long script using [[...]] (for code/scripts):\n"+renderToolExampleBlock([]promptToolExample{script}))
 	}
 
 	if len(examples) == 0 {
 		return ""
 	}
-	return "【正しい例】：\n\n" + strings.Join(examples, "\n\n") + "\n\n"
+	return "[Correct examples]:\n\n" + strings.Join(examples, "\n\n") + "\n\n"
 }
 
 func uniqueToolNames(toolNames []string) []string {
@@ -191,7 +191,7 @@ func exampleBasicParams(name string) (string, bool) {
 	case "list_files":
 		return wrapParameter("path", promptRaw(".")), true
 	case "search_files":
-		return wrapParameter("query", promptRaw("ツール呼び出しパーサー")), true
+		return wrapParameter("query", promptRaw("tool call parser")), true
 	case "Bash", "execute_command":
 		return wrapParameter("command", promptRaw("pwd")), true
 	case "exec_command":
@@ -213,9 +213,9 @@ func exampleNestedParams(name string) (string, bool) {
 	case "MultiEdit":
 		return wrapParameter("file_path", promptRaw("README.md")) + "\n" + wrapParameter("edits", promptRaw(`[{"old_string":"foo","new_string":"bar"}]`)), true
 	case "Task":
-		return wrapParameter("description", promptRaw("不安定なテストを調査")) + "\n" + wrapParameter("prompt", promptRaw("対象テストを実行し失敗理由をまとめる")), true
+		return wrapParameter("description", promptRaw("investigate flaky tests")) + "\n" + wrapParameter("prompt", promptRaw("run the target tests and summarize failure reasons")), true
 	case "ask_followup_question":
-		return wrapParameter("question", promptRaw("どの案がよいですか？")) + "\n" + wrapParameter("follow_up", promptRaw(`[{"text":"案 A"},{"text":"案 B"}]`)), true
+		return wrapParameter("question", promptRaw("Which option do you prefer?")) + "\n" + wrapParameter("follow_up", promptRaw(`[{"text":"Option A"},{"text":"Option B"}]`)), true
 	}
 	return "", false
 }
@@ -233,7 +233,7 @@ echo "literal dollar: $HOME"`
 
 	switch strings.TrimSpace(name) {
 	case "Bash":
-		return wrapParameter("command", promptRaw(scriptCommand)) + "\n" + wrapParameter("description", promptRaw("シェルエスケープの確認")), true
+		return wrapParameter("command", promptRaw(scriptCommand)) + "\n" + wrapParameter("description", promptRaw("verify shell escaping")), true
 	case "execute_command":
 		return wrapParameter("command", promptRaw(scriptCommand)), true
 	case "exec_command":

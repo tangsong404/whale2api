@@ -27,18 +27,18 @@ var leakedRoleSegMarkerPattern = regexp.MustCompile(`::/?(?:sys|user|asst|tool):
 
 // leakedPrivateContextToolCompactLinePattern matches single-line echoes:
 //
-//	ツール: [tool_call_id=call_xxx] Successfully modified file: path.c
+//	Tool: [tool_call_id=call_xxx] Successfully modified file: path.c
 var leakedPrivateContextToolCompactLinePattern = regexp.MustCompile(
-	`(?im)^[ \t]*(?:ツール|Tool)\s*:\s*\[[^\]]*tool_call_id\s*=\s*call[^\]]*\][^\r\n]*`,
+	`(?im)^[ \t]*Tool\s*:\s*\[[^\]]*tool_call_id\s*=\s*call[^\]]*\][^\r\n]*`,
 )
 
 // leakedPrivateContextToolMultilinePattern matches transcript-shaped echoes:
 //
-//	ツール:
+//	Tool:
 //	[name=StrReplace tool_call_id=call_xxx]
 //	Successfully modified file: path.c
 var leakedPrivateContextToolMultilinePattern = regexp.MustCompile(
-	`(?im)^[ \t]*(?:ツール|Tool)\s*:\s*\r?\n[ \t]*\[[^\]]*tool_call_id\s*=\s*call[^\]]*\][^\r\n]*\r?\n[^\S\r\n]*Successfully [^\r\n]*`,
+	`(?im)^[ \t]*Tool\s*:\s*\r?\n[ \t]*\[[^\]]*tool_call_id\s*=\s*call[^\]]*\][^\r\n]*\r?\n[^\S\r\n]*Successfully [^\r\n]*`,
 )
 
 // leakedPrivateContextToolHeaderLinePattern catches compacted echoes that drop

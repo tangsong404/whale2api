@@ -19,7 +19,7 @@ import (
 
 const (
 	defaultProbeModel  = "deepseek-v4-flash"
-	DefaultProbePrompt = "ping、pong とだけ返すこと"
+	DefaultProbePrompt = "Reply with only: pong"
 )
 
 // Result is the outcome of login + minimal completion probe against DeepSeek.
@@ -134,7 +134,7 @@ func Probe(ctx context.Context, ds *dsclient.Client, acc config.Account, prompt 
 func probeOK(token string) Result {
 	return Result{
 		OK:         true,
-		Message:    "可用",
+		Message:    "available",
 		Token:      token,
 		PoolStatus: "active",
 	}

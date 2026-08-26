@@ -111,23 +111,20 @@ func TestBuildToolCallInstructions_WriteUsesFilePathAndContent(t *testing.T) {
 
 func TestBuildToolCallInstructions_AnchorsMissingOpeningWrapperFailureMode(t *testing.T) {
 	out := BuildToolCallInstructions([]string{"read_file"})
-	if !strings.Contains(out, "先頭の ::tc:: を省略してはならない") {
+	if !strings.Contains(out, "never omit the leading ::tc::") {
 		t.Fatalf("expected explicit missing-opening-tag warning, got: %s", out)
 	}
-	if !strings.Contains(out, "誤り 3 — 先頭の包みがない") {
+	if !strings.Contains(out, "Wrong 3 — missing opening wrapper") {
 		t.Fatalf("expected missing-opening-wrapper negative example, got: %s", out)
 	}
-	if !strings.Contains(out, "誤り 4 — ファイルを編集・書き込んだと宣言した") {
+	if !strings.Contains(out, "Wrong 4 — claim a file was edited/written") {
 		t.Fatalf("expected imaginary edit-completion negative example, got: %s", out)
 	}
-	if !strings.Contains(out, "ユーザーの言語、またはユーザーが明示した言語") {
+	if !strings.Contains(out, "user's language, or the language the user explicitly requested") {
 		t.Fatalf("expected user-language output rule, got: %s", out)
 	}
-	if !strings.Contains(out, "手動修正") || !strings.Contains(out, "タスク完了不可") {
+	if !strings.Contains(out, "manual change") || !strings.Contains(out, "truly cannot be completed") {
 		t.Fatalf("expected manual-fix / cannot-complete terminal guidance, got: %s", out)
-	}
-	if strings.Contains(out, "让我先找") || strings.Contains(out, "口頭だけで止まる") {
-		t.Fatalf("announce-then-stop strengthening must not live in format instructions, got: %s", out)
 	}
 }
 

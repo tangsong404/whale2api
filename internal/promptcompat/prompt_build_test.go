@@ -74,7 +74,7 @@ func TestBuildOpenAIFinalPrompt_KeepsFinalAnswerInstruction(t *testing.T) {
 	}
 
 	finalPrompt, _ := buildOpenAIFinalPrompt(messages, tools, "", false)
-	if !strings.Contains(finalPrompt, "覚えておくこと：合法なツール呼び出しは、返信末尾に ::tc::...::/tc:: のタグ対を出すこと。Markdown フェンスで包まないこと。") {
+	if !strings.Contains(finalPrompt, "Remember: a valid tool call ends the reply with a ::tc::...::/tc:: pair. Do not wrap it in Markdown fences.") {
 		t.Fatalf("finalPrompt missing final tool-call anchor instruction: %q", finalPrompt)
 	}
 	if !strings.Contains(finalPrompt, ToolActionNudgeMarker) {
@@ -87,10 +87,10 @@ func TestBuildOpenAIFinalPrompt_KeepsFinalAnswerInstruction(t *testing.T) {
 	if strings.Contains(sysPart, ToolActionNudgeMarker) {
 		t.Fatalf("tool-action nudge must not live in system segment: %q", finalPrompt)
 	}
-	if !strings.Contains(finalPrompt, "ツール呼び出し形式") {
+	if !strings.Contains(finalPrompt, "Tool-call format") {
 		t.Fatalf("finalPrompt missing xml format instruction: %q", finalPrompt)
 	}
-	if !strings.Contains(finalPrompt, "Markdown のコードフェンスでツールタグを包まないこと") {
+	if !strings.Contains(finalPrompt, "Do not wrap tool tags in Markdown fences") {
 		t.Fatalf("finalPrompt missing no-fence xml instruction: %q", finalPrompt)
 	}
 	if strings.Contains(finalPrompt, "```json") {
@@ -117,8 +117,8 @@ func TestBuildOpenAIFinalPromptPrependsOutputIntegrityGuard(t *testing.T) {
 	}
 
 	finalPrompt, _ := buildOpenAIFinalPrompt(messages, tools, "", false)
-	guardIdx := strings.Index(finalPrompt, "出力の完全性に関する注意")
-	toolIdx := strings.Index(finalPrompt, "ツール呼び出し形式")
+	guardIdx := strings.Index(finalPrompt, "Output integrity note")
+	toolIdx := strings.Index(finalPrompt, "Tool-call format")
 	if guardIdx < 0 {
 		t.Fatalf("expected output integrity guard in final prompt, got: %q", finalPrompt)
 	}
@@ -148,13 +148,13 @@ func TestBuildOpenAIFinalPromptReadLikeToolIncludesCacheGuard(t *testing.T) {
 	}
 
 	finalPrompt, _ := buildOpenAIFinalPrompt(messages, tools, "", false)
-	if !strings.Contains(finalPrompt, "読み取り系ツール") {
+	if !strings.Contains(finalPrompt, "Read-like tools") {
 		t.Fatalf("read-like tool prompt missing cache guard: %q", finalPrompt)
 	}
-	if !strings.Contains(finalPrompt, "本文なし") {
+	if !strings.Contains(finalPrompt, "empty body") {
 		t.Fatalf("read-like tool prompt missing no-body handling: %q", finalPrompt)
 	}
-	if !strings.Contains(finalPrompt, "同じ方法で繰り返し読まないこと") {
+	if !strings.Contains(finalPrompt, "Do not reread the same way repeatedly") {
 		t.Fatalf("read-like tool prompt missing loop guard: %q", finalPrompt)
 	}
 }
@@ -177,7 +177,7 @@ func TestBuildOpenAIFinalPromptNonReadToolOmitsCacheGuard(t *testing.T) {
 	}
 
 	finalPrompt, _ := buildOpenAIFinalPrompt(messages, tools, "", false)
-	if strings.Contains(finalPrompt, "読み取り系ツール") {
+	if strings.Contains(finalPrompt, "Read-like tools") {
 		t.Fatalf("non-read tool prompt should not include read cache guard: %q", finalPrompt)
 	}
 }
