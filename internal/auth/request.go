@@ -41,6 +41,12 @@ type RequestAuth struct {
 
 type LoginFunc func(ctx context.Context, acc config.Account) (string, error)
 
+type tokenRefreshCall struct {
+	done  chan struct{}
+	token string
+	err   error
+}
+
 type Resolver struct {
 	Store  *config.Store
 	PoolDB GatewayPool
@@ -48,6 +54,11 @@ type Resolver struct {
 
 	mu               sync.Mutex
 	tokenRefreshedAt map[string]time.Time
+	tokenMu          sync.Mutex
+	tokenRefreshes   map[string]*tokenRefreshCall
+	latestTokens     map[string]string
+	poolsMu          sync.Mutex
+	pools            map[string]*account.Pool
 }
 
 func NewResolver(store *config.Store, login LoginFunc) *Resolver {
@@ -55,6 +66,9 @@ func NewResolver(store *config.Store, login LoginFunc) *Resolver {
 		Store:            store,
 		Login:            login,
 		tokenRefreshedAt: map[string]time.Time{},
+		tokenRefreshes:   map[string]*tokenRefreshCall{},
+		latestTokens:     map[string]string{},
+		pools:            map[string]*account.Pool{},
 	}
 }
 
@@ -96,9 +110,23 @@ func (r *Resolver) authFromPoolDB(ctx context.Context, callerKey, callerID, targ
 	if len(accounts) == 0 {
 		return nil, ErrNoAccount
 	}
-	mem := account.NewMemoryLookup(accounts)
-	subPool := account.NewPoolWithRuntime(mem, r.Store)
-	return r.acquireManagedRequestAuth(ctx, callerID, target, subPool, true)
+	pool := r.poolForAPIKey(callerID, accounts)
+	return r.acquireManagedRequestAuth(ctx, callerID, target, pool, true)
+}
+
+func (r *Resolver) poolForAPIKey(poolID string, accounts []config.Account) *account.Pool {
+	r.poolsMu.Lock()
+	defer r.poolsMu.Unlock()
+	if r.pools == nil {
+		r.pools = map[string]*account.Pool{}
+	}
+	if pool := r.pools[poolID]; pool != nil {
+		pool.UpdateAccounts(accounts)
+		return pool
+	}
+	pool := account.NewPoolWithRuntime(account.NewMemoryLookup(accounts), r.Store)
+	r.pools[poolID] = pool
+	return pool
 }
 
 func (r *Resolver) acquireManagedRequestAuth(ctx context.Context, callerID, target string, pool *account.Pool, poolManaged bool) (*RequestAuth, error) {
@@ -184,28 +212,76 @@ func FromContext(ctx context.Context) (*RequestAuth, bool) {
 }
 
 func (r *Resolver) loginAndPersist(ctx context.Context, a *RequestAuth) error {
+	if r == nil || a == nil || a.AccountID == "" {
+		return ErrNoAccount
+	}
+	accountID := a.AccountID
+	currentToken := strings.TrimSpace(a.DeepSeekToken)
+	if currentToken == "" {
+		currentToken = strings.TrimSpace(a.Account.Token)
+	}
+
+	r.tokenMu.Lock()
+	if latest := strings.TrimSpace(r.latestTokens[accountID]); latest != "" && currentToken != "" && latest != currentToken {
+		r.tokenMu.Unlock()
+		a.Account.Token = latest
+		a.DeepSeekToken = latest
+		return nil
+	}
+	if call := r.tokenRefreshes[accountID]; call != nil {
+		r.tokenMu.Unlock()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-call.done:
+			if call.err != nil {
+				r.TryAutoDiscardFromError(ctx, a, call.err)
+				return call.err
+			}
+			a.Account.Token = call.token
+			a.DeepSeekToken = call.token
+			return nil
+		}
+	}
+	call := &tokenRefreshCall{done: make(chan struct{})}
+	r.tokenRefreshes[accountID] = call
+	r.tokenMu.Unlock()
+
 	token, err := r.Login(ctx, a.Account)
+	if err == nil {
+		if r.PoolDB == nil {
+			err = ErrPoolDBMissing
+		} else {
+			err = r.PoolDB.UpdateAccountToken(ctx, accountID, token)
+		}
+	}
 	if err != nil {
 		r.TryAutoDiscardFromError(ctx, a, err)
+	} else {
+		r.markTokenRefreshedNow(accountID)
+	}
+
+	r.tokenMu.Lock()
+	call.token = token
+	call.err = err
+	if err == nil {
+		r.latestTokens[accountID] = token
+	}
+	delete(r.tokenRefreshes, accountID)
+	close(call.done)
+	r.tokenMu.Unlock()
+	if err != nil {
 		return err
 	}
 	a.Account.Token = token
 	a.DeepSeekToken = token
-	r.markTokenRefreshedNow(a.AccountID)
-	if r.PoolDB == nil {
-		return ErrPoolDBMissing
-	}
-	return r.PoolDB.UpdateAccountToken(ctx, a.AccountID, token)
+	return nil
 }
 
 func (r *Resolver) RefreshToken(ctx context.Context, a *RequestAuth) bool {
 	if !a.UseConfigToken || a.AccountID == "" {
 		return false
 	}
-	if r.PoolDB != nil {
-		_ = r.PoolDB.ClearAccountToken(ctx, a.AccountID)
-	}
-	a.Account.Token = ""
 	if err := r.loginAndPersist(ctx, a); err != nil {
 		config.Logger.Error("[refresh_token] failed", "account", a.AccountID, "error", err)
 		return false
@@ -220,6 +296,9 @@ func (r *Resolver) MarkTokenInvalid(a *RequestAuth) {
 	a.Account.Token = ""
 	a.DeepSeekToken = ""
 	r.clearTokenRefreshMark(a.AccountID)
+	r.tokenMu.Lock()
+	delete(r.latestTokens, a.AccountID)
+	r.tokenMu.Unlock()
 	if r.PoolDB != nil {
 		_ = r.PoolDB.ClearAccountToken(context.Background(), a.AccountID)
 	}
@@ -241,7 +320,7 @@ func (r *Resolver) SwitchAccount(ctx context.Context, a *RequestAuth) bool {
 		pool.Release(a.AccountID)
 	}
 	for {
-		acc, ok := pool.Acquire("", a.TriedAccounts)
+		acc, ok := pool.AcquireWait(ctx, "", a.TriedAccounts)
 		if !ok {
 			return false
 		}
@@ -254,6 +333,17 @@ func (r *Resolver) SwitchAccount(ctx context.Context, a *RequestAuth) bool {
 		}
 		return true
 	}
+}
+
+func (a *RequestAuth) SwitchAccount(ctx context.Context) bool {
+	return a != nil && a.resolver != nil && a.resolver.SwitchAccount(ctx, a)
+}
+
+func (a *RequestAuth) CurrentAccountDiscarded() bool {
+	if a == nil || a.AccountID == "" || a.TriedAccounts == nil {
+		return false
+	}
+	return a.TriedAccounts[a.AccountID]
 }
 
 // TryAutoDiscardHTTPBody classifies a completion HTTP body and discards muted/banned accounts.
@@ -280,7 +370,15 @@ func (r *Resolver) ensureManagedToken(ctx context.Context, a *RequestAuth) error
 	if r.shouldForceRefresh(a.AccountID) {
 		return r.loginAndPersist(ctx, a)
 	}
-	a.DeepSeekToken = a.Account.Token
+	r.tokenMu.Lock()
+	latest := strings.TrimSpace(r.latestTokens[a.AccountID])
+	if latest == "" {
+		latest = a.Account.Token
+		r.latestTokens[a.AccountID] = latest
+	}
+	r.tokenMu.Unlock()
+	a.Account.Token = latest
+	a.DeepSeekToken = latest
 	return nil
 }
 

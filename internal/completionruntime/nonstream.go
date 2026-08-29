@@ -31,6 +31,7 @@ type Options struct {
 	MaxAttempts           int
 	RetryEnabled          bool
 	RetryMaxAttempts      int
+	RebuildRequest        func(context.Context, *auth.RequestAuth) (promptcompat.StandardRequest, error)
 	// ClientHTTPRequestContentLength, when non-nil, is included in upstream_empty_output logs (see net/http: -1 if unknown).
 	ClientHTTPRequestContentLength *int64
 }
@@ -54,6 +55,32 @@ func StartCompletion(ctx context.Context, ds DeepSeekCaller, a *auth.RequestAuth
 	if gateErr := userContextOverGate(stdReq); gateErr != nil {
 		return StartResult{Request: stdReq}, gateErr
 	}
+	for {
+		result, outErr := startCompletionAttempt(ctx, ds, a, stdReq, opts)
+		if outErr == nil || a == nil || !a.CurrentAccountDiscarded() {
+			return result, outErr
+		}
+		oldAccount := a.AccountID
+		if !a.SwitchAccount(ctx) {
+			return result, outErr
+		}
+		config.Logger.Info("[completion_runtime] restarting with replacement account", "old_account", oldAccount, "new_account", a.AccountID)
+		if opts.RebuildRequest != nil {
+			for {
+				rebuilt, err := opts.RebuildRequest(ctx, a)
+				if err == nil {
+					stdReq = rebuilt
+					break
+				}
+				if !a.CurrentAccountDiscarded() || !a.SwitchAccount(ctx) {
+					return StartResult{Request: stdReq}, &assistantturn.OutputError{Status: http.StatusInternalServerError, Message: "Failed to rebuild request for replacement account.", Code: "error"}
+				}
+			}
+		}
+	}
+}
+
+func startCompletionAttempt(ctx context.Context, ds DeepSeekCaller, a *auth.RequestAuth, stdReq promptcompat.StandardRequest, opts Options) (StartResult, *assistantturn.OutputError) {
 	maxAttempts := opts.MaxAttempts
 	if maxAttempts <= 0 {
 		maxAttempts = 3
@@ -282,4 +309,3 @@ func authOutputError(a *auth.RequestAuth) *assistantturn.OutputError {
 	}
 	return &assistantturn.OutputError{Status: http.StatusUnauthorized, Message: "Invalid token. If this should be a Whale2API key, add it to config.keys first.", Code: "error"}
 }
-

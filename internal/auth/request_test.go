@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -43,6 +44,98 @@ func TestDetermineWithXAPIKeyManagedKeyAcquiresAccount(t *testing.T) {
 	}
 	if auth.CallerID == "" {
 		t.Fatalf("expected caller id to be populated")
+	}
+}
+
+func TestDetermineSharesPersistentPoolAcrossRequests(t *testing.T) {
+	t.Setenv("WHALE2API_ACCOUNT_MAX_INFLIGHT", "1")
+	t.Setenv("WHALE2API_ACCOUNT_MAX_QUEUE", "0")
+	resolver := newTestResolverWithAccounts(t, "managed-key", []config.Account{
+		{Email: "acc1@example.com", Token: "token-1"},
+		{Email: "acc2@example.com", Token: "token-2"},
+	}, func(_ context.Context, _ config.Account) (string, error) {
+		return "fresh-token", nil
+	})
+	newRequest := func() *http.Request {
+		req, _ := http.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+		req.Header.Set("x-api-key", "managed-key")
+		return req
+	}
+
+	first, err := resolver.Determine(newRequest())
+	if err != nil {
+		t.Fatalf("first determine failed: %v", err)
+	}
+	second, err := resolver.Determine(newRequest())
+	if err != nil {
+		resolver.Release(first)
+		t.Fatalf("second determine failed: %v", err)
+	}
+	if first.AccountID == second.AccountID {
+		resolver.Release(first)
+		resolver.Release(second)
+		t.Fatalf("concurrent requests were not distributed: both used %q", first.AccountID)
+	}
+	if _, err := resolver.Determine(newRequest()); !errors.Is(err, ErrNoAccount) {
+		resolver.Release(first)
+		resolver.Release(second)
+		t.Fatalf("expected full shared pool to reject third request, got %v", err)
+	}
+
+	releasedID := first.AccountID
+	resolver.Release(first)
+	third, err := resolver.Determine(newRequest())
+	if err != nil {
+		resolver.Release(second)
+		t.Fatalf("determine after release failed: %v", err)
+	}
+	defer resolver.Release(second)
+	defer resolver.Release(third)
+	if third.AccountID != releasedID {
+		t.Fatalf("expected released account %q to be leased again, got %q", releasedID, third.AccountID)
+	}
+}
+
+func TestAutoDiscardRemovesAccountFromPersistentPool(t *testing.T) {
+	t.Setenv("WHALE2API_ACCOUNT_MAX_INFLIGHT", "1")
+	t.Setenv("WHALE2API_ACCOUNT_MAX_QUEUE", "0")
+	resolver := newTestResolverWithAccounts(t, "managed-key", []config.Account{
+		{Email: "muted@example.com", Token: "token-1"},
+		{Email: "healthy@example.com", Token: "token-2"},
+	}, func(_ context.Context, _ config.Account) (string, error) {
+		return "fresh-token", nil
+	})
+	req, _ := http.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	req.Header.Set("x-api-key", "managed-key")
+	a, err := resolver.Determine(req)
+	if err != nil {
+		t.Fatalf("determine failed: %v", err)
+	}
+	if a.AccountID != "muted@example.com" {
+		resolver.Release(a)
+		t.Fatalf("unexpected initial account: %q", a.AccountID)
+	}
+	if !resolver.TryAutoDiscardFromMessage(context.Background(), a, "user is muted") {
+		resolver.Release(a)
+		t.Fatal("expected account to be auto-discarded")
+	}
+	if !resolver.SwitchAccount(context.Background(), a) {
+		resolver.Release(a)
+		t.Fatal("expected replacement account")
+	}
+	if a.AccountID != "healthy@example.com" {
+		resolver.Release(a)
+		t.Fatalf("unexpected replacement account: %q", a.AccountID)
+	}
+	resolver.Release(a)
+
+	next, err := resolver.Determine(req)
+	if err != nil {
+		t.Fatalf("determine after discard failed: %v", err)
+	}
+	defer resolver.Release(next)
+	if next.AccountID != "healthy@example.com" {
+		t.Fatalf("discarded account returned to pool: %q", next.AccountID)
 	}
 }
 
@@ -237,6 +330,62 @@ func TestDetermineManagedAccountForcesRefreshEverySixHours(t *testing.T) {
 	}
 	if got := atomic.LoadInt32(&loginCount); got != 1 {
 		t.Fatalf("expected exactly one forced refresh login, got %d", got)
+	}
+}
+
+func TestRefreshTokenSingleflightPerAccount(t *testing.T) {
+	t.Setenv("WHALE2API_ACCOUNT_MAX_INFLIGHT", "2")
+	started := make(chan struct{})
+	releaseLogin := make(chan struct{})
+	var loginCount int32
+	resolver := newTestResolverWithAccounts(t, "managed-key", []config.Account{
+		{Email: "acc@example.com", Password: "pwd", Token: "seed-token"},
+	}, func(_ context.Context, _ config.Account) (string, error) {
+		if atomic.AddInt32(&loginCount, 1) == 1 {
+			close(started)
+		}
+		<-releaseLogin
+		return "fresh-token", nil
+	})
+	newRequest := func() *http.Request {
+		req, _ := http.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+		req.Header.Set("x-api-key", "managed-key")
+		return req
+	}
+	a1, err := resolver.Determine(newRequest())
+	if err != nil {
+		t.Fatalf("first determine failed: %v", err)
+	}
+	defer resolver.Release(a1)
+	a2, err := resolver.Determine(newRequest())
+	if err != nil {
+		t.Fatalf("second determine failed: %v", err)
+	}
+	defer resolver.Release(a2)
+
+	var wg sync.WaitGroup
+	results := make(chan bool, 2)
+	for _, a := range []*RequestAuth{a1, a2} {
+		wg.Add(1)
+		go func(a *RequestAuth) {
+			defer wg.Done()
+			results <- resolver.RefreshToken(context.Background(), a)
+		}(a)
+	}
+	<-started
+	close(releaseLogin)
+	wg.Wait()
+	close(results)
+	for ok := range results {
+		if !ok {
+			t.Fatal("expected both refresh callers to receive the shared result")
+		}
+	}
+	if got := atomic.LoadInt32(&loginCount); got != 1 {
+		t.Fatalf("expected one login for concurrent refreshes, got %d", got)
+	}
+	if a1.DeepSeekToken != "fresh-token" || a2.DeepSeekToken != "fresh-token" {
+		t.Fatalf("refresh result not shared: token1=%q token2=%q", a1.DeepSeekToken, a2.DeepSeekToken)
 	}
 }
 

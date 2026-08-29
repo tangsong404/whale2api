@@ -3,7 +3,6 @@ package client
 import (
 	"bytes"
 	"context"
-	dsprotocol "whale2api/internal/deepseek/protocol"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	dsprotocol "whale2api/internal/deepseek/protocol"
 
 	"whale2api/internal/auth"
 	"whale2api/internal/config"
@@ -152,6 +152,13 @@ func (c *Client) UploadFile(ctx context.Context, a *auth.RequestAuth, req Upload
 		}
 		config.Logger.Warn("[upload_file] failed", "status", resp.StatusCode, "code", code, "biz_code", bizCode, "msg", msg, "biz_msg", bizMsg, "account", a.AccountID, "filename", filename)
 		powHeader = ""
+		discarded := false
+		if c.Auth != nil && a != nil {
+			discarded = c.Auth.TryAutoDiscardFromDeepSeekMap(ctx, a, parsed)
+		}
+		if discarded {
+			return nil, errors.New("upload file failed: account discarded")
+		}
 		lastFailureMessage = failureMessage(msg, bizMsg, "upload file failed")
 		if isTokenInvalid(resp.StatusCode, code, bizCode, msg, bizMsg) || isAuthIndicativeBizFailure(msg, bizMsg) {
 			lastFailureKind = authFailureKind(a.UseConfigToken)
@@ -166,10 +173,8 @@ func (c *Client) UploadFile(ctx context.Context, a *auth.RequestAuth, req Upload
 					continue
 				}
 			}
-			if c.Auth.SwitchAccount(ctx, a) {
-				refreshed = false
-				attempts++
-				continue
+			if a.CurrentAccountDiscarded() {
+				return nil, errors.New("upload file failed: account discarded")
 			}
 		}
 		attempts++

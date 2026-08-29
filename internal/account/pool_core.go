@@ -3,6 +3,7 @@ package account
 import (
 	"sort"
 	"sync"
+	"time"
 
 	"whale2api/internal/config"
 )
@@ -18,15 +19,20 @@ type Pool struct {
 	recommendedConcurrency int
 	maxQueueSize           int
 	globalMaxInflight      int
+	blockedUntil           map[string]time.Time
 }
+
+const staleSnapshotGuard = 5 * time.Second
 
 // NewPoolWithRuntime uses lookup for account discovery and runtime (may be nil) for limit knobs.
 // AccountCount returns how many accounts participate in pooling (for auth loop bounds).
 func (p *Pool) AccountCount() int {
-	if p == nil || p.lookup == nil {
+	if p == nil {
 		return 0
 	}
-	return len(p.lookup.Accounts())
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return len(p.queue)
 }
 
 func NewPoolWithRuntime(lookup Lookup, runtime *config.Store) *Pool {
@@ -38,6 +44,7 @@ func NewPoolWithRuntime(lookup Lookup, runtime *config.Store) *Pool {
 		lookup:                lookup,
 		runtime:               runtime,
 		inUse:                 map[string]int{},
+		blockedUntil:          map[string]time.Time{},
 		maxInflightPerAccount: maxPer,
 	}
 	p.Reset()
@@ -81,6 +88,7 @@ func (p *Pool) Reset() {
 	p.drainWaitersLocked()
 	p.queue = ids
 	p.inUse = map[string]int{}
+	p.blockedUntil = map[string]time.Time{}
 	p.recommendedConcurrency = recommended
 	p.maxQueueSize = queueLimit
 	p.globalMaxInflight = globalLimit
@@ -92,6 +100,112 @@ func (p *Pool) Reset() {
 		"recommended_concurrency", p.recommendedConcurrency,
 		"max_queue_size", p.maxQueueSize,
 	)
+}
+
+// UpdateAccounts refreshes the catalog without resetting active leases,
+// round-robin position, or queued callers.
+func (p *Pool) UpdateAccounts(accounts []config.Account) {
+	if p == nil {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	now := time.Now()
+	filtered := make([]config.Account, 0, len(accounts))
+	for _, acc := range accounts {
+		id := acc.Identifier()
+		until, blocked := p.blockedUntil[id]
+		if blocked && now.Before(until) {
+			continue
+		}
+		if blocked {
+			delete(p.blockedUntil, id)
+		}
+		filtered = append(filtered, acc)
+	}
+	lookup := NewMemoryLookup(filtered)
+	incoming := lookup.Accounts()
+	active := make(map[string]struct{}, len(incoming))
+	for _, acc := range incoming {
+		if id := acc.Identifier(); id != "" {
+			active[id] = struct{}{}
+		}
+	}
+
+	oldQueue := append([]string(nil), p.queue...)
+	oldMaxPer := p.maxInflightPerAccount
+	oldMaxQueue := p.maxQueueSize
+	oldGlobalMax := p.globalMaxInflight
+	p.lookup = lookup
+
+	queue := make([]string, 0, len(active))
+	seen := make(map[string]struct{}, len(active))
+	for _, id := range p.queue {
+		if _, ok := active[id]; !ok {
+			continue
+		}
+		queue = append(queue, id)
+		seen[id] = struct{}{}
+	}
+	for _, acc := range incoming {
+		id := acc.Identifier()
+		if _, ok := seen[id]; id == "" || ok {
+			continue
+		}
+		queue = append(queue, id)
+		seen[id] = struct{}{}
+	}
+	p.queue = queue
+	p.refreshLimitsLocked()
+	if !sameAccountOrder(oldQueue, queue) || oldMaxPer != p.maxInflightPerAccount || oldMaxQueue != p.maxQueueSize || oldGlobalMax != p.globalMaxInflight {
+		p.notifyAllWaitersLocked()
+	}
+}
+
+func sameAccountOrder(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// Remove prevents new leases for accountID while preserving its active lease
+// count until current callers release it.
+func (p *Pool) Remove(accountID string) {
+	if p == nil || accountID == "" {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.blockedUntil == nil {
+		p.blockedUntil = map[string]time.Time{}
+	}
+	p.blockedUntil[accountID] = time.Now().Add(staleSnapshotGuard)
+	for i, id := range p.queue {
+		if id != accountID {
+			continue
+		}
+		p.queue = append(p.queue[:i], p.queue[i+1:]...)
+		break
+	}
+	p.refreshLimitsLocked()
+	p.notifyAllWaitersLocked()
+}
+
+func (p *Pool) refreshLimitsLocked() {
+	if p.runtime != nil {
+		p.maxInflightPerAccount = p.runtime.RuntimeAccountMaxInflight()
+	}
+	p.recommendedConcurrency = defaultRecommendedConcurrency(len(p.queue), p.maxInflightPerAccount)
+	if p.runtime != nil {
+		p.maxQueueSize = p.runtime.RuntimeAccountMaxQueue(p.recommendedConcurrency)
+		p.globalMaxInflight = p.runtime.RuntimeGlobalMaxInflight(p.recommendedConcurrency)
+	}
 }
 
 func (p *Pool) Release(accountID string) {
@@ -137,7 +251,7 @@ func (p *Pool) Status() map[string]any {
 	return map[string]any{
 		"available":                len(available),
 		"in_use":                   inUseSlots,
-		"total":                    len(p.lookup.Accounts()),
+		"total":                    len(p.queue),
 		"available_accounts":       available,
 		"in_use_accounts":          inUseAccounts,
 		"max_inflight_per_account": p.maxInflightPerAccount,

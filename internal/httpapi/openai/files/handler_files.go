@@ -76,13 +76,20 @@ func (h *Handler) UploadFile(w http.ResponseWriter, r *http.Request) {
 		contentType = http.DetectContentType(data)
 	}
 	modelType := resolveUploadModelType(h.Store, r)
-	result, err := h.DS.UploadFile(r.Context(), a, dsclient.UploadFileRequest{
+	uploadReq := dsclient.UploadFileRequest{
 		Filename:    header.Filename,
 		ContentType: contentType,
 		Purpose:     strings.TrimSpace(r.FormValue("purpose")),
 		ModelType:   modelType,
 		Data:        data,
-	}, 3)
+	}
+	var result *dsclient.UploadFileResult
+	for {
+		result, err = h.DS.UploadFile(r.Context(), a, uploadReq, 3)
+		if err == nil || !a.CurrentAccountDiscarded() || !a.SwitchAccount(r.Context()) {
+			break
+		}
+	}
 	if err != nil {
 		shared.WriteOpenAIError(w, http.StatusInternalServerError, "Failed to upload file.")
 		return

@@ -40,8 +40,8 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(auth.WithAuth(r.Context(), a))
 
 	r.Body = http.MaxBytesReader(w, r.Body, openAIGeneralMaxSize)
-	var req map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var decodedReq map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&decodedReq); err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "too large") {
 			writeOpenAIError(w, http.StatusRequestEntityTooLarge, "request body too large")
 			return
@@ -49,21 +49,52 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		writeOpenAIError(w, http.StatusBadRequest, "invalid json")
 		return
 	}
-	if err := h.preprocessInlineFileInputs(r.Context(), a, req); err != nil {
-		writeOpenAIInlineFileError(w, err)
-		return
+	var req map[string]any
+	var stdReq promptcompat.StandardRequest
+	rebuildRequest := func(ctx context.Context, requestAuth *auth.RequestAuth) (promptcompat.StandardRequest, error) {
+		cloned, cloneErr := shared.CloneJSONMap(decodedReq)
+		if cloneErr != nil {
+			return promptcompat.StandardRequest{}, cloneErr
+		}
+		if preprocessErr := h.preprocessInlineFileInputs(ctx, requestAuth, cloned); preprocessErr != nil {
+			return promptcompat.StandardRequest{}, preprocessErr
+		}
+		rebuilt, normalizeErr := promptcompat.NormalizeOpenAIChatRequest(cloned, requestTraceID(r))
+		if normalizeErr != nil {
+			return promptcompat.StandardRequest{}, normalizeErr
+		}
+		rebuilt = shared.ApplyThinkingInjection(h.Store, rebuilt)
+		return h.applyCurrentInputFile(ctx, requestAuth, rebuilt)
 	}
-	stdReq, err := promptcompat.NormalizeOpenAIChatRequest(req, requestTraceID(r))
-	if err != nil {
-		writeOpenAIError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	stdReq = shared.ApplyThinkingInjection(h.Store, stdReq)
-	stdReq, err = h.applyCurrentInputFile(r.Context(), a, stdReq)
-	if err != nil {
-		status, message := mapCurrentInputFileError(err)
-		writeOpenAIError(w, status, message)
-		return
+	for {
+		req, err = shared.CloneJSONMap(decodedReq)
+		if err != nil {
+			writeOpenAIError(w, http.StatusBadRequest, "invalid json")
+			return
+		}
+		if err = h.preprocessInlineFileInputs(r.Context(), a, req); err != nil {
+			if a.CurrentAccountDiscarded() && a.SwitchAccount(r.Context()) {
+				continue
+			}
+			writeOpenAIInlineFileError(w, err)
+			return
+		}
+		stdReq, err = promptcompat.NormalizeOpenAIChatRequest(req, requestTraceID(r))
+		if err != nil {
+			writeOpenAIError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		stdReq = shared.ApplyThinkingInjection(h.Store, stdReq)
+		stdReq, err = h.applyCurrentInputFile(r.Context(), a, stdReq)
+		if err != nil {
+			if a.CurrentAccountDiscarded() && a.SwitchAccount(r.Context()) {
+				continue
+			}
+			status, message := mapCurrentInputFileError(err)
+			writeOpenAIError(w, status, message)
+			return
+		}
+		break
 	}
 	historySession := startChatHistory(h.ChatHistory, r, a, stdReq)
 
@@ -72,6 +103,7 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		clPtr := &cl
 		result, outErr := completionruntime.ExecuteNonStreamWithRetry(r.Context(), h.DS, a, stdReq, completionruntime.Options{
 			RetryEnabled:                   true,
+			RebuildRequest:                 rebuildRequest,
 			ClientHTTPRequestContentLength: clPtr,
 		})
 		sessionID = result.SessionID
@@ -92,7 +124,7 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, outErr := completionruntime.StartCompletion(r.Context(), h.DS, a, stdReq, completionruntime.Options{})
+	start, outErr := completionruntime.StartCompletion(r.Context(), h.DS, a, stdReq, completionruntime.Options{RebuildRequest: rebuildRequest})
 	sessionID = start.SessionID
 	if outErr != nil {
 		if historySession != nil {

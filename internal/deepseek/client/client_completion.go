@@ -3,12 +3,12 @@ package client
 import (
 	"bytes"
 	"context"
-	dsprotocol "whale2api/internal/deepseek/protocol"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"time"
+	dsprotocol "whale2api/internal/deepseek/protocol"
 
 	"whale2api/internal/auth"
 	"whale2api/internal/config"
@@ -19,16 +19,18 @@ func (c *Client) CallCompletion(ctx context.Context, a *auth.RequestAuth, payloa
 	if maxAttempts <= 0 {
 		maxAttempts = c.maxRetries
 	}
-	clients := c.requestClientsForAuth(ctx, a)
-	headers := c.authHeaders(a.DeepSeekToken)
-	headers["x-ds-pow-response"] = powResp
 	captureSession := c.capture.Start("deepseek_completion", dsprotocol.DeepSeekCompletionURL, a.AccountID, payload)
 	attempts := 0
 	for attempts < maxAttempts {
+		clients := c.requestClientsForAuth(ctx, a)
+		headers := c.authHeaders(a.DeepSeekToken)
+		headers["x-ds-pow-response"] = powResp
 		resp, err := c.streamPost(ctx, clients.stream, dsprotocol.DeepSeekCompletionURL, headers, payload)
 		if err != nil {
 			attempts++
-			time.Sleep(time.Second)
+			if !sleepRetry(ctx, time.Second) {
+				return nil, ctx.Err()
+			}
 			continue
 		}
 		if resp.StatusCode == http.StatusOK {
@@ -39,18 +41,29 @@ func (c *Client) CallCompletion(ctx context.Context, a *auth.RequestAuth, payloa
 			return resp, nil
 		}
 		body, _ := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
 		if c.Auth != nil && a != nil {
-			c.Auth.TryAutoDiscardFromHTTPBody(ctx, a, body)
-			if a.UseConfigToken && c.Auth.SwitchAccount(ctx, a) {
-				attempts++
-				time.Sleep(time.Second)
-				continue
+			if c.Auth.TryAutoDiscardFromHTTPBody(ctx, a, body) {
+				return nil, errors.New("completion failed: account discarded")
 			}
 		}
 		attempts++
-		time.Sleep(time.Second)
+		if attempts < maxAttempts && !sleepRetry(ctx, time.Second) {
+			return nil, ctx.Err()
+		}
 	}
 	return nil, errors.New("completion failed")
+}
+
+func sleepRetry(ctx context.Context, delay time.Duration) bool {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return false
+	case <-timer.C:
+		return true
+	}
 }
 
 func (c *Client) streamPost(ctx context.Context, doer trans.Doer, url string, headers map[string]string, payload any) (*http.Response, error) {

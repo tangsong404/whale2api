@@ -8,11 +8,29 @@ func (p *Pool) canQueueLocked(target string, exclude map[string]bool) bool {
 		if _, ok := p.lookup.FindAccount(target); !ok {
 			return false
 		}
+	} else {
+		hasCandidate := false
+		for _, id := range p.queue {
+			if !exclude[id] {
+				hasCandidate = true
+				break
+			}
+		}
+		if !hasCandidate {
+			return false
+		}
 	}
 	if p.maxQueueSize <= 0 {
 		return false
 	}
 	return len(p.waiters) < p.maxQueueSize
+}
+
+func (p *Pool) notifyAllWaitersLocked() {
+	for _, waiter := range p.waiters {
+		close(waiter)
+	}
+	p.waiters = nil
 }
 
 func (p *Pool) notifyWaiterLocked() {

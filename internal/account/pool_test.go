@@ -71,6 +71,27 @@ func TestPoolRoundRobinWithConcurrentSlots(t *testing.T) {
 	}
 }
 
+func TestPoolDoesNotReAddRemovedAccountFromStaleSnapshot(t *testing.T) {
+	t.Setenv("WHALE2API_ACCOUNT_MAX_INFLIGHT", "1")
+	t.Setenv("WHALE2API_ACCOUNT_MAX_QUEUE", "0")
+	accounts := []config.Account{
+		{Email: "discarded@example.com", Token: "token-1"},
+		{Email: "healthy@example.com", Token: "token-2"},
+	}
+	pool := newTestPool(accounts, config.LoadStore())
+	pool.Remove("discarded@example.com")
+	pool.UpdateAccounts(accounts)
+
+	acc, ok := pool.Acquire("", nil)
+	if !ok {
+		t.Fatal("expected healthy account to remain available")
+	}
+	defer pool.Release(acc.Identifier())
+	if acc.Identifier() != "healthy@example.com" {
+		t.Fatalf("stale snapshot re-added removed account: %q", acc.Identifier())
+	}
+}
+
 func TestPoolTargetAccountInflightLimit(t *testing.T) {
 	pool := newPoolForTest(t, "2")
 

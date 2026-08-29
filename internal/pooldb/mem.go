@@ -10,11 +10,11 @@ import (
 
 // Mem is an in-memory GatewayPool for unit tests.
 type Mem struct {
-	mu       sync.RWMutex
-	keys     map[string]bool
-	pools    map[string][]config.Account
-	tokens   map[string]string
-	discard  map[string]map[string]string // api_key -> identifier -> reason
+	mu      sync.RWMutex
+	keys    map[string]bool
+	pools   map[string][]config.Account
+	tokens  map[string]string
+	discard map[string]map[string]string // api_key -> identifier -> reason
 }
 
 func NewMem() *Mem {
@@ -71,13 +71,16 @@ func (m *Mem) LoadAccountsForAPIKey(_ context.Context, apiKey string) ([]config.
 		return nil, ErrAPIKeyDisabled
 	}
 	src := m.pools[apiKey]
-	out := make([]config.Account, len(src))
-	for i, acc := range src {
+	out := make([]config.Account, 0, len(src))
+	for _, acc := range src {
 		id := acc.Identifier()
+		if _, discarded := m.discard[apiKey][id]; discarded {
+			continue
+		}
 		if tok, ok := m.tokens[id]; ok {
 			acc.Token = tok
 		}
-		out[i] = acc
+		out = append(out, acc)
 	}
 	return limitAccounts(out), nil
 }

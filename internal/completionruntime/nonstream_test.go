@@ -2,13 +2,16 @@ package completionruntime
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
 	"whale2api/internal/auth"
+	"whale2api/internal/config"
 	dsclient "whale2api/internal/deepseek/client"
+	"whale2api/internal/pooldb"
 	"whale2api/internal/promptcompat"
 )
 
@@ -19,6 +22,82 @@ type fakeDeepSeekCaller struct {
 	uploadAccounts        []string
 	switchAccountOnCreate string
 	createSessions        int
+}
+
+type discardRestartCaller struct {
+	createAccounts []string
+}
+
+func (d *discardRestartCaller) CreateSession(ctx context.Context, a *auth.RequestAuth, _ int) (string, error) {
+	d.createAccounts = append(d.createAccounts, a.AccountID)
+	if len(d.createAccounts) == 1 {
+		a.TryAutoDiscardHTTPBody(ctx, []byte(`{"data":{"biz_code":5,"biz_msg":"user is muted"}}`))
+		return "", errors.New("account muted")
+	}
+	return "session-" + a.AccountID, nil
+}
+
+func (d *discardRestartCaller) GetPow(context.Context, *auth.RequestAuth, int) (string, error) {
+	return "pow", nil
+}
+
+func (d *discardRestartCaller) UploadFile(context.Context, *auth.RequestAuth, dsclient.UploadFileRequest, int) (*dsclient.UploadFileResult, error) {
+	return &dsclient.UploadFileResult{ID: "file-id"}, nil
+}
+
+func (d *discardRestartCaller) CallCompletion(_ context.Context, _ *auth.RequestAuth, _ map[string]any, _ string, _ int) (*http.Response, error) {
+	return sseHTTPResponse(http.StatusOK, `data: {"p":"response/content","v":"ok"}`), nil
+}
+
+func TestStartCompletionRestartsWholeAttemptAfterAutoDiscard(t *testing.T) {
+	t.Setenv("WHALE2API_ACCOUNT_MAX_INFLIGHT", "1")
+	store := config.LoadStore()
+	db := pooldb.NewMem()
+	db.RegisterKey("managed-key", []config.Account{
+		{Email: "muted@example.com", Token: "token-1"},
+		{Email: "healthy@example.com", Token: "token-2"},
+	}, true)
+	resolver := auth.NewResolver(store, func(context.Context, config.Account) (string, error) {
+		return "fresh-token", nil
+	})
+	resolver.PoolDB = db
+	req, _ := http.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	req.Header.Set("x-api-key", "managed-key")
+	a, err := resolver.Determine(req)
+	if err != nil {
+		t.Fatalf("determine failed: %v", err)
+	}
+	defer resolver.Release(a)
+
+	ds := &discardRestartCaller{}
+	standard := promptcompat.StandardRequest{
+		Surface:         "test",
+		RequestedModel:  "deepseek-v4-flash",
+		ResolvedModel:   "deepseek-v4-flash",
+		ResponseModel:   "deepseek-v4-flash",
+		PromptTokenText: "hello",
+		FinalPrompt:     "hello",
+	}
+	var rebuiltAccounts []string
+	result, outErr := StartCompletion(context.Background(), ds, a, standard, Options{
+		RebuildRequest: func(_ context.Context, requestAuth *auth.RequestAuth) (promptcompat.StandardRequest, error) {
+			rebuiltAccounts = append(rebuiltAccounts, requestAuth.AccountID)
+			return standard, nil
+		},
+	})
+	if outErr != nil {
+		t.Fatalf("start completion failed: %#v", outErr)
+	}
+	defer func() { _ = result.Response.Body.Close() }()
+	if len(ds.createAccounts) != 2 || ds.createAccounts[0] != "muted@example.com" || ds.createAccounts[1] != "healthy@example.com" {
+		t.Fatalf("expected full restart on replacement account, got %#v", ds.createAccounts)
+	}
+	if result.SessionID != "session-healthy@example.com" || a.AccountID != "healthy@example.com" {
+		t.Fatalf("attempt did not finish on healthy account: session=%q account=%q", result.SessionID, a.AccountID)
+	}
+	if len(rebuiltAccounts) != 1 || rebuiltAccounts[0] != "healthy@example.com" {
+		t.Fatalf("request resources were not rebuilt for replacement account: %#v", rebuiltAccounts)
+	}
 }
 
 func (f *fakeDeepSeekCaller) CreateSession(_ context.Context, a *auth.RequestAuth, _ int) (string, error) {

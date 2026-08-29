@@ -2,12 +2,12 @@ package client
 
 import (
 	"context"
-	dsprotocol "whale2api/internal/deepseek/protocol"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"unicode"
+	dsprotocol "whale2api/internal/deepseek/protocol"
 
 	"whale2api/internal/auth"
 	"whale2api/internal/config"
@@ -54,10 +54,10 @@ func (c *Client) CreateSession(ctx context.Context, a *auth.RequestAuth, maxAtte
 	if maxAttempts <= 0 {
 		maxAttempts = c.maxRetries
 	}
-	clients := c.requestClientsForAuth(ctx, a)
 	attempts := 0
 	refreshed := false
 	for attempts < maxAttempts {
+		clients := c.requestClientsForAuth(ctx, a)
 		headers := c.authHeaders(a.DeepSeekToken)
 		resp, status, err := c.postJSONWithStatus(ctx, clients.regular, clients.fallback, dsprotocol.DeepSeekCreateSessionURL, headers, map[string]any{"agent": "chat"})
 		if err != nil {
@@ -74,8 +74,12 @@ func (c *Client) CreateSession(ctx context.Context, a *auth.RequestAuth, maxAtte
 		}
 		config.Logger.Warn("[create_session] failed", "status", status, "code", code, "biz_code", bizCode, "msg", msg, "biz_msg", bizMsg, "use_config_token", a.UseConfigToken, "account", a.AccountID)
 		if a.UseConfigToken {
+			discarded := false
 			if c.Auth != nil {
-				c.Auth.TryAutoDiscardFromDeepSeekMap(ctx, a, resp)
+				discarded = c.Auth.TryAutoDiscardFromDeepSeekMap(ctx, a, resp)
+			}
+			if discarded {
+				return "", errors.New("create session failed: account discarded")
 			}
 			if !refreshed && shouldAttemptRefresh(status, code, bizCode, msg, bizMsg) {
 				if c.Auth.RefreshToken(ctx, a) {
@@ -83,10 +87,8 @@ func (c *Client) CreateSession(ctx context.Context, a *auth.RequestAuth, maxAtte
 					continue
 				}
 			}
-			if c.Auth.SwitchAccount(ctx, a) {
-				refreshed = false
-				attempts++
-				continue
+			if a.CurrentAccountDiscarded() {
+				return "", errors.New("create session failed: account discarded")
 			}
 		}
 		attempts++
@@ -106,12 +108,12 @@ func (c *Client) GetPowForTarget(ctx context.Context, a *auth.RequestAuth, targe
 	if targetPath == "" {
 		targetPath = dsprotocol.DeepSeekCompletionTargetPath
 	}
-	clients := c.requestClientsForAuth(ctx, a)
 	attempts := 0
 	refreshed := false
 	lastFailureKind := FailureUnknown
 	lastFailureMessage := ""
 	for attempts < maxAttempts {
+		clients := c.requestClientsForAuth(ctx, a)
 		headers := c.authHeaders(a.DeepSeekToken)
 		resp, status, err := c.postJSONWithStatus(ctx, clients.regular, clients.fallback, dsprotocol.DeepSeekCreatePowURL, headers, map[string]any{"target_path": targetPath})
 		if err != nil {
@@ -141,8 +143,12 @@ func (c *Client) GetPowForTarget(ctx context.Context, a *auth.RequestAuth, targe
 			lastFailureKind = FailureUnknown
 		}
 		if a.UseConfigToken {
+			discarded := false
 			if c.Auth != nil {
-				c.Auth.TryAutoDiscardFromDeepSeekMap(ctx, a, resp)
+				discarded = c.Auth.TryAutoDiscardFromDeepSeekMap(ctx, a, resp)
+			}
+			if discarded {
+				return "", errors.New("get pow failed: account discarded")
 			}
 			if !refreshed && shouldAttemptRefresh(status, code, bizCode, msg, bizMsg) {
 				if c.Auth.RefreshToken(ctx, a) {
@@ -150,10 +156,8 @@ func (c *Client) GetPowForTarget(ctx context.Context, a *auth.RequestAuth, targe
 					continue
 				}
 			}
-			if c.Auth.SwitchAccount(ctx, a) {
-				refreshed = false
-				attempts++
-				continue
+			if a.CurrentAccountDiscarded() {
+				return "", errors.New("get pow failed: account discarded")
 			}
 		}
 		attempts++

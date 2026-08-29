@@ -65,5 +65,8 @@ func (r *Resolver) applyAutoDiscard(ctx context.Context, a *RequestAuth, reason 
 		a.TriedAccounts = map[string]bool{}
 	}
 	a.TriedAccounts[ident] = true
+	if pool := r.poolFor(a); pool != nil {
+		pool.Remove(ident)
+	}
 	return true
 }
