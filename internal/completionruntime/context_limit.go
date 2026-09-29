@@ -95,7 +95,31 @@ func contextLengthExceededMessage(stdReq promptcompat.StandardRequest, internalE
 }
 
 func userContextOverGate(stdReq promptcompat.StandardRequest) *assistantturn.OutputError {
-	estimated := estimatedUserInputTokens(stdReq)
+	return contextGateErrorForEstimate(stdReq, estimatedUserInputTokens(stdReq))
+}
+
+// privateContextUploadTokens estimates the RefFileTokens that
+// applyCurrentInputFile adds when the request history is uploaded as a
+// private-context file. Charging it up front matches the post-upload gate and
+// lets handlers reject over-limit requests before the upload.
+func privateContextUploadTokens(stdReq promptcompat.StandardRequest) int {
+	_, history := promptcompat.SplitMessagesForPrivateContext(stdReq.Messages)
+	transcript := strings.TrimSpace(promptcompat.BuildOpenAIPrivateContextTranscript(history))
+	if transcript == "" {
+		return 0
+	}
+	return len([]rune(transcript)) / 3
+}
+
+// ContextGateError exposes the context gate to handlers so over-limit requests
+// fail with the official-style 400 before any expensive upstream work (e.g.
+// before the private-context file upload).
+func ContextGateError(stdReq promptcompat.StandardRequest) *assistantturn.OutputError {
+	estimated := estimatedUserInputTokens(stdReq) + privateContextUploadTokens(stdReq)
+	return contextGateErrorForEstimate(stdReq, estimated)
+}
+
+func contextGateErrorForEstimate(stdReq promptcompat.StandardRequest, estimated int) *assistantturn.OutputError {
 	if estimated <= logicalContextLimitTokens() {
 		return nil
 	}

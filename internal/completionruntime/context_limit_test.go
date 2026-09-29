@@ -3,6 +3,7 @@ package completionruntime
 import (
 	"context"
 	"net/http"
+	"strings"
 	"testing"
 
 	"whale2api/internal/auth"
@@ -51,6 +52,28 @@ func TestStartCompletionRejectsOverGateBeforeDeepSeek(t *testing.T) {
 	}
 	if len(ds.payloads) != 0 {
 		t.Fatalf("expected CallCompletion skipped, got payloads=%d", len(ds.payloads))
+	}
+}
+
+func TestContextGateErrorChargesPrivateContextUploadTokens(t *testing.T) {
+	stdReq := promptcompat.StandardRequest{
+		ResolvedModel: "deepseek-flash",
+		RefFileTokens: 2_800_000,
+		Messages: []any{map[string]any{
+			"role":    "user",
+			"content": strings.Repeat("a", 300_000),
+		}},
+	}
+
+	// Base estimate fits, but the prospective private-context upload
+	// (transcript runes / 3) pushes it over the gate.
+	if err := ContextGateError(stdReq); err == nil {
+		t.Fatal("expected gate error with private-context upload tokens")
+	}
+
+	stdReq.Messages = nil
+	if err := ContextGateError(stdReq); err != nil {
+		t.Fatalf("unexpected gate error without upload: %#v", err)
 	}
 }
 

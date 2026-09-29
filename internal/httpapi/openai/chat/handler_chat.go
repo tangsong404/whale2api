@@ -85,6 +85,10 @@ func (h *Handler) ChatCompletions(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		stdReq = shared.ApplyThinkingInjection(h.Store, stdReq)
+		if gateErr := completionruntime.ContextGateError(stdReq); gateErr != nil {
+			writeOpenAIErrorWithCodeAndParam(w, gateErr.Status, gateErr.Message, gateErr.Code, gateErr.Param)
+			return
+		}
 		stdReq, err = h.applyCurrentInputFile(r.Context(), a, stdReq)
 		if err != nil {
 			if a.CurrentAccountDiscarded() && a.SwitchAccount(r.Context()) {
