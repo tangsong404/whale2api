@@ -1,6 +1,6 @@
 # Whale2API
 
-DeepSeek 反代，支持 256K 上下文的 `deepseek-flash` (v4.1)
+DeepSeek 反代，支持 896K 上下文的 `deepseek-flash` (v4.1)
 
 ## 致谢与声明
 
@@ -92,7 +92,7 @@ go test ./...
 
 1.暂时仅支持OpenAI Chat Completions兼容
 
-2.所有模型上下文限制为 256K
+2.所有模型上下文限制为 896K，也就是官API的85.5%
 
 ## 参与贡献
 

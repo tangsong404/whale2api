@@ -41,6 +41,7 @@ func (a *App) Close() {
 }
 
 func NewApp() (*App, error) {
+	config.LoadContextLimitOverrides()
 	store, err := config.LoadStoreWithError()
 	if err != nil {
 		return nil, fmt.Errorf("load runtime config: %w", err)

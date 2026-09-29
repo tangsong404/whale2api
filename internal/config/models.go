@@ -23,7 +23,9 @@ var supportedModelIDs = map[string]struct{}{
 }
 
 // AdvertisedMaxContextTokens is the max context window advertised in /v1/models.
-const AdvertisedMaxContextTokens = 256_000
+// It mirrors the effective user-facing context limit and can be overridden via
+// WHALE2API_USER_FACING_CONTEXT_LIMIT_TOKENS (see LoadContextLimitOverrides).
+var AdvertisedMaxContextTokens = DefaultUserFacingContextLimitTokens
 
 var deepSeekBaseModels = []ModelInfo{
 	{ID: modelIDDeepSeekFlash, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Multimodal: true, Permission: []any{}},
@@ -33,6 +35,12 @@ var deepSeekBaseModels = []ModelInfo{
 var DeepSeekModels = deepSeekBaseModels
 
 func init() {
+	refreshDeepSeekModelContextLengths()
+}
+
+// refreshDeepSeekModelContextLengths keeps the advertised model windows in
+// sync with AdvertisedMaxContextTokens after env overrides are loaded.
+func refreshDeepSeekModelContextLengths() {
 	for i := range DeepSeekModels {
 		DeepSeekModels[i].ContextLength = AdvertisedMaxContextTokens
 	}

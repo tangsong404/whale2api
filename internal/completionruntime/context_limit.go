@@ -6,18 +6,24 @@ import (
 	"strings"
 
 	"whale2api/internal/assistantturn"
+	"whale2api/internal/config"
 	"whale2api/internal/promptcompat"
 	"whale2api/internal/util"
 )
 
-// UserFacingContextLimitTokens is the limit described to clients in error text (256K).
-const UserFacingContextLimitTokens = 256_000
+// userFacingContextLimitTokens is the limit described to clients in error
+// text. Default is 896K; WHALE2API_USER_FACING_CONTEXT_LIMIT_TOKENS can change it.
+func userFacingContextLimitTokens() int {
+	return config.EffectiveUserFacingContextLimitTokens
+}
 
-// LogicalContextLimitTokens is the internal tokenizer gate (~2.88× vs upstream real context).
-const LogicalContextLimitTokens = 750_000
-
-// userContextInputGateTokens rejects above this (exclusive) before DeepSeek; errors cite 256K.
-const userContextInputGateTokens = LogicalContextLimitTokens
+// logicalContextLimitTokens is the internal tokenizer gate. Requests above it
+// are rejected before DeepSeek. Default is 2.85M: the local estimate measured
+// at the ~890K-token stable upstream boundary. It can be changed with
+// WHALE2API_LOGICAL_CONTEXT_LIMIT_TOKENS.
+func logicalContextLimitTokens() int {
+	return config.EffectiveLogicalContextLimitTokens
+}
 
 func promptTextForContextGate(stdReq promptcompat.StandardRequest) string {
 	prompt := strings.TrimSpace(stdReq.PromptTokenText)
@@ -39,27 +45,64 @@ func userFacingTokenEstimate(internalEstimated int) int {
 	if internalEstimated <= 0 {
 		return 0
 	}
-	// Map internal tokenizer count to the 256K space clients expect.
-	return (internalEstimated*UserFacingContextLimitTokens + LogicalContextLimitTokens/2) / LogicalContextLimitTokens
+	logical := logicalContextLimitTokens()
+	if logical <= 0 {
+		return 0
+	}
+	// Map internal tokenizer count to the user-facing limit space.
+	return (internalEstimated*userFacingContextLimitTokens() + logical/2) / logical
 }
 
-func contextLengthExceededMessage(internalEstimated int) string {
+// requestedCompletionTokens mirrors the official DeepSeek API error, which
+// counts the client's max_tokens / max_completion_tokens as the completion
+// budget. Missing/invalid values count as 0.
+func requestedCompletionTokens(stdReq promptcompat.StandardRequest) int {
+	for _, key := range []string{"max_completion_tokens", "max_tokens"} {
+		v, ok := stdReq.PassThrough[key]
+		if !ok {
+			continue
+		}
+		switch n := v.(type) {
+		case float64:
+			if n > 0 {
+				return int(n)
+			}
+		case int:
+			if n > 0 {
+				return n
+			}
+		case int64:
+			if n > 0 {
+				return int(n)
+			}
+		}
+	}
+	return 0
+}
+
+// contextLengthExceededMessage matches the official DeepSeek 400 message
+// shape, including the messages/completion breakdown.
+func contextLengthExceededMessage(stdReq promptcompat.StandardRequest, internalEstimated int) string {
+	messages := userFacingTokenEstimate(internalEstimated)
+	completion := requestedCompletionTokens(stdReq)
 	return fmt.Sprintf(
-		"This model's maximum context length is %d tokens. However, your messages resulted in %d tokens. Please reduce the length of the messages.",
-		UserFacingContextLimitTokens,
-		userFacingTokenEstimate(internalEstimated),
+		"This model's maximum context length is %d tokens. However, you requested %d tokens (%d in the messages, %d in the completion). Please reduce the length of the messages or completion.",
+		userFacingContextLimitTokens(),
+		messages+completion,
+		messages,
+		completion,
 	)
 }
 
 func userContextOverGate(stdReq promptcompat.StandardRequest) *assistantturn.OutputError {
 	estimated := estimatedUserInputTokens(stdReq)
-	if estimated <= userContextInputGateTokens {
+	if estimated <= logicalContextLimitTokens() {
 		return nil
 	}
 	return &assistantturn.OutputError{
 		Status:  http.StatusBadRequest,
-		Message: contextLengthExceededMessage(estimated),
-		Code:    "context_length_exceeded",
-		Param:   "messages",
+		Message: contextLengthExceededMessage(stdReq, estimated),
+		Code:    "invalid_request_error",
+		Param:   "",
 	}
 }
