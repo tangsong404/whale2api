@@ -1,6 +1,6 @@
 # Whale2API
 
-DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`以及 `deepseek-v4-flash-vision-exp`
+DeepSeek 反代，支持 256K 上下文的 `deepseek-flash` (v4.1)
 
 ## 致谢与声明
 
@@ -10,30 +10,59 @@ DeepSeek 反代，支持 256K 上下文的 `deepseek-v4-flash`以及 `deepseek-v
 
 CJackHwang佬的作品我个人使用过很长一段时间，为我减轻了许多经济上的负担，中转太多导致官方出手很是可惜
 
-本项目重新提供更稳定版本的开源。256K的 `deepseek-v4-flash` 效果很不好，还为了防封禁做了很多限制，希望自用而非盈利
+本项目重新提供更稳定版本的开源。网页端限制导致模型效果并不好，还为了防封禁做了很多限制，希望自用而非盈利
 
 ## 快速开始
 
 ### Docker
 
-```bash
+#### 源码构建
+
+```
 copy .env.example .env
 # 编辑 .env：设置 POOL_UI_ADMIN_TOKEN
 docker compose up -d --build
 ```
 
-### 本地开发
+#### release
 
-```bash
-go run ./cmd/whale2api   # :5001
-go run ./cmd/poolui      # :5010
-go test ./...
-go run ./cmd/whale2api-tests # 集成测试
+```
+docker network create whale2api
+
+docker run -d --name device-harvest --restart unless-stopped --network whale2api \
+  -e PORT=8090 -e HARVEST_CONCURRENCY=2 \
+  ghcr.io/tangsong404/whale2api-device-harvest:latest
+
+docker run -d --name whale2api --restart unless-stopped --network whale2api \
+  -p 5103:5001 \
+  -e PORT=5001 \
+  -e WHALE2API_DATABASE_PATH=/data/whale2api.db \
+  -e DEVICE_HARVEST_URL=http://device-harvest:8090 \
+  -v whale2api-data:/data \
+  ghcr.io/tangsong404/whale2api:latest
+
+docker run -d --name poolui --restart unless-stopped --network whale2api \
+  -p 5010:5010 \
+  -e POOL_UI_PORT=5010 \
+  -e WHALE2API_DATABASE_PATH=/data/whale2api.db \
+  -e DEVICE_HARVEST_URL=http://device-harvest:8090 \
+  -e POOL_UI_ADMIN_TOKEN=change-me \
+  -v whale2api-data:/data \
+  ghcr.io/tangsong404/whale2api:latest /usr/local/bin/poolui
 ```
 
+### 本地开发
+
+```
+# 先起采集服务
+cd tools/device-harvest && npm install && xvfb-run -a node harvest.mjs serve --port 8090 &
+# 网关/面板需指向它
+DEVICE_HARVEST_URL=http://127.0.0.1:8090 go run ./cmd/whale2api   # :5001
+DEVICE_HARVEST_URL=http://127.0.0.1:8090 go run ./cmd/poolui      # :5010
+go test ./...
+```
 
 ## 使用说明
-
 
 | 地址                                                                                     | 用途       |
 | -------------------------------------------------------------------------------------- | -------- |
@@ -44,7 +73,8 @@ go run ./cmd/whale2api-tests # 集成测试
 
 建议50个号起用（批量注册参考我的仓库 `signup-god`）
 
-导入csv格式: `email,password`
+导入csv格式: `email,password[,device_id]`（第三列可留空，留空即按需采集）
+
 
 ## 改了什么
 
@@ -54,17 +84,15 @@ go run ./cmd/whale2api-tests # 集成测试
 
 2.号池增加了对`禁言`（不是`封禁`）机制的检测，且持久化由json改为sqlite
 
-3.支持多模态模型 `deepseek-v4-flash-vision-exp`
+3.增添v4.1模型 `deepseek-flash`，支持多模态（图片输入）
 
 4.优化工具调用，减少`光说不做`与`假想完成`的情况
 
 ### 限制
 
-1.不再使用 `deepseek-v4-pro`
+1.暂时仅支持OpenAI Chat Completions兼容
 
-2.暂时仅支持OpenAI Chat Completions兼容
-
-3.所有模型上下文限制为 256K
+2.所有模型上下文限制为 256K
 
 ## 参与贡献
 
