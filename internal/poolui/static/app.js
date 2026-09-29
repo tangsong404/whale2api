@@ -6,6 +6,8 @@ const ICON_DISCARD =
   '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5h9"/><path d="M6.5 5V4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1"/><path d="M5.5 5l.5 8.5h4l.5-8.5"/></svg>';
 const ICON_RESTORE =
   '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 0 1 7.7-3.2"/><path d="M12.5 3.5V6h-2.5"/><path d="M12.5 8a4.5 4.5 0 0 1-7.7 3.2"/><path d="M3.5 12.5V10H6"/></svg>';
+const ICON_DEVICE =
+  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5.5A5 5 0 1 0 13.5 8"/><path d="M13.5 2.5V6H10"/></svg>';
 
 const PAGE_SIZE = 50;
 
@@ -68,6 +70,28 @@ function toast(msg, isErr) {
   el.classList.toggle("is-error", !!isErr);
   clearTimeout(toast._t);
   toast._t = setTimeout(() => el.classList.add("hidden"), 3500);
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
 }
 
 function showApp() {
@@ -232,6 +256,25 @@ function accountOtherHTML(a) {
   if (!text) return "";
   const title = accountOtherTitle(a);
   return `<span class="cell-ellipsis" title="${escapeAttr(title)}">${escapeHtml(text)}</span>`;
+}
+
+function deviceIDUpdatedText(a) {
+  const raw = a.device_id_updated_at;
+  // time.Time zero values serialize as 0001-01-01T00:00:00Z; treat as unset.
+  if (!raw || String(raw).startsWith("0001-")) return "";
+  return formatAccountDate(raw);
+}
+
+function deviceIDCellHTML(a) {
+  if (!a.has_device_id) {
+    return '<span class="device-empty" title="登录前将按需采集（约 2 秒）">未采集</span>';
+  }
+  const token = a.device_id || a.device_id_preview || "";
+  const updated = deviceIDUpdatedText(a);
+  const title = updated
+    ? `设备令牌 ${token}（采集时间 ${updated}）`
+    : `设备令牌 ${token}`;
+  return `<code class="device-token cell-ellipsis" title="${escapeAttr(title)}" data-copy-device="${escapeAttr(token)}">${escapeHtml(token)}</code>`;
 }
 
 function paginateRows(rows) {
@@ -578,15 +621,16 @@ function filterAccounts(list) {
 function rowActionsHTML(a) {
   const disabled = state.testing ? "disabled" : "";
   const testBtn = `<button type="button" class="btn sm icon-btn" title="测号" data-test="${escapeAttr(a.identifier)}" ${disabled}>${ICON_TEST}</button>`;
+  const deviceBtn = `<button type="button" class="btn sm icon-btn" title="重置设备令牌（下一次请求重新采集）" data-reset-device="${escapeAttr(a.identifier)}" ${disabled}>${ICON_DEVICE}</button>`;
   const discardBtn = `<button type="button" class="btn sm icon-btn danger" title="作废" data-discard="${escapeAttr(a.identifier)}" ${disabled}>${ICON_DISCARD}</button>`;
   const restoreBtn = `<button type="button" class="btn sm icon-btn" title="恢复" data-restore="${escapeAttr(a.identifier)}" ${disabled}>${ICON_RESTORE}</button>`;
   if (!a.discarded) {
-    return `${testBtn}${discardBtn}`;
+    return `${testBtn}${deviceBtn}${discardBtn}`;
   }
   if (a.discard_reason === "muted") {
-    return `${testBtn}${restoreBtn}`;
+    return `${testBtn}${deviceBtn}${restoreBtn}`;
   }
-  return restoreBtn;
+  return `${deviceBtn}${restoreBtn}`;
 }
 
 function renderAccounts() {
@@ -600,6 +644,7 @@ function renderAccounts() {
       <td>${a.position}</td>
       <td>${escapeHtml(a.identifier)}</td>
       <td>${a.has_password ? "●●●" : "—"}</td>
+      <td class="device-cell">${deviceIDCellHTML(a)}</td>
       <td class="status-cell">${accountStatusHTML(a)}</td>
       <td class="other-cell">${accountOtherHTML(a)}</td>
       <td class="col-actions"><div class="row-actions">${rowActionsHTML(a)}</div></td>
@@ -752,13 +797,43 @@ $("#btnDialogCopyKey").addEventListener("click", async () => {
 });
 
 $("#accountBody").addEventListener("click", async (e) => {
+  const copyDevice = e.target.closest("[data-copy-device]");
+  if (copyDevice) {
+    const ok = await copyText(copyDevice.dataset.copyDevice);
+    toast(ok ? "设备令牌已复制" : "复制失败", !ok);
+    return;
+  }
   const testBtn = e.target.closest("[data-test]");
   const disc = e.target.closest("[data-discard]");
   const rest = e.target.closest("[data-restore]");
+  const resetDevice = e.target.closest("[data-reset-device]");
   if (!state.currentKey || state.testing) return;
   try {
     if (testBtn) {
       await runBatchAccountTest([testBtn.dataset.test], false);
+      return;
+    }
+    if (resetDevice) {
+      const ident = resetDevice.dataset.resetDevice;
+      if (!confirm(`确定重置「${ident}」的设备令牌？\n已保存的令牌会被清除，下一次请求将重新采集。`)) return;
+      const acc = state.accounts.find((a) => a.identifier === ident);
+      const wasSet = !!acc?.has_device_id;
+      await api(`/api/keys/${encKey(state.currentKey)}/accounts/device-id/clear`, {
+        method: "POST",
+        body: JSON.stringify({ identifier: ident }),
+      });
+      if (acc) {
+        acc.has_device_id = false;
+        acc.device_id = "";
+        acc.device_id_preview = "";
+        acc.device_id_updated_at = "";
+      }
+      toast(
+        wasSet
+          ? "已清除，下一次请求将重新采集"
+          : "该账号暂无设备令牌，下一次请求将按需采集"
+      );
+      await loadAccounts();
       return;
     }
     if (disc) {

@@ -483,6 +483,29 @@ code {
   color: var(--mv-text-muted);
 }
 
+.device-cell {
+  max-width: 16rem;
+  font-size: 0.82rem;
+}
+
+.device-token {
+  display: block;
+  max-width: 100%;
+  color: var(--mv-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.device-token:hover {
+  color: var(--mv-text);
+}
+
+.device-empty {
+  color: var(--mv-text-muted);
+  font-size: 0.75rem;
+}
+
 .cell-ellipsis {
   display: block;
   overflow: hidden;
@@ -558,7 +581,7 @@ tr:last-child td { border-bottom: none; }
 
 th.col-actions,
 td.col-actions {
-  width: 5.5rem;
+  width: 8rem;
   text-align: right;
 }
 

@@ -82,6 +82,7 @@
                   <th>#</th>
                   <th>账号</th>
                   <th>密码</th>
+                  <th>设备令牌</th>
                   <th>状态</th>
                   <th>其它</th>
                   <th>操作</th>
@@ -228,7 +229,8 @@
   <dialog id="importCsvDialog" class="dialog">
     <form id="importCsvForm" class="dialog-card">
       <h2>CSV 导入</h2>
-      <p class="muted dialog-hint">UTF-8 CSV：email,password 或带表头</p>
+      <p class="muted dialog-hint">UTF-8 CSV：<code>email,password[,device_id]</code> 或带表头。</p>
+      <p class="muted dialog-hint">第三列可留空（留空即按需采集）；多个令牌用 <code>|</code> 分隔时仅取第一个入库。</p>
       <label class="field">
         <span>选择文件</span>
         <div class="file-picker">
