@@ -1,0 +1,8 @@
+.git
+.gitignore
+node_modules
+npm-debug.log*
+*.log
+*.csv
+*.state.json
+state*.json
