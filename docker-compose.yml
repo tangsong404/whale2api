@@ -9,20 +9,26 @@ name: whale2api
 services:
   whale2api:
     container_name: whale2api
+    image: ${WHALE2API_IMAGE:-ghcr.io/tangsong404/whale2api:${IMAGE_TAG:-latest}}
+    pull_policy: ${IMAGE_PULL_POLICY:-missing}
     build:
       context: .
       dockerfile: Dockerfile
       target: final
-    image: whale2api:latest
     ports:
       - "${WHALE2API_HOST_PORT:-5103}:5001"
     environment:
       PORT: "5001"
       WHALE2API_DATABASE_PATH: /data/whale2api.db
+      DEVICE_HARVEST_URL: http://device-harvest:8090
+      DEVICE_HARVEST_TOKEN: ${DEVICE_HARVEST_TOKEN:-}
     env_file:
       - .env
     volumes:
       - ./docker-data/whale2api:/data
+    depends_on:
+      device-harvest:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -40,16 +46,21 @@ services:
 
   poolui:
     container_name: poolui
-    image: whale2api:latest
+    image: ${WHALE2API_IMAGE:-ghcr.io/tangsong404/whale2api:${IMAGE_TAG:-latest}}
+    pull_policy: ${IMAGE_PULL_POLICY:-missing}
     depends_on:
       whale2api:
         condition: service_started
+      device-harvest:
+        condition: service_healthy
     command: ["/usr/local/bin/poolui"]
     ports:
       - "${POOL_UI_HOST_PORT:-5010}:5010"
     environment:
       POOL_UI_PORT: "5010"
       WHALE2API_DATABASE_PATH: /data/whale2api.db
+      DEVICE_HARVEST_URL: http://device-harvest:8090
+      DEVICE_HARVEST_TOKEN: ${DEVICE_HARVEST_TOKEN:-}
     env_file:
       - .env
     volumes:
@@ -68,3 +79,35 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
+
+  # On-demand Shumei device-token sidecar for whale2api/poolui logins.
+  # Internal-only: reachable at http://device-harvest:8090 inside the compose network.
+  # whale2api/poolui get DEVICE_HARVEST_URL injected automatically (no .env needed).
+  device-harvest:
+    container_name: device-harvest
+    image: ${DEVICE_HARVEST_IMAGE:-ghcr.io/tangsong404/whale2api-device-harvest:${IMAGE_TAG:-latest}}
+    pull_policy: ${IMAGE_PULL_POLICY:-missing}
+    build:
+      context: ./tools/device-harvest
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: "8090"
+      HARVEST_TOKEN: ${DEVICE_HARVEST_TOKEN:-}
+      HARVEST_CONCURRENCY: ${HARVEST_CONCURRENCY:-2}
+    # No host port by default; uncomment to debug from the host:
+    # ports:
+    #   - "127.0.0.1:8090:8090"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8090/healthz').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+      start_interval: 3s
