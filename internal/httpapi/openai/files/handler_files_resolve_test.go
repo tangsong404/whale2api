@@ -41,8 +41,8 @@ func TestResolveUploadModelTypeMistakenModelIDInModelTypeField(t *testing.T) {
 func TestResolveUploadModelTypeVisionHeader(t *testing.T) {
 	req := httptest.NewRequest("POST", "/", nil)
 	req.Header.Set("X-Model-Type", "vision")
-	if got := resolveUploadModelType(nil, req); got != "vision" {
-		t.Fatalf("got %q want vision", got)
+	if got := resolveUploadModelType(nil, req); got != "default" {
+		t.Fatalf("got %q want default", got)
 	}
 }
 
@@ -53,19 +53,31 @@ func TestResolveUploadModelTypeVisionForm(t *testing.T) {
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
-	if got := resolveUploadModelType(nil, req); got != "vision" {
-		t.Fatalf("got %q want vision", got)
+	if got := resolveUploadModelType(nil, req); got != "default" {
+		t.Fatalf("got %q want default", got)
 	}
 }
 
-func TestResolveUploadModelTypeFromVisionExpModel(t *testing.T) {
+func TestResolveUploadModelTypeFromFlashModel(t *testing.T) {
+	body := "model=deepseek-flash"
+	req := httptest.NewRequest("POST", "/", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err := req.ParseForm(); err != nil {
+		t.Fatal(err)
+	}
+	if got := resolveUploadModelType(nil, req); got != "default" {
+		t.Fatalf("got %q want default", got)
+	}
+}
+
+func TestResolveUploadModelTypeRetiredVisionModelFallsBackToDefault(t *testing.T) {
 	body := "model=deepseek-v4-flash-vision-exp"
 	req := httptest.NewRequest("POST", "/", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
-	if got := resolveUploadModelType(nil, req); got != "vision" {
-		t.Fatalf("got %q want vision", got)
+	if got := resolveUploadModelType(nil, req); got != "default" {
+		t.Fatalf("got %q want default", got)
 	}
 }

@@ -35,7 +35,7 @@ func TestConsumeResponsesStreamAttemptMarksContextCancelledState(t *testing.T) {
 		http.NewResponseController(rec),
 		true,
 		"resp-cancelled",
-		"deepseek-v4-flash",
+		"deepseek-flash",
 		"prompt",
 		false,
 		false,

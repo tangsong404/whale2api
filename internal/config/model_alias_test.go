@@ -3,16 +3,20 @@ package config
 import "testing"
 
 func TestResolveModelDirectDeepSeekFlash(t *testing.T) {
-	got, ok := ResolveModel("deepseek-v4-flash")
-	if !ok || got != "deepseek-v4-flash" {
-		t.Fatalf("expected deepseek-v4-flash, got ok=%v model=%q", ok, got)
+	got, ok := ResolveModel("deepseek-flash")
+	if !ok || got != "deepseek-flash" {
+		t.Fatalf("expected deepseek-flash, got ok=%v model=%q", ok, got)
 	}
 }
 
-func TestResolveModelDirectDeepSeekFlashVisionExp(t *testing.T) {
-	got, ok := ResolveModel("deepseek-v4-flash-vision-exp")
-	if !ok || got != "deepseek-v4-flash-vision-exp" {
-		t.Fatalf("expected deepseek-v4-flash-vision-exp, got ok=%v model=%q", ok, got)
+func TestResolveModelRejectsRetiredFlashIDs(t *testing.T) {
+	for _, model := range []string{
+		"deepseek-v4-flash",
+		"deepseek-v4-flash-vision-exp",
+	} {
+		if got, ok := ResolveModel(model); ok {
+			t.Fatalf("expected retired id %q to be rejected, got %q", model, got)
+		}
 	}
 }
 
@@ -23,31 +27,47 @@ func TestResolveModelRejectsPro(t *testing.T) {
 }
 
 func TestResolveModelRejectsNoThinkingSuffix(t *testing.T) {
-	for _, model := range []string{"deepseek-v4-flash-nothinking", "deepseek-v4-pro-nothinking"} {
+	for _, model := range []string{"deepseek-flash-nothinking", "deepseek-v4-pro-nothinking"} {
 		if got, ok := ResolveModel(model); ok {
 			t.Fatalf("expected %q to be rejected, got %q", model, got)
 		}
 	}
 }
 
-func TestOpenAIModelByIDPreservesFlashID(t *testing.T) {
-	info, ok := OpenAIModelByID("deepseek-v4-flash")
-	if !ok || info.ID != "deepseek-v4-flash" {
-		t.Fatalf("expected advertised deepseek-v4-flash, got ok=%v id=%q", ok, info.ID)
+func TestDeepSeekModelsExposesSingleMultimodalFlash(t *testing.T) {
+	if len(DeepSeekModels) != 1 {
+		t.Fatalf("expected exactly 1 advertised model, got %d", len(DeepSeekModels))
+	}
+	model := DeepSeekModels[0]
+	if model.ID != "deepseek-flash" {
+		t.Fatalf("expected deepseek-flash, got %q", model.ID)
+	}
+	if !model.Multimodal {
+		t.Fatal("expected deepseek-flash multimodal=true")
+	}
+	if model.ContextLength != AdvertisedMaxContextTokens {
+		t.Fatalf("expected context_length=%d, got %d", AdvertisedMaxContextTokens, model.ContextLength)
 	}
 }
 
-func TestOpenAIModelByIDPreservesFlashVisionExpID(t *testing.T) {
-	info, ok := OpenAIModelByID("deepseek-v4-flash-vision-exp")
-	if !ok || info.ID != "deepseek-v4-flash-vision-exp" {
-		t.Fatalf("expected advertised deepseek-v4-flash-vision-exp, got ok=%v id=%q", ok, info.ID)
+func TestOpenAIModelByIDDeepSeekFlash(t *testing.T) {
+	info, ok := OpenAIModelByID("deepseek-flash")
+	if !ok || info.ID != "deepseek-flash" {
+		t.Fatalf("expected advertised deepseek-flash, got ok=%v id=%q", ok, info.ID)
 	}
 	if !info.Multimodal {
-		t.Fatal("expected deepseek-v4-flash-vision-exp multimodal=true")
+		t.Fatal("expected deepseek-flash multimodal=true")
 	}
-	flash, ok := OpenAIModelByID("deepseek-v4-flash")
-	if !ok || flash.Multimodal {
-		t.Fatalf("expected deepseek-v4-flash multimodal=false, got ok=%v multimodal=%v", ok, flash.Multimodal)
+}
+
+func TestOpenAIModelByIDRejectsRetiredIDs(t *testing.T) {
+	for _, model := range []string{
+		"deepseek-v4-flash",
+		"deepseek-v4-flash-vision-exp",
+	} {
+		if info, ok := OpenAIModelByID(model); ok {
+			t.Fatalf("expected %q to be rejected, got id=%q", model, info.ID)
+		}
 	}
 }
 
@@ -67,43 +87,40 @@ func TestResolveModelRejectsUnknownAliases(t *testing.T) {
 }
 
 func TestUpstreamDeepSeekSKU(t *testing.T) {
-	if got := UpstreamDeepSeekSKU("deepseek-v4-flash"); got != "deepseek-v4-flash" {
-		t.Fatalf("unexpected sku: %q", got)
-	}
-	if got := UpstreamDeepSeekSKU("deepseek-v4-flash-vision-exp"); got != "deepseek-v4-flash-vision-exp" {
+	if got := UpstreamDeepSeekSKU("deepseek-flash"); got != "deepseek-flash" {
 		t.Fatalf("unexpected sku: %q", got)
 	}
 }
 
-func TestGetModelTypeVisionExp(t *testing.T) {
-	got, ok := GetModelType("deepseek-v4-flash-vision-exp")
-	if !ok || got != "vision" {
-		t.Fatalf("expected vision, got ok=%v type=%q", ok, got)
-	}
-	got, ok = GetModelType("deepseek-v4-flash")
+func TestGetModelType(t *testing.T) {
+	got, ok := GetModelType("deepseek-flash")
 	if !ok || got != "default" {
 		t.Fatalf("expected default, got ok=%v type=%q", ok, got)
 	}
+	for _, retired := range []string{"deepseek-v4-flash", "deepseek-v4-flash-vision-exp"} {
+		if got, ok := GetModelType(retired); ok {
+			t.Fatalf("expected %q to be rejected, got ok=%v type=%q", retired, ok, got)
+		}
+	}
 }
 
-func TestGetModelConfigVisionExp(t *testing.T) {
-	thinking, search, ok := GetModelConfig("deepseek-v4-flash-vision-exp")
+func TestGetModelConfig(t *testing.T) {
+	thinking, search, ok := GetModelConfig("deepseek-flash")
 	if !ok || !thinking || search {
 		t.Fatalf("expected thinking=true search=false ok=true, got thinking=%v search=%v ok=%v", thinking, search, ok)
 	}
 }
 
 func TestUpstreamSafeModelType(t *testing.T) {
-	if got := UpstreamSafeModelType("vision"); got != "vision" {
-		t.Fatalf("expected vision, got %q", got)
+	cases := map[string]string{
+		"vision":  "default",
+		"default": "default",
+		"expert":  "default",
+		"":        "",
 	}
-	if got := UpstreamSafeModelType("default"); got != "default" {
-		t.Fatalf("expected default, got %q", got)
-	}
-	if got := UpstreamSafeModelType("expert"); got != "default" {
-		t.Fatalf("expected default for expert, got %q", got)
-	}
-	if got := UpstreamSafeModelType(""); got != "" {
-		t.Fatalf("expected empty, got %q", got)
+	for in, want := range cases {
+		if got := UpstreamSafeModelType(in); got != want {
+			t.Fatalf("UpstreamSafeModelType(%q) = %q, want %q", in, got, want)
+		}
 	}
 }

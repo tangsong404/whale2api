@@ -17,7 +17,7 @@ func TestGetModelRouteDirectAndAlias(t *testing.T) {
 	registerOpenAITestRoutes(r, h)
 
 	t.Run("flash", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-flash", nil)
 		rec := httptest.NewRecorder()
 		r.ServeHTTP(rec, req)
 		if rec.Code != http.StatusOK {
@@ -25,12 +25,12 @@ func TestGetModelRouteDirectAndAlias(t *testing.T) {
 		}
 	})
 
-	t.Run("flash_vision_exp", func(t *testing.T) {
+	t.Run("retired_vision_exp_rejected", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash-vision-exp", nil)
 		rec := httptest.NewRecorder()
 		r.ServeHTTP(rec, req)
-		if rec.Code != http.StatusOK {
-			t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+		if rec.Code != http.StatusNotFound {
+			t.Fatalf("expected 404, got %d body=%s", rec.Code, rec.Body.String())
 		}
 	})
 
@@ -44,7 +44,7 @@ func TestGetModelRouteDirectAndAlias(t *testing.T) {
 	})
 
 	t.Run("nothinking_rejected", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash-nothinking", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-flash-nothinking", nil)
 		rec := httptest.NewRecorder()
 		r.ServeHTTP(rec, req)
 		if rec.Code != http.StatusNotFound {
@@ -91,34 +91,23 @@ func TestListModelsIncludesContextLength(t *testing.T) {
 		t.Fatalf("json: %v", err)
 	}
 	data, ok := body["data"].([]any)
-	if !ok || len(data) == 0 {
-		t.Fatalf("expected data array, got %#v", body["data"])
+	if !ok || len(data) != 1 {
+		t.Fatalf("expected exactly 1 model, got %#v", body["data"])
 	}
-	sawVision := false
-	for _, it := range data {
-		m, ok := it.(map[string]any)
-		if !ok {
-			t.Fatalf("expected object in data, got %T", it)
-		}
-		id, _ := m["id"].(string)
-		cl, ok := m["context_length"].(float64)
-		if !ok || int(cl) != config.AdvertisedMaxContextTokens {
-			t.Fatalf("model %q: expected context_length=%d, got %v", id, config.AdvertisedMaxContextTokens, m["context_length"])
-		}
-		multimodal, ok := m["multimodal"].(bool)
-		if !ok {
-			t.Fatalf("model %q: expected multimodal bool, got %v", id, m["multimodal"])
-		}
-		wantMultimodal := id == "deepseek-v4-flash-vision-exp"
-		if multimodal != wantMultimodal {
-			t.Fatalf("model %q: expected multimodal=%v, got %v", id, wantMultimodal, multimodal)
-		}
-		if wantMultimodal {
-			sawVision = true
-		}
+	m, ok := data[0].(map[string]any)
+	if !ok {
+		t.Fatalf("expected object in data, got %T", data[0])
 	}
-	if !sawVision {
-		t.Fatal("expected deepseek-v4-flash-vision-exp in model list")
+	if id, _ := m["id"].(string); id != "deepseek-flash" {
+		t.Fatalf("expected deepseek-flash, got %v", m["id"])
+	}
+	cl, ok := m["context_length"].(float64)
+	if !ok || int(cl) != config.AdvertisedMaxContextTokens {
+		t.Fatalf("expected context_length=%d, got %v", config.AdvertisedMaxContextTokens, m["context_length"])
+	}
+	multimodal, ok := m["multimodal"].(bool)
+	if !ok || !multimodal {
+		t.Fatalf("expected multimodal=true, got %v", m["multimodal"])
 	}
 }
 
@@ -127,7 +116,7 @@ func TestGetModelByIDIncludesContextLength(t *testing.T) {
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
 
-	req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash", nil)
+	req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-flash", nil)
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
@@ -142,28 +131,22 @@ func TestGetModelByIDIncludesContextLength(t *testing.T) {
 		t.Fatalf("expected context_length=%d, got %v", config.AdvertisedMaxContextTokens, body["context_length"])
 	}
 	multimodal, ok := body["multimodal"].(bool)
-	if !ok || multimodal {
-		t.Fatalf("expected multimodal=false for flash, got %v", body["multimodal"])
+	if !ok || !multimodal {
+		t.Fatalf("expected multimodal=true for deepseek-flash, got %v", body["multimodal"])
 	}
 }
 
-func TestGetModelByIDIncludesMultimodalForVision(t *testing.T) {
+func TestGetModelByIDRejectsRetiredIDs(t *testing.T) {
 	h := &openAITestSurface{}
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
 
-	req := httptest.NewRequest(http.MethodGet, "/v1/models/deepseek-v4-flash-vision-exp", nil)
-	rec := httptest.NewRecorder()
-	r.ServeHTTP(rec, req)
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
-	}
-	var body map[string]any
-	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
-		t.Fatalf("json: %v", err)
-	}
-	multimodal, ok := body["multimodal"].(bool)
-	if !ok || !multimodal {
-		t.Fatalf("expected multimodal=true for vision-exp, got %v", body["multimodal"])
+	for _, retired := range []string{"deepseek-v4-flash", "deepseek-v4-flash-vision-exp"} {
+		req := httptest.NewRequest(http.MethodGet, "/v1/models/"+retired, nil)
+		rec := httptest.NewRecorder()
+		r.ServeHTTP(rec, req)
+		if rec.Code != http.StatusNotFound {
+			t.Fatalf("%s: expected 404, got %d body=%s", retired, rec.Code, rec.Body.String())
+		}
 	}
 }

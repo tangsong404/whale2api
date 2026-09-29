@@ -181,7 +181,7 @@ func TestBuildResponseObjectWithToolCallsCoercesSchemaDeclaredStringArguments(t 
 
 func TestBuildChatUsageForModelUsesConservativePromptCount(t *testing.T) {
 	prompt := strings.Repeat("上下文token ", 40)
-	usage := BuildChatUsageForModel("deepseek-v4-flash", prompt, "", "ok", 0)
+	usage := BuildChatUsageForModel("deepseek-flash", prompt, "", "ok", 0)
 	promptTokens, _ := usage["prompt_tokens"].(int)
 	if promptTokens <= util.EstimateTokens(prompt) {
 		t.Fatalf("expected conservative prompt token count > rough estimate, got=%d estimate=%d", promptTokens, util.EstimateTokens(prompt))

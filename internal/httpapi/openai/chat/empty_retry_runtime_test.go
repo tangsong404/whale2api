@@ -16,7 +16,7 @@ func TestConsumeChatStreamAttemptMarksContextCancelledState(t *testing.T) {
 	historyStore := newTestChatHistoryStore(t)
 	entry, err := historyStore.Start(chathistory.StartParams{
 		CallerID:  "caller:test",
-		Model:     "deepseek-v4-flash",
+		Model:     "deepseek-flash",
 		Stream:    true,
 		UserInput: "hello",
 	})
@@ -42,7 +42,7 @@ func TestConsumeChatStreamAttemptMarksContextCancelledState(t *testing.T) {
 		true,
 		"cid-cancelled",
 		time.Now().Unix(),
-		"deepseek-v4-flash",
+		"deepseek-flash",
 		"prompt",
 		false,
 		false,

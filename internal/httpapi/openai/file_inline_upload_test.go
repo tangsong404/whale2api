@@ -126,7 +126,7 @@ func TestPreprocessInlineFileInputsSupportsCompactImageMediaTypeData(t *testing.
 	ds := &inlineUploadDSStub{}
 	h := &openAITestSurface{DS: ds}
 	req := map[string]any{
-		"model": "deepseek-v4-flash-vision-exp",
+		"model": "deepseek-flash",
 		"messages": []any{
 			map[string]any{
 				"role": "user",
@@ -152,8 +152,8 @@ func TestPreprocessInlineFileInputsSupportsCompactImageMediaTypeData(t *testing.
 	if len(ds.uploadCalls) != 1 {
 		t.Fatalf("expected 1 upload, got %d", len(ds.uploadCalls))
 	}
-	if ds.uploadCalls[0].ModelType != "vision" {
-		t.Fatalf("expected vision model type, got %q", ds.uploadCalls[0].ModelType)
+	if ds.uploadCalls[0].ModelType != "default" {
+		t.Fatalf("expected default model type, got %q", ds.uploadCalls[0].ModelType)
 	}
 	if ds.uploadCalls[0].ContentType != "image/png" {
 		t.Fatalf("expected image/png, got %q", ds.uploadCalls[0].ContentType)
@@ -367,7 +367,7 @@ func TestPreprocessInlineFileInputsDeduplicatesIdenticalPayloads(t *testing.T) {
 func TestChatCompletionsUploadsInlineFilesBeforeCompletion(t *testing.T) {
 	ds := &inlineUploadDSStub{}
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
-	reqBody := `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
+	reqBody := `{"model":"deepseek-flash","messages":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(reqBody))
 	req.Header.Set("Authorization", "Bearer direct-token")
 	req.Header.Set("Content-Type", "application/json")
@@ -391,9 +391,12 @@ func TestChatCompletionsUploadsInlineFilesBeforeCompletion(t *testing.T) {
 	if len(refIDs) != 1 || refIDs[0] != "file-inline-1" {
 		t.Fatalf("unexpected completion ref_file_ids: %#v", ds.completionReq["ref_file_ids"])
 	}
+	if got := ds.completionReq["model_type"]; got != "default" {
+		t.Fatalf("expected completion model_type default, got %#v", got)
+	}
 }
 
-func TestChatCompletionsUploadsInlineFilesUsesVisionModelType(t *testing.T) {
+func TestChatCompletionsUploadsInlineFilesRejectsRetiredVisionModel(t *testing.T) {
 	ds := &inlineUploadDSStub{}
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
 	reqBody := `{"model":"deepseek-v4-flash-vision-exp","messages":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
@@ -404,20 +407,17 @@ func TestChatCompletionsUploadsInlineFilesUsesVisionModelType(t *testing.T) {
 
 	h.ChatCompletions(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if ds.completionReq != nil {
+		t.Fatal("did not expect completion call for retired model")
 	}
 	if len(ds.uploadCalls) != 1 {
 		t.Fatalf("expected 1 upload call, got %d", len(ds.uploadCalls))
 	}
-	if ds.uploadCalls[0].ModelType != "vision" {
-		t.Fatalf("expected vision model type for vision-exp request, got %q", ds.uploadCalls[0].ModelType)
-	}
-	if ds.completionReq == nil {
-		t.Fatal("expected completion payload to be captured")
-	}
-	if got := ds.completionReq["model_type"]; got != "vision" {
-		t.Fatalf("expected completion model_type vision, got %#v", got)
+	if ds.uploadCalls[0].ModelType != "default" {
+		t.Fatalf("expected default model type, got %q", ds.uploadCalls[0].ModelType)
 	}
 }
 
@@ -426,7 +426,7 @@ func TestResponsesUploadsInlineFilesBeforeCompletion(t *testing.T) {
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
-	reqBody := `{"model":"deepseek-v4-flash","input":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
+	reqBody := `{"model":"deepseek-flash","input":[{"role":"user","content":[{"type":"input_text","text":"hi"},{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(reqBody))
 	req.Header.Set("Authorization", "Bearer direct-token")
 	req.Header.Set("Content-Type", "application/json")
@@ -452,7 +452,7 @@ func TestResponsesUploadsInlineFilesBeforeCompletion(t *testing.T) {
 func TestChatCompletionsInlineUploadFailureReturnsBadRequest(t *testing.T) {
 	ds := &inlineUploadDSStub{}
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
-	reqBody := `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,%%%"}}]}],"stream":false}`
+	reqBody := `{"model":"deepseek-flash","messages":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,%%%"}}]}],"stream":false}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(reqBody))
 	req.Header.Set("Authorization", "Bearer direct-token")
 	req.Header.Set("Content-Type", "application/json")
@@ -479,7 +479,7 @@ func TestChatCompletionsInlineUploadLimitReturnsBadRequest(t *testing.T) {
 		})
 	}
 	body, err := json.Marshal(map[string]any{
-		"model": "deepseek-v4-flash",
+		"model": "deepseek-flash",
 		"messages": []any{map[string]any{
 			"role":    "user",
 			"content": content,
@@ -512,7 +512,7 @@ func TestResponsesInlineUploadFailureReturnsInternalServerError(t *testing.T) {
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
-	reqBody := `{"model":"deepseek-v4-flash","input":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
+	reqBody := `{"model":"deepseek-flash","input":[{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,QUJDRA=="}}]}],"stream":false}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(reqBody))
 	req.Header.Set("Authorization", "Bearer direct-token")
 	req.Header.Set("Content-Type", "application/json")

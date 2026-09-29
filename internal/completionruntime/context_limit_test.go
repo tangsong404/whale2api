@@ -21,8 +21,8 @@ func TestUserFacingTokenEstimateScalesInternalCount(t *testing.T) {
 func TestStartCompletionRejectsOverGateBeforeDeepSeek(t *testing.T) {
 	ds := &fakeDeepSeekCaller{responses: []*http.Response{sseHTTPResponse(http.StatusOK, `data: {"p":"response/content","v":"no"}`)}}
 	stdReq := promptcompat.StandardRequest{
-		ResolvedModel:   "deepseek-v4-flash",
-		ResponseModel:   "deepseek-v4-flash",
+		ResolvedModel:   "deepseek-flash",
+		ResponseModel:   "deepseek-flash",
 		PromptTokenText: "",
 		FinalPrompt:     "",
 		RefFileTokens:   750_001,
@@ -56,8 +56,8 @@ func TestStartCompletionRejectsOverGateBeforeDeepSeek(t *testing.T) {
 func TestStartCompletionAllowsAtGateBoundary(t *testing.T) {
 	ds := &fakeDeepSeekCaller{responses: []*http.Response{sseHTTPResponse(http.StatusOK, `data: {"p":"response/content","v":"ok"}`)}}
 	stdReq := promptcompat.StandardRequest{
-		ResolvedModel:   "deepseek-v4-flash",
-		ResponseModel:   "deepseek-v4-flash",
+		ResolvedModel:   "deepseek-flash",
+		ResponseModel:   "deepseek-flash",
 		PromptTokenText: "",
 		FinalPrompt:     "",
 		RefFileTokens:   750_000,

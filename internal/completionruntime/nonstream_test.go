@@ -72,9 +72,9 @@ func TestStartCompletionRestartsWholeAttemptAfterAutoDiscard(t *testing.T) {
 	ds := &discardRestartCaller{}
 	standard := promptcompat.StandardRequest{
 		Surface:         "test",
-		RequestedModel:  "deepseek-v4-flash",
-		ResolvedModel:   "deepseek-v4-flash",
-		ResponseModel:   "deepseek-v4-flash",
+		RequestedModel:  "deepseek-flash",
+		ResolvedModel:   "deepseek-flash",
+		ResponseModel:   "deepseek-flash",
 		PromptTokenText: "hello",
 		FinalPrompt:     "hello",
 	}
@@ -135,7 +135,7 @@ func TestExecuteNonStreamWithRetryBuildsCanonicalTurn(t *testing.T) {
 	)}}
 	stdReq := promptcompat.StandardRequest{
 		Surface:         "test",
-		ResponseModel:   "deepseek-v4-flash",
+		ResponseModel:   "deepseek-flash",
 		PromptTokenText: "prompt",
 		FinalPrompt:     "final prompt",
 		ToolNames:       []string{"Write"},
@@ -178,7 +178,7 @@ func TestExecuteNonStreamWithRetryUsesSameAccountSyntheticEmptyRetry(t *testing.
 	}}
 	stdReq := promptcompat.StandardRequest{
 		Surface:         "test",
-		ResponseModel:   "deepseek-v4-flash",
+		ResponseModel:   "deepseek-flash",
 		PromptTokenText: "prompt",
 		FinalPrompt:     "final prompt",
 	}
@@ -202,7 +202,7 @@ func TestExecuteNonStreamWithRetryConvertsReferenceMarkers(t *testing.T) {
 	)}}
 	stdReq := promptcompat.StandardRequest{
 		Surface:         "test",
-		ResponseModel:   "deepseek-v4-flash-search",
+		ResponseModel:   "deepseek-flash-search",
 		PromptTokenText: "prompt",
 		FinalPrompt:     "final prompt",
 		Search:          true,
@@ -222,9 +222,9 @@ func TestStartCompletionDoesNotUploadHistoryContextFile(t *testing.T) {
 	ds := &fakeDeepSeekCaller{responses: []*http.Response{sseHTTPResponse(http.StatusOK, `data: {"p":"response/content","v":"ok"}`)}}
 	stdReq := promptcompat.StandardRequest{
 		Surface:         "test_adapter",
-		RequestedModel:  "deepseek-v4-flash",
-		ResolvedModel:   "deepseek-v4-flash",
-		ResponseModel:   "deepseek-v4-flash",
+		RequestedModel:  "deepseek-flash",
+		ResolvedModel:   "deepseek-flash",
+		ResponseModel:   "deepseek-flash",
 		PromptTokenText: "first user turn",
 		FinalPrompt:     "first user turn",
 		Messages: []any{
@@ -260,9 +260,9 @@ func TestStartCompletionReuploadsPrivateContextAfterAccountSwitch(t *testing.T) 
 	}
 	stdReq := promptcompat.StandardRequest{
 		Surface:                 "openai_chat",
-		RequestedModel:          "deepseek-v4-flash",
-		ResolvedModel:           "deepseek-v4-flash",
-		ResponseModel:           "deepseek-v4-flash",
+		RequestedModel:          "deepseek-flash",
+		ResolvedModel:           "deepseek-flash",
+		ResponseModel:           "deepseek-flash",
 		PromptTokenText:         "history\nlatest",
 		FinalPrompt:             "latest",
 		RefFileIDs:              []string{"file-old", "file-user"},

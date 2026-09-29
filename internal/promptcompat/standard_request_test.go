@@ -10,8 +10,8 @@ func TestStandardRequestCompletionPayloadSetsModelTypeFromResolvedModel(t *testi
 		search    bool
 		modelType string
 	}{
-		{name: "default", model: "deepseek-v4-flash", thinking: false, search: false, modelType: "default"},
-		{name: "vision", model: "deepseek-v4-flash-vision-exp", thinking: false, search: false, modelType: "vision"},
+		{name: "default", model: "deepseek-flash", thinking: false, search: false, modelType: "default"},
+		{name: "retired_vision_falls_back_to_default", model: "deepseek-v4-flash-vision-exp", thinking: false, search: false, modelType: "default"},
 	}
 
 	for _, tc := range tests {
@@ -57,7 +57,7 @@ func TestStandardRequestCompletionPayloadSetsModelTypeFromResolvedModel(t *testi
 
 func TestStandardRequestCompletionPayloadPassThroughCannotForceExpert(t *testing.T) {
 	req := StandardRequest{
-		ResolvedModel: "deepseek-v4-flash",
+		ResolvedModel: "deepseek-flash",
 		FinalPrompt:   "hello",
 		Thinking:      true,
 		Search:        false,
@@ -73,7 +73,7 @@ func TestStandardRequestCompletionPayloadPassThroughCannotForceExpert(t *testing
 
 func TestStandardRequestCompletionPayloadPassThroughDeepseekProString(t *testing.T) {
 	req := StandardRequest{
-		ResolvedModel: "deepseek-v4-flash",
+		ResolvedModel: "deepseek-flash",
 		FinalPrompt:   "hello",
 		PassThrough: map[string]any{
 			"model_type": "deepseek-v4-pro",
@@ -85,7 +85,7 @@ func TestStandardRequestCompletionPayloadPassThroughDeepseekProString(t *testing
 	}
 }
 
-func TestStandardRequestCompletionPayloadVisionPassThroughCannotForceExpert(t *testing.T) {
+func TestStandardRequestCompletionPayloadRetiredVisionPassThroughCannotForceExpert(t *testing.T) {
 	req := StandardRequest{
 		ResolvedModel: "deepseek-v4-flash-vision-exp",
 		FinalPrompt:   "hello",

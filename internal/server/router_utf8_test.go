@@ -15,7 +15,7 @@ func TestJSONRequestsRejectInvalidUTF8BeforeDecode(t *testing.T) {
 	mem := newTestGatewayPool(t, "managed-key", []config.Account{{Email: "u@example.com", Password: "p", Token: "seed-token"}})
 	app := newTestApp(t, mem)
 
-	body := append([]byte(`{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"`), 0xff)
+	body := append([]byte(`{"model":"deepseek-flash","messages":[{"role":"user","content":"`), 0xff)
 	body = append(body, []byte(`"}]}`)...)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
@@ -38,7 +38,7 @@ func TestKnownJSONRequestsRejectInvalidUTF8WithoutJSONContentType(t *testing.T) 
 	mem := newTestGatewayPool(t, "managed-key", []config.Account{{Email: "u@example.com", Password: "p", Token: "seed-token"}})
 	app := newTestApp(t, mem)
 
-	body := append([]byte(`{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"`), 0xff)
+	body := append([]byte(`{"model":"deepseek-flash","messages":[{"role":"user","content":"`), 0xff)
 	body = append(body, []byte(`"}]}`)...)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
@@ -61,7 +61,7 @@ func TestJSONRequestsRejectTrailingInvalidUTF8AfterCompleteJSON(t *testing.T) {
 	mem := newTestGatewayPool(t, "managed-key", []config.Account{{Email: "u@example.com", Password: "p", Token: "seed-token"}})
 	app := newTestApp(t, mem)
 
-	body := append([]byte(`{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"ok"}]}`), 0xff)
+	body := append([]byte(`{"model":"deepseek-flash","messages":[{"role":"user","content":"ok"}]}`), 0xff)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")

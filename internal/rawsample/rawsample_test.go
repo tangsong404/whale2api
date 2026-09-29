@@ -22,7 +22,7 @@ func TestPersistWritesSampleFilesAndMeta(t *testing.T) {
 		SampleID: "My Sample! 01",
 		Source:   "unit-test",
 		Request: map[string]any{
-			"model":  "deepseek-v4-flash",
+			"model":  "deepseek-flash",
 			"stream": true,
 			"messages": []any{
 				map[string]any{"role": "user", "content": "广州天气"},

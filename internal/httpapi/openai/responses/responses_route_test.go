@@ -117,7 +117,7 @@ func TestResponsesRouteValidationContract(t *testing.T) {
 		body string
 	}{
 		{name: "missing_model", body: `{"input":"hello"}`},
-		{name: "missing_input_and_messages", body: `{"model":"deepseek-v4-flash"}`},
+		{name: "missing_input_and_messages", body: `{"model":"deepseek-flash"}`},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

@@ -124,7 +124,7 @@ func TestFilesRouteUploadSuccess(t *testing.T) {
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
 
-	req := newMultipartUploadRequest(t, "assistants", "notes.txt", []byte("hello world"), "deepseek-v4-flash")
+	req := newMultipartUploadRequest(t, "assistants", "notes.txt", []byte("hello world"), "deepseek-flash")
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 
@@ -158,7 +158,26 @@ func TestFilesRouteUploadSuccess(t *testing.T) {
 	}
 }
 
-func TestFilesRouteUploadVisionExpModelType(t *testing.T) {
+func TestFilesRouteUploadVisionModelTypeHeaderMapsToDefault(t *testing.T) {
+	ds := &filesRouteDSStub{}
+	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
+	r := chi.NewRouter()
+	registerOpenAITestRoutes(r, h)
+
+	req := newMultipartUploadRequest(t, "assistants", "notes.txt", []byte("hello world"), "")
+	req.Header.Set("X-Model-Type", "vision")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if ds.lastReq.ModelType != "default" {
+		t.Fatalf("expected default model type, got %q", ds.lastReq.ModelType)
+	}
+}
+
+func TestFilesRouteUploadRetiredVisionModelFallsBackToDefault(t *testing.T) {
 	ds := &filesRouteDSStub{}
 	h := &openAITestSurface{Store: mockOpenAIConfig{}, Auth: streamStatusAuthStub{}, DS: ds}
 	r := chi.NewRouter()
@@ -171,8 +190,8 @@ func TestFilesRouteUploadVisionExpModelType(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d body=%s", rec.Code, rec.Body.String())
 	}
-	if ds.lastReq.ModelType != "vision" {
-		t.Fatalf("expected vision model type, got %q", ds.lastReq.ModelType)
+	if ds.lastReq.ModelType != "default" {
+		t.Fatalf("expected default model type, got %q", ds.lastReq.ModelType)
 	}
 }
 
@@ -182,7 +201,7 @@ func TestFilesRouteUploadIncludesAccountIDForManagedAccount(t *testing.T) {
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
 
-	req := newMultipartUploadRequest(t, "assistants", "notes.txt", []byte("hello world"), "deepseek-v4-flash")
+	req := newMultipartUploadRequest(t, "assistants", "notes.txt", []byte("hello world"), "deepseek-flash")
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 

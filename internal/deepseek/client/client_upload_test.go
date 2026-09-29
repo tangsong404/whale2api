@@ -143,8 +143,8 @@ func TestUploadFileUsesUploadTargetPowAndMultipartHeaders(t *testing.T) {
 	if seenFileSize != "5" {
 		t.Fatalf("expected x-file-size=5, got %q", seenFileSize)
 	}
-	if seenModelType != "vision" {
-		t.Fatalf("expected x-model-type=vision, got %q", seenModelType)
+	if seenModelType != "default" {
+		t.Fatalf("expected x-model-type=default, got %q", seenModelType)
 	}
 	if !strings.HasPrefix(seenContentType, "multipart/form-data; boundary=") {
 		t.Fatalf("expected multipart content type, got %q", seenContentType)

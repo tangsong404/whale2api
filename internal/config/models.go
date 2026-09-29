@@ -15,21 +15,18 @@ type ModelInfo struct {
 const noThinkingModelSuffix = "-nothinking"
 
 const (
-	modelIDDeepSeekFlash          = "deepseek-v4-flash"
-	modelIDDeepSeekFlashVisionExp = "deepseek-v4-flash-vision-exp"
+	modelIDDeepSeekFlash = "deepseek-flash"
 )
 
 var supportedModelIDs = map[string]struct{}{
-	modelIDDeepSeekFlash:          {},
-	modelIDDeepSeekFlashVisionExp: {},
+	modelIDDeepSeekFlash: {},
 }
 
 // AdvertisedMaxContextTokens is the max context window advertised in /v1/models.
 const AdvertisedMaxContextTokens = 256_000
 
 var deepSeekBaseModels = []ModelInfo{
-	{ID: modelIDDeepSeekFlash, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Multimodal: false, Permission: []any{}},
-	{ID: modelIDDeepSeekFlashVisionExp, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Multimodal: true, Permission: []any{}},
+	{ID: modelIDDeepSeekFlash, Object: "model", Created: 1677610602, OwnedBy: "deepseek", Multimodal: true, Permission: []any{}},
 }
 
 // DeepSeekModels lists client-visible model ids.
@@ -55,14 +52,10 @@ func GetModelType(model string) (modelType string, ok bool) {
 	if hasNoThinkingSuffix(model) {
 		return "", false
 	}
-	switch internalBaseModel(baseModelID(model)) {
-	case modelIDDeepSeekFlash:
-		return "default", true
-	case modelIDDeepSeekFlashVisionExp:
-		return "vision", true
-	default:
+	if !isSupportedModel(baseModelID(model)) {
 		return "", false
 	}
+	return "default", true
 }
 
 func UpstreamDeepSeekSKU(resolvedModel string) string {
@@ -72,15 +65,14 @@ func UpstreamDeepSeekSKU(resolvedModel string) string {
 	return resolvedModel
 }
 
+// UpstreamSafeModelType normalizes every non-empty upstream model_type to
+// "default", because the upstream account only enables the default mode.
+// Empty input stays empty so callers can apply their own fallback.
 func UpstreamSafeModelType(modelType string) string {
-	switch lower(strings.TrimSpace(modelType)) {
-	case "":
+	if strings.TrimSpace(modelType) == "" {
 		return ""
-	case "default", "vision":
-		return lower(strings.TrimSpace(modelType))
-	default:
-		return "default"
 	}
+	return "default"
 }
 
 // IsNoThinkingModel is kept for API compatibility; -nothinking model ids are rejected outright.

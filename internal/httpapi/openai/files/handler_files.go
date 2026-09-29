@@ -155,11 +155,11 @@ func resolveUploadModelType(store shared.ConfigReader, r *http.Request) string {
 	return config.UpstreamSafeModelType("default")
 }
 
+// normalizeUploadModelType maps every known upstream model_type alias to
+// "default"; the upstream account only enables the default mode.
 func normalizeUploadModelType(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "vision":
-		return "vision"
-	case "default", "expert":
+	case "vision", "default", "expert":
 		return "default"
 	default:
 		return ""

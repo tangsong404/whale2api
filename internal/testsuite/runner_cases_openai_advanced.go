@@ -17,7 +17,7 @@ func (r *Runner) caseReasonerStream(ctx context.Context, cc *caseContext) error 
 			"Authorization": "Bearer " + r.apiKey,
 		},
 		Body: map[string]any{
-			"model": "deepseek-v4-pro",
+			"model": "deepseek-flash",
 			"messages": []map[string]any{
 				{"role": "user", "content": "先思考后回答：1+1"},
 			},
@@ -137,7 +137,7 @@ func (r *Runner) caseConcurrencyBurst(ctx context.Context, cc *caseContext) erro
 					"Authorization": "Bearer " + r.apiKey,
 				},
 				Body: map[string]any{
-					"model": "deepseek-v4-flash",
+					"model": "deepseek-flash",
 					"messages": []map[string]any{
 						{"role": "user", "content": fmt.Sprintf("并发请求 #%d，请回复ok", idx)},
 					},
@@ -184,7 +184,7 @@ func (r *Runner) caseInvalidKey(ctx context.Context, cc *caseContext) error {
 			"Authorization": "Bearer invalid-testsuite-key-" + sanitizeID(r.runID),
 		},
 		Body: map[string]any{
-			"model": "deepseek-v4-flash",
+			"model": "deepseek-flash",
 			"messages": []map[string]any{
 				{"role": "user", "content": "hi"},
 			},
@@ -206,7 +206,7 @@ func (r *Runner) caseInvalidKey(ctx context.Context, cc *caseContext) error {
 
 func toolcallPayload(stream bool) map[string]any {
 	return map[string]any{
-		"model": "deepseek-v4-flash",
+		"model": "deepseek-flash",
 		"messages": []map[string]any{
 			{
 				"role":    "user",

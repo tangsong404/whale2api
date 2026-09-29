@@ -48,7 +48,7 @@ func TestStoreCreatesAndPersistsEntries(t *testing.T) {
 	started, err := store.Start(StartParams{
 		CallerID:  "caller:abc",
 		AccountID: "user@example.com",
-		Model:     "deepseek-v4-flash",
+		Model:     "deepseek-flash",
 		Stream:    true,
 		UserInput: "hello",
 	})
@@ -126,7 +126,7 @@ func TestStoreTrimsToConfiguredLimit(t *testing.T) {
 	}
 
 	for i := 0; i < 12; i++ {
-		entry, err := store.Start(StartParams{Model: "deepseek-v4-flash", UserInput: "msg"})
+		entry, err := store.Start(StartParams{Model: "deepseek-flash", UserInput: "msg"})
 		if err != nil {
 			t.Fatalf("start %d failed: %v", i, err)
 		}
@@ -210,7 +210,7 @@ func TestStoreConcurrentUpdatesKeepSplitFilesValid(t *testing.T) {
 			defer wg.Done()
 			entry, err := store.Start(StartParams{
 				CallerID:  "caller:test",
-				Model:     "deepseek-v4-flash",
+				Model:     "deepseek-flash",
 				UserInput: "hello",
 			})
 			if err != nil {
@@ -312,7 +312,7 @@ func TestStoreAutoMigratesMetadataOnlyLegacyMonolith(t *testing.T) {
 			Status:       "error",
 			CallerID:     "caller:test",
 			AccountID:    "acct:test",
-			Model:        "deepseek-v4-flash",
+			Model:        "deepseek-flash",
 			Stream:       true,
 			UserInput:    "hello",
 			Error:        "boom",
@@ -531,7 +531,7 @@ func TestUpdatePreservesContentWhenNewContentIsEmpty(t *testing.T) {
 
 	started, err := store.Start(StartParams{
 		CallerID:  "caller:abc",
-		Model:     "deepseek-v4-flash",
+		Model:     "deepseek-flash",
 		Stream:    true,
 		UserInput: "hello",
 	})
@@ -581,7 +581,7 @@ func TestUpdateAllowsSettingContentFromEmpty(t *testing.T) {
 
 	started, err := store.Start(StartParams{
 		CallerID:  "caller:abc",
-		Model:     "deepseek-v4-flash",
+		Model:     "deepseek-flash",
 		Stream:    true,
 		UserInput: "hello",
 	})
@@ -607,7 +607,7 @@ func TestUpdateAllowsOverwritingContentWithNewValue(t *testing.T) {
 
 	started, err := store.Start(StartParams{
 		CallerID:  "caller:abc",
-		Model:     "deepseek-v4-flash",
+		Model:     "deepseek-flash",
 		Stream:    true,
 		UserInput: "hello",
 	})

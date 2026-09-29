@@ -42,7 +42,7 @@ func (r *Runner) caseMissingMessages(ctx context.Context, cc *caseContext) error
 			"Authorization": "Bearer " + r.apiKey,
 		},
 		Body: map[string]any{
-			"model":  "deepseek-v4-flash",
+			"model":  "deepseek-flash",
 			"stream": false,
 		},
 		Retryable: true,

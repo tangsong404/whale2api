@@ -42,7 +42,7 @@ func TestEmbeddingsRouteContract(t *testing.T) {
 	registerOpenAITestRoutes(r, h)
 
 	t.Run("unauthorized", func(t *testing.T) {
-		body := bytes.NewBufferString(`{"model":"deepseek-v4-flash","input":"hello"}`)
+		body := bytes.NewBufferString(`{"model":"deepseek-flash","input":"hello"}`)
 		req := httptest.NewRequest(http.MethodPost, "/v1/embeddings", body)
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
@@ -53,7 +53,7 @@ func TestEmbeddingsRouteContract(t *testing.T) {
 	})
 
 	t.Run("ok", func(t *testing.T) {
-		body := bytes.NewBufferString(`{"model":"deepseek-v4-flash","input":["a","b"]}`)
+		body := bytes.NewBufferString(`{"model":"deepseek-flash","input":["a","b"]}`)
 		req := httptest.NewRequest(http.MethodPost, "/v1/embeddings", body)
 		req.Header.Set("Authorization", "Bearer test-token")
 		req.Header.Set("Content-Type", "application/json")
@@ -82,7 +82,7 @@ func TestEmbeddingsRouteProviderMissing(t *testing.T) {
 	r := chi.NewRouter()
 	registerOpenAITestRoutes(r, h)
 
-	body := bytes.NewBufferString(`{"model":"deepseek-v4-flash","input":"hello"}`)
+	body := bytes.NewBufferString(`{"model":"deepseek-flash","input":"hello"}`)
 	req := httptest.NewRequest(http.MethodPost, "/v1/embeddings", body)
 	req.Header.Set("Authorization", "Bearer test-token")
 	req.Header.Set("Content-Type", "application/json")

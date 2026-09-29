@@ -80,6 +80,28 @@ func extractModelIDs(body []byte) []string {
 	return out
 }
 
+// extractModelMultimodal reports the multimodal flag for the model with the
+// given id; ok is false when the model is absent or the flag is not a bool.
+func extractModelMultimodal(body []byte, id string) (multimodal bool, ok bool) {
+	var m map[string]any
+	if err := json.Unmarshal(body, &m); err != nil {
+		return false, false
+	}
+	data, _ := m["data"].([]any)
+	for _, it := range data {
+		item, _ := it.(map[string]any)
+		if asString(item["id"]) != id {
+			continue
+		}
+		value, isBool := item["multimodal"].(bool)
+		if !isBool {
+			return false, false
+		}
+		return value, true
+	}
+	return false, false
+}
+
 func jsonNumberToInt(v any) (int, bool) {
 	switch x := v.(type) {
 	case float64:

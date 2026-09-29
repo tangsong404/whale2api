@@ -118,7 +118,7 @@ func TestApplyThinkingInjectionAppendsLatestUserPrompt(t *testing.T) {
 		DS: ds,
 	}
 	req := map[string]any{
-		"model": "deepseek-v4-flash",
+		"model": "deepseek-flash",
 		"messages": []any{
 			map[string]any{"role": "user", "content": "hello"},
 		},
@@ -153,7 +153,7 @@ func TestApplyThinkingInjectionUsesCustomPrompt(t *testing.T) {
 		DS: ds,
 	}
 	req := map[string]any{
-		"model": "deepseek-v4-flash",
+		"model": "deepseek-flash",
 		"messages": []any{
 			map[string]any{"role": "user", "content": "hello"},
 		},

@@ -79,7 +79,7 @@ func TestChatCompletionsAutoDeleteModes(t *testing.T) {
 				DS:   ds,
 			}
 
-			reqBody := `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}],"stream":false}`
+			reqBody := `{"model":"deepseek-flash","messages":[{"role":"user","content":"hi"}],"stream":false}`
 			req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(reqBody))
 			req.Header.Set("Authorization", "Bearer direct-token")
 			req.Header.Set("Content-Type", "application/json")

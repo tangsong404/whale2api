@@ -64,7 +64,7 @@ func TestResponsesUploadsPrivateContextAndReplacesLiveTail(t *testing.T) {
 	r := chi.NewRouter()
 	RegisterRoutes(r, h)
 
-	reqBody := `{"model":"deepseek-v4-flash","messages":[{"role":"system","content":"old response context"},{"role":"user","content":"find response language support"},{"role":"assistant","content":"I will search.","tool_calls":[{"id":"call_1","type":"function","function":{"name":"search_code","arguments":{"query":"response language support"}}}]},{"role":"tool","tool_call_id":"call_1","name":"search_code","content":"found: responses supports en, zh"}]}`
+	reqBody := `{"model":"deepseek-flash","messages":[{"role":"system","content":"old response context"},{"role":"user","content":"find response language support"},{"role":"assistant","content":"I will search.","tool_calls":[{"id":"call_1","type":"function","function":{"name":"search_code","arguments":{"query":"response language support"}}}]},{"role":"tool","tool_call_id":"call_1","name":"search_code","content":"found: responses supports en, zh"}]}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(reqBody))
 	req.Header.Set("Authorization", "Bearer managed-key")
 	req.Header.Set("Content-Type", "application/json")
@@ -138,7 +138,7 @@ func TestResponsesRecordsResponseHistory(t *testing.T) {
 	r := chi.NewRouter()
 	RegisterRoutes(r, h)
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"model":"deepseek-v4-flash","input":"hello responses"}`))
+	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"model":"deepseek-flash","input":"hello responses"}`))
 	req.Header.Set("Authorization", "Bearer managed-key")
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()

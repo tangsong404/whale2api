@@ -79,17 +79,17 @@ func (m mockOpenAIConfig) ThinkingInjectionPrompt() string { return m.thinkingPr
 
 func TestNormalizeOpenAIChatRequestFlash(t *testing.T) {
 	req := map[string]any{
-		"model":    "deepseek-v4-flash",
+		"model":    "deepseek-flash",
 		"messages": []any{map[string]any{"role": "user", "content": "hello"}},
 	}
 	out, err := promptcompat.NormalizeOpenAIChatRequest(req, "")
 	if err != nil {
 		t.Fatalf("promptcompat.NormalizeOpenAIChatRequest error: %v", err)
 	}
-	if out.ResolvedModel != "deepseek-v4-flash" {
+	if out.ResolvedModel != "deepseek-flash" {
 		t.Fatalf("resolved model mismatch: got=%q", out.ResolvedModel)
 	}
-	if out.ResponseModel != "deepseek-v4-flash" {
+	if out.ResponseModel != "deepseek-flash" {
 		t.Fatalf("response model mismatch: got=%q", out.ResponseModel)
 	}
 	if out.Search || !out.Thinking {
@@ -97,27 +97,14 @@ func TestNormalizeOpenAIChatRequestFlash(t *testing.T) {
 	}
 }
 
-func TestNormalizeOpenAIChatRequestFlashVisionExp(t *testing.T) {
+func TestNormalizeOpenAIChatRequestRejectsRetiredVisionExpModel(t *testing.T) {
 	req := map[string]any{
 		"model":    "deepseek-v4-flash-vision-exp",
 		"messages": []any{map[string]any{"role": "user", "content": "hello"}},
 	}
 	out, err := promptcompat.NormalizeOpenAIChatRequest(req, "")
-	if err != nil {
-		t.Fatalf("promptcompat.NormalizeOpenAIChatRequest error: %v", err)
-	}
-	if out.ResolvedModel != "deepseek-v4-flash-vision-exp" {
-		t.Fatalf("resolved model mismatch: got=%q", out.ResolvedModel)
-	}
-	if out.ResponseModel != "deepseek-v4-flash-vision-exp" {
-		t.Fatalf("response model mismatch: got=%q", out.ResponseModel)
-	}
-	if out.Search || !out.Thinking {
-		t.Fatalf("unexpected model flags: thinking=%v search=%v", out.Thinking, out.Search)
-	}
-	payload := out.CompletionPayload("session-vision")
-	if got := payload["model_type"]; got != "vision" {
-		t.Fatalf("expected model_type vision, got %#v", got)
+	if err == nil {
+		t.Fatalf("expected retired vision-exp model to be rejected, got resolved=%q", out.ResolvedModel)
 	}
 }
 
@@ -161,7 +148,7 @@ func TestNormalizeOpenAIChatRequestRejectsNoThinkingModel(t *testing.T) {
 
 	req := map[string]any{
 
-		"model":    "deepseek-v4-flash-nothinking",
+		"model":    "deepseek-flash-nothinking",
 
 		"messages": []any{map[string]any{"role": "user", "content": "hello"}},
 
@@ -183,7 +170,7 @@ func TestNormalizeOpenAIResponsesRequestAlwaysAcceptsWideInput(t *testing.T) {
 
 	req := map[string]any{
 
-		"model": "deepseek-v4-flash",
+		"model": "deepseek-flash",
 
 		"input": "hi",
 
