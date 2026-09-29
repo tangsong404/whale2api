@@ -1,8 +1,14 @@
 package accountprobe
 
 import (
+	"context"
+	"fmt"
+	"strings"
 	"testing"
 
+	"whale2api/internal/auth"
+	"whale2api/internal/config"
+	dsclient "whale2api/internal/deepseek/client"
 	"whale2api/internal/poolaccounthealth"
 	"whale2api/internal/pooldb"
 )
@@ -50,5 +56,62 @@ func TestProbeOKDespiteTransport(t *testing.T) {
 	}
 	if r.PoolStatus != "active" || r.AutoDiscard {
 		t.Fatalf("transport-tolerant ok must not discard: %+v", r)
+	}
+}
+
+func TestProbeDeviceHarvestUnavailableIsFailure(t *testing.T) {
+	harvestErr := fmt.Errorf("%w: Post \"http://127.0.0.1:8090/harvest\": dial tcp 127.0.0.1:8090: connect: connection refused", auth.ErrDeviceHarvestUnavailable)
+	// Guard the fixture: this message shape would be swallowed by the transient path today.
+	if !poolaccounthealth.IsTransientProbeError(harvestErr.Error()) {
+		t.Fatalf("fixture no longer looks transient: %v", harvestErr)
+	}
+
+	res := ProbeWithLogin(context.Background(), nil, func(context.Context, config.Account) (string, error) {
+		return "", harvestErr
+	}, config.Account{Email: "a@example.com"}, "")
+
+	if res.OK {
+		t.Fatalf("harvest outage must not report the account available: %+v", res)
+	}
+	if res.PoolStatus != "" || res.DiscardReason != "" || res.AutoDiscard {
+		t.Fatalf("harvest outage must not change pool state: %+v", res)
+	}
+	if !strings.Contains(res.Message, "device harvest service unavailable") {
+		t.Fatalf("message = %q", res.Message)
+	}
+}
+
+func TestProbeNoUsableDeviceTokenIsFailure(t *testing.T) {
+	inner := &dsclient.RequestFailure{Op: "login", Kind: dsclient.FailureDeviceRejected, Message: "RISK_DEVICE_DETECTED"}
+	terminalErr := fmt.Errorf("%w: %w", auth.ErrNoUsableDeviceToken, inner)
+
+	res := ProbeWithLogin(context.Background(), nil, func(context.Context, config.Account) (string, error) {
+		return "", terminalErr
+	}, config.Account{Email: "a@example.com"}, "")
+
+	if res.OK {
+		t.Fatalf("terminal device rejection must not report available: %+v", res)
+	}
+	if res.PoolStatus != "" || res.DiscardReason != "" || res.AutoDiscard {
+		t.Fatalf("device rejection must not change pool state: %+v", res)
+	}
+	if !strings.Contains(res.Message, "no usable device token") {
+		t.Fatalf("message lost the reason: %q", res.Message)
+	}
+}
+
+func TestProbeDeviceRejectedErrorIsFailure(t *testing.T) {
+	res := ProbeWithLogin(context.Background(), nil, func(context.Context, config.Account) (string, error) {
+		return "", &dsclient.RequestFailure{Op: "login", Kind: dsclient.FailureDeviceRejected, Message: "RISK_DEVICE_DETECTED"}
+	}, config.Account{Email: "a@example.com"}, "")
+
+	if res.OK {
+		t.Fatalf("device rejection must not report available: %+v", res)
+	}
+	if res.PoolStatus != "" || res.AutoDiscard {
+		t.Fatalf("device rejection must not be classified as mute/ban: %+v", res)
+	}
+	if !strings.Contains(res.Message, "RISK_DEVICE_DETECTED") {
+		t.Fatalf("message = %q", res.Message)
 	}
 }

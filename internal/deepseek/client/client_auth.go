@@ -14,10 +14,29 @@ import (
 )
 
 func (c *Client) Login(ctx context.Context, acc config.Account) (string, error) {
+	payload, err := loginPayload(acc)
+	if err != nil {
+		return "", err
+	}
 	clients := c.requestClientsForAccount(acc)
+	resp, err := c.postJSON(ctx, clients.regular, clients.fallback, dsprotocol.DeepSeekLoginURL, dsprotocol.BaseHeaders, payload)
+	if err != nil {
+		return "", err
+	}
+	return parseLoginResponse(resp)
+}
+
+// loginPayload builds the DeepSeek login body. The device_id must be a real
+// Shumei device token harvested from a browser; a missing token is sent as an
+// empty value (legacy-compatible) and only warned about, never hardcoded.
+func loginPayload(acc config.Account) (map[string]any, error) {
+	deviceID := strings.TrimSpace(acc.DeviceID)
+	if deviceID == "" {
+		config.Logger.Warn("[login] account has no device token; DeepSeek risk control may reject this login", "account", acc.Identifier())
+	}
 	payload := map[string]any{
 		"password":  strings.TrimSpace(acc.Password),
-		"device_id": "deepseek_to_api",
+		"device_id": deviceID,
 		"os":        "android",
 	}
 	if email := strings.TrimSpace(acc.Email); email != "" {
@@ -27,19 +46,30 @@ func (c *Client) Login(ctx context.Context, acc config.Account) (string, error) 
 		payload["mobile"] = loginMobile
 		payload["area_code"] = areaCode
 	} else {
-		return "", errors.New("missing email/mobile")
+		return nil, errors.New("missing email/mobile")
 	}
-	resp, err := c.postJSON(ctx, clients.regular, clients.fallback, dsprotocol.DeepSeekLoginURL, dsprotocol.BaseHeaders, payload)
-	if err != nil {
-		return "", err
-	}
+	return payload, nil
+}
+
+// parseLoginResponse extracts the upstream token and maps risk-control device
+// rejections (biz_code 11 / RISK_DEVICE_DETECTED) to FailureDeviceRejected.
+func parseLoginResponse(resp map[string]any) (string, error) {
 	code := intFrom(resp["code"])
 	if code != 0 {
 		return "", fmt.Errorf("login failed: %v", resp["msg"])
 	}
 	data, _ := resp["data"].(map[string]any)
-	if intFrom(data["biz_code"]) != 0 {
-		return "", fmt.Errorf("login failed: %v", data["biz_msg"])
+	bizCode := intFrom(data["biz_code"])
+	bizMsg, _ := data["biz_msg"].(string)
+	if isDeviceRiskLoginFailure(bizCode, bizMsg) {
+		return "", &RequestFailure{
+			Op:      "login",
+			Kind:    FailureDeviceRejected,
+			Message: failureMessage("", bizMsg, "RISK_DEVICE_DETECTED"),
+		}
+	}
+	if bizCode != 0 {
+		return "", fmt.Errorf("login failed: %v", bizMsg)
 	}
 	bizData, _ := data["biz_data"].(map[string]any)
 	user, _ := bizData["user"].(map[string]any)
@@ -48,6 +78,13 @@ func (c *Client) Login(ctx context.Context, acc config.Account) (string, error) 
 		return "", errors.New("missing login token")
 	}
 	return token, nil
+}
+
+func isDeviceRiskLoginFailure(bizCode int, bizMsg string) bool {
+	if bizCode == 11 {
+		return true
+	}
+	return strings.Contains(strings.ToUpper(strings.TrimSpace(bizMsg)), "RISK_DEVICE_DETECTED")
 }
 
 func (c *Client) CreateSession(ctx context.Context, a *auth.RequestAuth, maxAttempts int) (string, error) {

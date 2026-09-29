@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"whale2api/internal/config"
 )
@@ -60,7 +61,7 @@ SELECT enabled FROM gateway_api_keys WHERE api_key = ?
 		return nil, ErrAPIKeyDisabled
 	}
 	rows, err := db.sql.QueryContext(ctx, `
-SELECT pa.identifier, pa.password, pa.token
+SELECT pa.identifier, pa.password, pa.token, COALESCE(pa.device_id, '')
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ? AND COALESCE(pa.discarded, 0) = 0
@@ -72,8 +73,8 @@ ORDER BY pb.position ASC, pa.id ASC
 	defer rows.Close()
 	var out []config.Account
 	for rows.Next() {
-		var identifier, password, token string
-		if err := rows.Scan(&identifier, &password, &token); err != nil {
+		var identifier, password, token, deviceID string
+		if err := rows.Scan(&identifier, &password, &token, &deviceID); err != nil {
 			return nil, err
 		}
 		id := strings.TrimSpace(identifier)
@@ -84,6 +85,9 @@ ORDER BY pb.position ASC, pa.id ASC
 			Email:    id,
 			Password: password,
 			Token:    token,
+			DeviceID: strings.TrimSpace(deviceID),
+			// Preserve the raw pool_accounts identifier for device-token updates.
+			PoolIdentifier: id,
 		})
 	}
 	if err := rows.Err(); err != nil {
@@ -125,5 +129,46 @@ func (db *DB) ClearAccountToken(ctx context.Context, identifier string) error {
 		return nil
 	}
 	_, err := db.sql.ExecContext(ctx, `UPDATE pool_accounts SET token = ? WHERE identifier = ?`, "", identifier)
+	return err
+}
+
+// UpdateAccountDeviceID persists a freshly harvested device token and its timestamp.
+func (db *DB) UpdateAccountDeviceID(ctx context.Context, identifier, deviceID string) error {
+	if err := db.configured(); err != nil {
+		return err
+	}
+	identifier = strings.TrimSpace(identifier)
+	deviceID = strings.TrimSpace(deviceID)
+	if identifier == "" {
+		return fmt.Errorf("empty identifier")
+	}
+	if deviceID == "" {
+		return fmt.Errorf("empty device_id")
+	}
+	res, err := db.sql.ExecContext(ctx, `UPDATE pool_accounts SET device_id = ?, device_id_updated_at = ? WHERE identifier = ?`,
+		deviceID, time.Now().UTC().Format(time.RFC3339), identifier)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("pool account not found for identifier %q", identifier)
+	}
+	return nil
+}
+
+// ClearAccountDeviceID drops the stored device token so the next login re-harvests one.
+func (db *DB) ClearAccountDeviceID(ctx context.Context, identifier string) error {
+	if err := db.configured(); err != nil {
+		return err
+	}
+	identifier = strings.TrimSpace(identifier)
+	if identifier == "" {
+		return nil
+	}
+	_, err := db.sql.ExecContext(ctx, `UPDATE pool_accounts SET device_id = '', device_id_updated_at = NULL WHERE identifier = ?`, identifier)
 	return err
 }

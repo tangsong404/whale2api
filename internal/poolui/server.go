@@ -13,14 +13,19 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"whale2api/internal/auth"
 	"whale2api/internal/config"
+	dsclient "whale2api/internal/deepseek/client"
+	"whale2api/internal/deviceharvest"
 	"whale2api/internal/pooldb"
 )
 
 type Server struct {
-	DB     *pooldb.DB
-	Token  string
-	Router http.Handler
+	DB    *pooldb.DB
+	Token string
+	// Resolver provides device-token-aware logins for account probes (optional).
+	Resolver *auth.Resolver
+	Router   http.Handler
 }
 
 func NewServer(db *pooldb.DB) (*Server, error) {
@@ -30,6 +35,15 @@ func NewServer(db *pooldb.DB) (*Server, error) {
 		config.Logger.Warn("[poolui] POOL_UI_ADMIN_TOKEN unset; using default (unsafe)")
 	}
 	s := &Server{DB: db, Token: token}
+	// Probes reuse the gateway resolver's on-demand device token flow so a probe
+	// can repair a missing/rejected device token the same way runtime traffic does.
+	ds := dsclient.NewClient(nil, nil)
+	resolver := auth.NewResolver(nil, func(ctx context.Context, acc config.Account) (string, error) {
+		return ds.Login(ctx, acc)
+	})
+	resolver.PoolDB = db
+	resolver.DeviceHarvest = deviceharvest.NewFromEnv()
+	s.Resolver = resolver
 	if n, err := db.ResetAllRunningAccountTestJobs(context.Background()); err != nil {
 		return nil, fmt.Errorf("reset stale account test jobs: %w", err)
 	} else if n > 0 {
@@ -62,6 +76,7 @@ func NewServer(db *pooldb.DB) (*Server, error) {
 		ar.Post("/keys/{api_key}/accounts/{identifier}/test", s.testOneAccount)
 		ar.Post("/keys/{api_key}/accounts/{identifier}/discard", s.discardAccount)
 		ar.Post("/keys/{api_key}/accounts/{identifier}/restore", s.restoreAccount)
+		ar.Post("/keys/{api_key}/accounts/device-id/clear", s.clearAccountDeviceID)
 	})
 
 	r.NotFound(s.serveStatic)
@@ -198,13 +213,14 @@ func (s *Server) addAccount(w http.ResponseWriter, r *http.Request) {
 		Email      string `json:"email"`
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
+		DeviceID   string `json:"device_id"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&req)
 	ident := strings.TrimSpace(req.Identifier)
 	if ident == "" {
 		ident = strings.TrimSpace(req.Email)
 	}
-	if err := s.DB.AddAccountToPool(r.Context(), key, ident, req.Password); err != nil {
+	if err := s.DB.AddAccountToPool(r.Context(), key, ident, req.Password, req.DeviceID); err != nil {
 		writeErr(w, err)
 		return
 	}
@@ -227,7 +243,9 @@ func (s *Server) exportCSV(w http.ResponseWriter, r *http.Request) {
 		strings.EqualFold(r.URL.Query().Get("active_only"), "true") {
 		includeDiscarded = false
 	}
-	body, err := s.DB.ExportAccountsCSV(r.Context(), key, includeDiscarded)
+	includeDeviceID := strings.TrimSpace(r.URL.Query().Get("include_device_id")) == "1" ||
+		strings.EqualFold(r.URL.Query().Get("include_device_id"), "true")
+	body, err := s.DB.ExportAccountsCSV(r.Context(), key, includeDiscarded, includeDeviceID)
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -284,6 +302,33 @@ func (s *Server) restoreAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"success": true, "discarded": false})
+}
+
+// clearAccountDeviceID drops the stored device token so the next login (or
+// probe) harvests a fresh one. Body: {"identifier":"..."}.
+func (s *Server) clearAccountDeviceID(w http.ResponseWriter, r *http.Request) {
+	key := routeAPIKey(r)
+	var req struct {
+		Identifier string `json:"identifier"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"detail": "invalid json"})
+		return
+	}
+	ident := strings.TrimSpace(req.Identifier)
+	if ident == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"detail": "identifier is required"})
+		return
+	}
+	if _, err := s.DB.GetPoolAccountCredential(r.Context(), key, ident); err != nil {
+		writeErr(w, err)
+		return
+	}
+	if err := s.DB.ClearAccountDeviceID(r.Context(), ident); err != nil {
+		writeErr(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"success": true})
 }
 
 func writeErr(w http.ResponseWriter, err error) {

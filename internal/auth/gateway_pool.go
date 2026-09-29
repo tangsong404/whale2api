@@ -12,6 +12,8 @@ type GatewayPool interface {
 	GatewayKeyExists(ctx context.Context, apiKey string) (bool, error)
 	UpdateAccountToken(ctx context.Context, identifier, token string) error
 	ClearAccountToken(ctx context.Context, identifier string) error
+	UpdateAccountDeviceID(ctx context.Context, identifier, deviceID string) error
+	ClearAccountDeviceID(ctx context.Context, identifier string) error
 }
 
 // PoolAdmin updates per-key account pool state (discard / restore).

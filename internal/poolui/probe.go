@@ -45,8 +45,12 @@ func (s *Server) probeOneAccount(ctx context.Context, apiKey string, cred pooldb
 		return row
 	}
 
-	acc := pooldb.AccountToConfig(cred.Identifier, cred.Password)
-	probe := accountprobe.Probe(ctx, ds, acc, accountprobe.DefaultProbePrompt)
+	acc := pooldb.AccountToConfig(cred.Identifier, cred.Password, cred.DeviceID)
+	var login accountprobe.LoginFunc
+	if s.Resolver != nil {
+		login = s.Resolver.LoginWithDevice
+	}
+	probe := accountprobe.ProbeWithLogin(ctx, ds, login, acc, accountprobe.DefaultProbePrompt)
 	row.PoolStatus = probe.PoolStatus
 	row.DiscardReason = probe.DiscardReason
 

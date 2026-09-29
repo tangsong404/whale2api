@@ -18,17 +18,21 @@ type GatewayKeyRow struct {
 }
 
 type PoolAccountRow struct {
-	Identifier     string    `json:"identifier"`
-	HasPassword    bool      `json:"has_password"`
-	TokenPreview   string    `json:"token_preview,omitempty"`
-	Token          string    `json:"token,omitempty"`
-	HasToken       bool      `json:"has_token"`
-	Position       int       `json:"position"`
-	Discarded      bool      `json:"discarded"`
-	DiscardReason  string    `json:"discard_reason,omitempty"`
-	PoolStatusText string    `json:"pool_status_text"`
-	CreatedAt      time.Time `json:"created_at,omitempty"`
-	MuteUntil      time.Time `json:"mute_until,omitempty"`
+	Identifier        string    `json:"identifier"`
+	HasPassword       bool      `json:"has_password"`
+	TokenPreview      string    `json:"token_preview,omitempty"`
+	Token             string    `json:"token,omitempty"`
+	HasToken          bool      `json:"has_token"`
+	HasDeviceID       bool      `json:"has_device_id"`
+	DeviceID          string    `json:"device_id,omitempty"`
+	DeviceIDPreview   string    `json:"device_id_preview,omitempty"`
+	DeviceIDUpdatedAt time.Time `json:"device_id_updated_at,omitempty"`
+	Position          int       `json:"position"`
+	Discarded         bool      `json:"discarded"`
+	DiscardReason     string    `json:"discard_reason,omitempty"`
+	PoolStatusText    string    `json:"pool_status_text"`
+	CreatedAt         time.Time `json:"created_at,omitempty"`
+	MuteUntil         time.Time `json:"mute_until,omitempty"`
 }
 
 func maskTokenPreview(token string) string {
@@ -143,7 +147,7 @@ func (db *DB) ListPoolAccounts(ctx context.Context, apiKey string) ([]PoolAccoun
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	rows, err := db.sql.QueryContext(ctx, `
-SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, ''), pa.created_at, COALESCE(pa.mute_until, '')
+SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, ''), pa.created_at, COALESCE(pa.mute_until, ''), COALESCE(pa.device_id, ''), COALESCE(pa.device_id_updated_at, '')
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ?
@@ -160,9 +164,9 @@ func scanPoolAccountRows(rows *sql.Rows) ([]PoolAccountRow, error) {
 	var out []PoolAccountRow
 	for rows.Next() {
 		var row PoolAccountRow
-		var password, token, createdAt, muteUntil string
+		var password, token, createdAt, muteUntil, deviceID, deviceUpdatedAt string
 		var discarded int
-		if err := rows.Scan(&row.Identifier, &password, &token, &row.Position, &discarded, &row.DiscardReason, &createdAt, &muteUntil); err != nil {
+		if err := rows.Scan(&row.Identifier, &password, &token, &row.Position, &discarded, &row.DiscardReason, &createdAt, &muteUntil, &deviceID, &deviceUpdatedAt); err != nil {
 			return nil, err
 		}
 		row.Discarded = discarded != 0
@@ -172,6 +176,9 @@ func scanPoolAccountRows(rows *sql.Rows) ([]PoolAccountRow, error) {
 		if row.HasToken {
 			row.Token = token
 		}
+		row.HasDeviceID = strings.TrimSpace(deviceID) != ""
+		row.DeviceID = strings.TrimSpace(deviceID)
+		row.DeviceIDPreview = maskTokenPreview(deviceID)
 		row.PoolStatusText = PoolStatusLabel(row.Discarded, row.DiscardReason)
 		if t, err := time.Parse(time.RFC3339Nano, createdAt); err == nil {
 			row.CreatedAt = t
@@ -184,6 +191,13 @@ func scanPoolAccountRows(rows *sql.Rows) ([]PoolAccountRow, error) {
 			row.MuteUntil = t
 		} else if t, err := time.Parse("2006-01-02 15:04:05", muteUntil); err == nil {
 			row.MuteUntil = t
+		}
+		if t, err := time.Parse(time.RFC3339Nano, deviceUpdatedAt); err == nil {
+			row.DeviceIDUpdatedAt = t
+		} else if t, err := time.Parse(time.RFC3339, deviceUpdatedAt); err == nil {
+			row.DeviceIDUpdatedAt = t
+		} else if t, err := time.Parse("2006-01-02 15:04:05", deviceUpdatedAt); err == nil {
+			row.DeviceIDUpdatedAt = t
 		}
 		out = append(out, row)
 	}
@@ -198,13 +212,28 @@ SELECT COALESCE(MAX(position), -1) + 1 FROM pool_bindings WHERE api_key = ?
 	return pos, err
 }
 
+// firstDeviceToken returns the first non-empty token from a value that may
+// contain several device tokens separated by "|". The device-harvest CLI can
+// emit multiple harvested tokens joined by "|"; a login only needs one, so the
+// extras are dropped at import time.
+func firstDeviceToken(deviceID string) string {
+	for _, part := range strings.Split(deviceID, "|") {
+		if part = strings.TrimSpace(part); part != "" {
+			return part
+		}
+	}
+	return ""
+}
+
 // AddAccountToPool upserts pool_accounts and binds it to the gateway key's pool.
-func (db *DB) AddAccountToPool(ctx context.Context, apiKey, identifier, password string) error {
+// A non-empty deviceID refreshes the stored device token; an empty one keeps the existing value.
+func (db *DB) AddAccountToPool(ctx context.Context, apiKey, identifier, password, deviceID string) error {
 	if err := db.configured(); err != nil {
 		return err
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	identifier = strings.TrimSpace(identifier)
+	deviceID = firstDeviceToken(deviceID)
 	if apiKey == "" || identifier == "" {
 		return fmt.Errorf("api_key and identifier are required")
 	}
@@ -219,14 +248,21 @@ func (db *DB) AddAccountToPool(ctx context.Context, apiKey, identifier, password
 		return fmt.Errorf("gateway api key not found")
 	}
 
+	var deviceUpdatedAt any
+	if deviceID != "" {
+		deviceUpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	}
+
 	var accountID int64
 	err = tx.QueryRowContext(ctx, `
-INSERT INTO pool_accounts (identifier, password) VALUES (?, ?)
+INSERT INTO pool_accounts (identifier, password, device_id, device_id_updated_at) VALUES (?, ?, ?, ?)
 ON CONFLICT (identifier) DO UPDATE SET
   password = CASE WHEN excluded.password <> '' THEN excluded.password ELSE pool_accounts.password END,
+  device_id = CASE WHEN excluded.device_id <> '' THEN excluded.device_id ELSE pool_accounts.device_id END,
+  device_id_updated_at = CASE WHEN excluded.device_id <> '' THEN excluded.device_id_updated_at ELSE pool_accounts.device_id_updated_at END,
   discarded = 0
 RETURNING id
-`, identifier, password).Scan(&accountID)
+`, identifier, password, deviceID, deviceUpdatedAt).Scan(&accountID)
 	if err != nil {
 		return err
 	}

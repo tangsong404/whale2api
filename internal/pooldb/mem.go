@@ -14,6 +14,7 @@ type Mem struct {
 	keys    map[string]bool
 	pools   map[string][]config.Account
 	tokens  map[string]string
+	devices map[string]string
 	discard map[string]map[string]string // api_key -> identifier -> reason
 }
 
@@ -22,6 +23,7 @@ func NewMem() *Mem {
 		keys:    map[string]bool{},
 		pools:   map[string][]config.Account{},
 		tokens:  map[string]string{},
+		devices: map[string]string{},
 		discard: map[string]map[string]string{},
 	}
 }
@@ -41,6 +43,9 @@ func (m *Mem) RegisterKey(apiKey string, accounts []config.Account, enabled bool
 		id := acc.Identifier()
 		if id != "" && acc.Token != "" {
 			m.tokens[id] = acc.Token
+		}
+		if id != "" && strings.TrimSpace(acc.DeviceID) != "" {
+			m.devices[id] = strings.TrimSpace(acc.DeviceID)
 		}
 	}
 }
@@ -80,6 +85,9 @@ func (m *Mem) LoadAccountsForAPIKey(_ context.Context, apiKey string) ([]config.
 		if tok, ok := m.tokens[id]; ok {
 			acc.Token = tok
 		}
+		if dev, ok := m.devices[id]; ok {
+			acc.DeviceID = dev
+		}
 		out = append(out, acc)
 	}
 	return limitAccounts(out), nil
@@ -106,6 +114,45 @@ func (m *Mem) UpdateAccountToken(_ context.Context, identifier, token string) er
 
 func (m *Mem) ClearAccountToken(ctx context.Context, identifier string) error {
 	return m.UpdateAccountToken(ctx, identifier, "")
+}
+
+func (m *Mem) UpdateAccountDeviceID(_ context.Context, identifier, deviceID string) error {
+	identifier = strings.TrimSpace(identifier)
+	deviceID = firstDeviceToken(deviceID)
+	if identifier == "" || deviceID == "" {
+		return nil
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.devices[identifier] = deviceID
+	for key, accounts := range m.pools {
+		for i, acc := range accounts {
+			if acc.Identifier() == identifier {
+				acc.DeviceID = deviceID
+				m.pools[key][i] = acc
+			}
+		}
+	}
+	return nil
+}
+
+func (m *Mem) ClearAccountDeviceID(_ context.Context, identifier string) error {
+	identifier = strings.TrimSpace(identifier)
+	if identifier == "" {
+		return nil
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.devices, identifier)
+	for key, accounts := range m.pools {
+		for i, acc := range accounts {
+			if acc.Identifier() == identifier {
+				acc.DeviceID = ""
+				m.pools[key][i] = acc
+			}
+		}
+	}
+	return nil
 }
 
 func (m *Mem) SetAccountPoolState(_ context.Context, apiKey, identifier string, discarded bool, reason string) error {

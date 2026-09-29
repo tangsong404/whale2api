@@ -148,7 +148,7 @@ func (db *DB) ListPoolAccountsAll(ctx context.Context, apiKey string, includeDis
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	q := `
-SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, ''), pa.created_at, COALESCE(pa.mute_until, '')
+SELECT pa.identifier, pa.password, pa.token, pb.position, COALESCE(pa.discarded, 0), COALESCE(pa.discard_reason, ''), pa.created_at, COALESCE(pa.mute_until, ''), COALESCE(pa.device_id, ''), COALESCE(pa.device_id_updated_at, '')
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ?`
@@ -164,7 +164,9 @@ WHERE pb.api_key = ?`
 	return scanPoolAccountRows(rows)
 }
 
-// ImportAccountsCSV imports rows with columns identifier/email/mobile and password.
+// ImportAccountsCSV imports rows with columns identifier/email/mobile, password and an
+// optional third device_id column (header names accepted; without a header the columns
+// are positional: identifier, password, device_id).
 func (db *DB) ImportAccountsCSV(ctx context.Context, apiKey string, r io.Reader) (ImportResult, error) {
 	if err := db.configured(); err != nil {
 		return ImportResult{}, err
@@ -199,9 +201,10 @@ func (db *DB) ImportAccountsCSV(ctx context.Context, apiKey string, r io.Reader)
 
 	header := records[0]
 	start := 0
-	idCol, passCol := 0, 1
-	if looksLikeHeader(header) {
-		idCol, passCol = mapCSVColumns(header)
+	idCol, passCol, deviceCol := 0, 1, 2
+	hasHeader := looksLikeHeader(header)
+	if hasHeader {
+		idCol, passCol, deviceCol = mapCSVColumns(header)
 		start = 1
 	}
 	if passCol < 0 {
@@ -235,12 +238,21 @@ func (db *DB) ImportAccountsCSV(ctx context.Context, apiKey string, r io.Reader)
 		if passCol < len(row) {
 			pass = strings.TrimSpace(row[passCol])
 		}
+		deviceID := ""
+		if deviceCol >= 0 && deviceCol < len(row) {
+			deviceID = strings.TrimSpace(row[deviceCol])
+			// Headerless legacy layout is identifier,password,discarded: a boolean
+			// third column must not be imported as a device token.
+			if !hasHeader && deviceCol == 2 && isLegacyDiscardedValue(deviceID) {
+				deviceID = ""
+			}
+		}
 		if ident == "" {
 			res.Skipped++
 			res.Errors = append(res.Errors, fmt.Sprintf("row %d: missing identifier", i+1))
 			continue
 		}
-		if err := db.AddAccountToPool(ctx, apiKey, ident, pass); err != nil {
+		if err := db.AddAccountToPool(ctx, apiKey, ident, pass, deviceID); err != nil {
 			if IsUniqueViolation(err) {
 				_ = db.SetAccountDiscarded(ctx, apiKey, ident, false)
 				res.Skipped++
@@ -263,8 +275,8 @@ func looksLikeHeader(row []string) bool {
 		strings.Contains(joined, "password") || strings.Contains(joined, "mobile")
 }
 
-func mapCSVColumns(header []string) (idCol, passCol int) {
-	idCol, passCol = 0, 1
+func mapCSVColumns(header []string) (idCol, passCol, deviceCol int) {
+	idCol, passCol, deviceCol = 0, 1, -1
 	for i, h := range header {
 		h = strings.ToLower(strings.TrimSpace(h))
 		switch {
@@ -272,9 +284,11 @@ func mapCSVColumns(header []string) (idCol, passCol int) {
 			idCol = i
 		case h == "password" || h == "pass" || h == "pwd":
 			passCol = i
+		case h == "device_id" || h == "device_ids" || h == "deviceid" || h == "device" || h == "device_token":
+			deviceCol = i
 		}
 	}
-	return idCol, passCol
+	return idCol, passCol, deviceCol
 }
 
 func rowIsEmpty(row []string) bool {
@@ -284,6 +298,17 @@ func rowIsEmpty(row []string) bool {
 		}
 	}
 	return true
+}
+
+// isLegacyDiscardedValue reports whether a headerless third column carries the
+// old email,password,discarded boolean flag instead of a device token.
+func isLegacyDiscardedValue(s string) bool {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "true", "false":
+		return true
+	default:
+		return false
+	}
 }
 
 // UpdateGatewayKeyMeta updates name/remark/enabled without changing the key string.

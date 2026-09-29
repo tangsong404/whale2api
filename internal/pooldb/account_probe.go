@@ -14,6 +14,7 @@ import (
 type PoolAccountCredential struct {
 	Identifier string
 	Password   string
+	DeviceID   string
 	Discarded  bool
 }
 
@@ -27,11 +28,11 @@ func (db *DB) GetPoolAccountCredential(ctx context.Context, apiKey, identifier s
 	var cred PoolAccountCredential
 	var discarded int
 	err := db.sql.QueryRowContext(ctx, `
-SELECT pa.identifier, pa.password, COALESCE(pa.discarded, 0)
+SELECT pa.identifier, pa.password, COALESCE(pa.device_id, ''), COALESCE(pa.discarded, 0)
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ? AND pa.identifier = ?
-`, apiKey, identifier).Scan(&cred.Identifier, &cred.Password, &discarded)
+`, apiKey, identifier).Scan(&cred.Identifier, &cred.Password, &cred.DeviceID, &discarded)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return PoolAccountCredential{}, fmt.Errorf("account not in pool")
@@ -49,7 +50,7 @@ func (db *DB) ListPoolAccountCredentials(ctx context.Context, apiKey string, ide
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	q := `
-SELECT pa.identifier, pa.password, COALESCE(pa.discarded, 0)
+SELECT pa.identifier, pa.password, COALESCE(pa.device_id, ''), COALESCE(pa.discarded, 0)
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ?`
@@ -74,7 +75,7 @@ WHERE pb.api_key = ?`
 	for rows.Next() {
 		var cred PoolAccountCredential
 		var discarded int
-		if err := rows.Scan(&cred.Identifier, &cred.Password, &discarded); err != nil {
+		if err := rows.Scan(&cred.Identifier, &cred.Password, &cred.DeviceID, &discarded); err != nil {
 			return nil, err
 		}
 		cred.Discarded = discarded != 0
@@ -88,10 +89,16 @@ WHERE pb.api_key = ?`
 	return out, rows.Err()
 }
 
-// AccountToConfig maps stored identifier + password to config.Account for DeepSeek login.
-func AccountToConfig(identifier, password string) config.Account {
+// AccountToConfig maps stored identifier + password + device token to config.Account for DeepSeek login.
+func AccountToConfig(identifier, password, deviceID string) config.Account {
 	identifier = strings.TrimSpace(identifier)
-	acc := config.Account{Password: strings.TrimSpace(password)}
+	acc := config.Account{
+		Password: strings.TrimSpace(password),
+		DeviceID: strings.TrimSpace(deviceID),
+		// Keep the raw DB identifier for Update/ClearAccountDeviceID lookups even
+		// when the login credential itself is a mobile number.
+		PoolIdentifier: identifier,
+	}
 	if strings.Contains(identifier, "@") {
 		acc.Email = identifier
 	} else {

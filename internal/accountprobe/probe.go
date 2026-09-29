@@ -2,6 +2,7 @@ package accountprobe
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -18,7 +19,7 @@ import (
 )
 
 const (
-	defaultProbeModel  = "deepseek-v4-flash"
+	defaultProbeModel  = "deepseek-flash"
 	DefaultProbePrompt = "Reply with only: pong"
 )
 
@@ -33,14 +34,35 @@ type Result struct {
 	MuteUntil     *time.Time
 }
 
+// LoginFunc authenticates an account and returns an upstream token.
+// auth.Resolver.LoginWithDevice satisfies it and adds on-demand device token
+// harvesting plus a one-shot retry after device rejection.
+type LoginFunc func(ctx context.Context, acc config.Account) (string, error)
+
 // Probe logs in and sends a short completion to classify account health.
 func Probe(ctx context.Context, ds *dsclient.Client, acc config.Account, prompt string) Result {
+	return ProbeWithLogin(ctx, ds, nil, acc, prompt)
+}
+
+// ProbeWithLogin is Probe with a custom login function (nil falls back to ds.Login).
+func ProbeWithLogin(ctx context.Context, ds *dsclient.Client, login LoginFunc, acc config.Account, prompt string) Result {
 	if strings.TrimSpace(prompt) == "" {
 		prompt = DefaultProbePrompt
 	}
+	if login == nil {
+		login = ds.Login
+	}
 	ident := strings.TrimSpace(acc.Identifier())
-	token, err := ds.Login(ctx, acc)
+	token, err := login(ctx, acc)
 	if err != nil {
+		// Device-token failures are neither mute/ban nor transient: never mark
+		// the account available or discard it because of them.
+		if errors.Is(err, auth.ErrDeviceHarvestUnavailable) {
+			return Result{OK: false, Message: "device harvest service unavailable: " + err.Error()}
+		}
+		if errors.Is(err, auth.ErrNoUsableDeviceToken) || dsclient.IsDeviceRejectedError(err) {
+			return Result{OK: false, Message: err.Error()}
+		}
 		if reason := poolaccounthealth.ClassifyLoginError(err.Error()); reason != "" {
 			return Result{
 				OK:            false,

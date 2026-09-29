@@ -11,6 +11,7 @@ import (
 type PoolAccountExportRow struct {
 	Identifier string
 	Password   string
+	DeviceID   string
 	Discarded  bool
 }
 
@@ -21,7 +22,7 @@ func (db *DB) ListPoolAccountsForExport(ctx context.Context, apiKey string, incl
 	}
 	apiKey = strings.TrimSpace(apiKey)
 	q := `
-SELECT pa.identifier, pa.password, COALESCE(pa.discarded, 0)
+SELECT pa.identifier, pa.password, COALESCE(pa.device_id, ''), COALESCE(pa.discarded, 0)
 FROM pool_bindings pb
 INNER JOIN pool_accounts pa ON pa.id = pb.account_id
 WHERE pb.api_key = ?`
@@ -38,7 +39,7 @@ WHERE pb.api_key = ?`
 	for rows.Next() {
 		var row PoolAccountExportRow
 		var discarded int
-		if err := rows.Scan(&row.Identifier, &row.Password, &discarded); err != nil {
+		if err := rows.Scan(&row.Identifier, &row.Password, &row.DeviceID, &discarded); err != nil {
 			return nil, err
 		}
 		row.Discarded = discarded != 0
@@ -48,7 +49,8 @@ WHERE pb.api_key = ?`
 }
 
 // ExportAccountsCSV builds UTF-8 CSV (with BOM) compatible with ImportAccountsCSV.
-func (db *DB) ExportAccountsCSV(ctx context.Context, apiKey string, includeDiscarded bool) ([]byte, error) {
+// The optional device_id column is emitted between password and discarded when includeDeviceID is true.
+func (db *DB) ExportAccountsCSV(ctx context.Context, apiKey string, includeDiscarded bool, includeDeviceID bool) ([]byte, error) {
 	rows, err := db.ListPoolAccountsForExport(ctx, apiKey, includeDiscarded)
 	if err != nil {
 		return nil, err
@@ -56,7 +58,11 @@ func (db *DB) ExportAccountsCSV(ctx context.Context, apiKey string, includeDisca
 	var buf bytes.Buffer
 	buf.Write([]byte{0xEF, 0xBB, 0xBF})
 	w := csv.NewWriter(&buf)
-	if err := w.Write([]string{"email", "password", "discarded"}); err != nil {
+	header := []string{"email", "password", "discarded"}
+	if includeDeviceID {
+		header = []string{"email", "password", "device_id", "discarded"}
+	}
+	if err := w.Write(header); err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -64,7 +70,11 @@ func (db *DB) ExportAccountsCSV(ctx context.Context, apiKey string, includeDisca
 		if row.Discarded {
 			disc = "true"
 		}
-		if err := w.Write([]string{row.Identifier, row.Password, disc}); err != nil {
+		rec := []string{row.Identifier, row.Password, disc}
+		if includeDeviceID {
+			rec = []string{row.Identifier, row.Password, row.DeviceID, disc}
+		}
+		if err := w.Write(rec); err != nil {
 			return nil, err
 		}
 	}

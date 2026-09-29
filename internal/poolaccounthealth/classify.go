@@ -74,6 +74,11 @@ func IsTransientProbeError(msg string) bool {
 // ClassifyLoginError returns a pool discard reason when a login error indicates mute or ban.
 func ClassifyLoginError(msg string) string {
 	lower := strings.ToLower(strings.TrimSpace(msg))
+	// Device-fingerprint risk control (biz_code 11) is recoverable by re-harvesting
+	// a device token; it must never mark the account as muted or banned.
+	if IsDeviceRiskMessage(lower) {
+		return ""
+	}
 	if isMutedSignal(lower) {
 		return pooldb.DiscardReasonMuted
 	}
@@ -81,6 +86,26 @@ func ClassifyLoginError(msg string) string {
 		return pooldb.DiscardReasonBanned
 	}
 	return ""
+}
+
+// IsDeviceRiskMessage reports DeepSeek device-fingerprint risk control signals
+// (biz_code 11 / RISK_DEVICE_DETECTED).
+func IsDeviceRiskMessage(msg string) bool {
+	lower := strings.ToLower(strings.TrimSpace(msg))
+	if lower == "" {
+		return false
+	}
+	return strings.Contains(lower, "risk_device_detected") ||
+		strings.Contains(lower, "risk device") ||
+		strings.Contains(lower, "device_rejected") ||
+		strings.Contains(lower, "device rejected") ||
+		strings.Contains(lower, "设备风控") ||
+		strings.Contains(lower, "设备指纹")
+}
+
+// IsDeviceRiskBizCode reports DeepSeek device risk control biz codes.
+func IsDeviceRiskBizCode(code int) bool {
+	return code == 11
 }
 
 // ClassifyResponseBytes inspects a raw HTTP body (JSON or text) for mute/ban signals.
@@ -96,6 +121,9 @@ func ClassifyResponseBytes(raw []byte) (reason, message string) {
 		}
 	}
 	lower := strings.ToLower(trimmed)
+	if IsDeviceRiskMessage(lower) {
+		return "", ""
+	}
 	if isMutedSignal(lower) {
 		return pooldb.DiscardReasonMuted, "user is muted"
 	}
@@ -117,6 +145,9 @@ func ClassifyResponseMap(resp map[string]any) (reason, message string) {
 	combined := strings.ToLower(strings.TrimSpace(bizMsg))
 	if msg, _ := resp["msg"].(string); strings.TrimSpace(msg) != "" {
 		combined += " " + strings.ToLower(strings.TrimSpace(msg))
+	}
+	if IsDeviceRiskBizCode(bizCode) || IsDeviceRiskMessage(combined) {
+		return "", ""
 	}
 
 	if isMutedEnvelope(bizCode, combined, bizData) {

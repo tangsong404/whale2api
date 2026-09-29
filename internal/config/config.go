@@ -25,7 +25,13 @@ type Account struct {
 	Mobile   string `json:"mobile,omitempty"`
 	Password string `json:"password,omitempty"`
 	Token    string `json:"token,omitempty"`
-	ProxyID  string `json:"proxy_id,omitempty"`
+	// DeviceID is the Shumei device fingerprint token ("B...") for DeepSeek login risk control.
+	DeviceID string `json:"device_id,omitempty"`
+	// PoolIdentifier is the raw identifier as stored in pool_accounts (e.g. a
+	// mobile number without +86 normalization). It exists only for DB lookups and
+	// is never serialized.
+	PoolIdentifier string `json:"-"`
+	ProxyID        string `json:"proxy_id,omitempty"`
 }
 
 type Proxy struct {

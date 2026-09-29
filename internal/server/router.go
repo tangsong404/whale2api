@@ -14,6 +14,7 @@ import (
 	"whale2api/internal/chathistory"
 	"whale2api/internal/config"
 	dsclient "whale2api/internal/deepseek/client"
+	"whale2api/internal/deviceharvest"
 	"whale2api/internal/httpapi/openai/chat"
 	"whale2api/internal/httpapi/openai/embeddings"
 	"whale2api/internal/httpapi/openai/files"
@@ -56,6 +57,12 @@ func NewApp() (*App, error) {
 		return dsClient.Login(ctx, acc)
 	})
 	resolver.PoolDB = poolDB
+	resolver.DeviceHarvest = deviceharvest.NewFromEnv()
+	if resolver.DeviceHarvest.Enabled() {
+		config.Logger.Info("[device] on-demand device token harvesting enabled")
+	} else {
+		config.Logger.Warn("[device] DEVICE_HARVEST_URL not set; logins proceed without a device token")
+	}
 	config.Logger.Info("[pooldb] SQLite gateway pools enabled", "path", pooldb.DatabasePath())
 	dsClient = dsclient.NewClient(store, resolver)
 	if err := dsClient.PreloadPow(context.Background()); err != nil {

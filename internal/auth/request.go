@@ -51,12 +51,18 @@ type Resolver struct {
 	Store  *config.Store
 	PoolDB GatewayPool
 	Login  LoginFunc
+	// DeviceHarvest is the optional on-demand device token source. Nil or
+	// disabled means legacy login behavior (warn and proceed without a token).
+	DeviceHarvest DeviceHarvester
 
 	mu               sync.Mutex
 	tokenRefreshedAt map[string]time.Time
 	tokenMu          sync.Mutex
 	tokenRefreshes   map[string]*tokenRefreshCall
 	latestTokens     map[string]string
+	harvestMu        sync.Mutex
+	harvestCalls     map[string]*deviceHarvestCall
+	harvestWarnOnce  sync.Once
 	poolsMu          sync.Mutex
 	pools            map[string]*account.Pool
 }
@@ -68,6 +74,7 @@ func NewResolver(store *config.Store, login LoginFunc) *Resolver {
 		tokenRefreshedAt: map[string]time.Time{},
 		tokenRefreshes:   map[string]*tokenRefreshCall{},
 		latestTokens:     map[string]string{},
+		harvestCalls:     map[string]*deviceHarvestCall{},
 		pools:            map[string]*account.Pool{},
 	}
 }
@@ -166,6 +173,12 @@ func (r *Resolver) acquireManagedRequestAuth(ctx context.Context, callerID, targ
 			lastEnsureErr = err
 			tried[a.AccountID] = true
 			pool.Release(a.AccountID)
+			// An unavailable harvest service is account-independent: trying the
+			// next account would repeat the same failure once per account (pool
+			// size x timeout). Fail fast instead of walking the whole pool.
+			if errors.Is(err, ErrDeviceHarvestUnavailable) {
+				return nil, err
+			}
 			if target != "" {
 				return nil, err
 			}
@@ -247,7 +260,10 @@ func (r *Resolver) loginAndPersist(ctx context.Context, a *RequestAuth) error {
 	r.tokenRefreshes[accountID] = call
 	r.tokenMu.Unlock()
 
-	token, err := r.Login(ctx, a.Account)
+	token, deviceID, err := r.loginWithDevice(ctx, a.Account)
+	if deviceID != "" {
+		a.Account.DeviceID = deviceID
+	}
 	if err == nil {
 		if r.PoolDB == nil {
 			err = ErrPoolDBMissing
@@ -329,6 +345,11 @@ func (r *Resolver) SwitchAccount(ctx context.Context, a *RequestAuth) bool {
 		if err := r.ensureManagedToken(ctx, a); err != nil {
 			a.TriedAccounts[a.AccountID] = true
 			pool.Release(a.AccountID)
+			// Stop switching on an account-independent harvest failure; the next
+			// account would hit the same unavailable service.
+			if errors.Is(err, ErrDeviceHarvestUnavailable) {
+				return false
+			}
 			continue
 		}
 		return true

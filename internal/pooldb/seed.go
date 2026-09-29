@@ -30,7 +30,7 @@ func (db *DB) SeedGatewayPool(ctx context.Context, apiKey string, accounts []con
 		if id == "" {
 			continue
 		}
-		_ = db.AddAccountToPool(ctx, apiKey, id, acc.Password)
+		_ = db.AddAccountToPool(ctx, apiKey, id, acc.Password, acc.DeviceID)
 		if tok := strings.TrimSpace(acc.Token); tok != "" {
 			_ = db.UpdateAccountToken(ctx, id, tok)
 		}
